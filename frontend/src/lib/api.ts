@@ -109,11 +109,28 @@ export async function getAlternatives(
 
         }
 
-    return response.json();
-}
-
-export async function submitFeedback(
-    data: {
+        return response.json();                             
+    }                                                       
+    
+    export async function getPlaceAutocomplete(input: string, token?: string) {
+        const authToken = token || DEV_TOKEN;
+        const params = new URLSearchParams({ input });
+        
+        const response = await fetch(`${API_BASE_URL}/places/autocomplete?${params.toString()}`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${authToken}`
+            },
+        });
+    
+        if (!response.ok) {
+            throw new Error("Failed to fetch autocomplete suggestions");
+        }
+    
+        return response.json();
+    }
+    
+    export async function submitFeedback(    data: {
         recommendation_id: string;
         rating: number;
         selected_items: string[];

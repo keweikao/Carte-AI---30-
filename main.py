@@ -6,6 +6,8 @@ from schemas.feedback import FeedbackRequest
 from schemas.tracking import SwapRequest, SwapResponse, FinalizeRequest, FinalizeResponse
 from agent.dining_agent import DiningAgent
 from auth.google_auth import verify_google_token
+from agent.data_fetcher import fetch_place_details, fetch_menu_from_search, fetch_place_autocomplete
+from agent.prompt_builder import create_prompt_for_gemini_v2
 from services.firestore_service import (
     update_user_profile,
     create_recommendation_session,
@@ -43,6 +45,18 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     return verify_google_token(token)
 
 agent = DiningAgent()
+
+@app.get("/places/autocomplete")
+async def get_place_autocomplete(
+    input: str = Query(..., min_length=1),
+    user_info: dict = Depends(get_current_user)
+):
+    """
+    Proxies Google Places Autocomplete API to get restaurant suggestions.
+    Requires authentication to prevent abuse.
+    """
+    suggestions = await fetch_place_autocomplete(input)
+    return {"suggestions": suggestions}
 
 @app.post("/v2/recommendations", response_model=RecommendationResponseV2)
 async def get_recommendations_v2(

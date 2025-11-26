@@ -83,3 +83,38 @@ async def fetch_menu_from_search(restaurant_name: str) -> str:
         except Exception as e:
             print(f"Error fetching menu from search: {e}")
             return f"Error fetching menu: {str(e)}"
+
+async def fetch_place_autocomplete(input_text: str) -> list:
+    """
+    Fetches place autocomplete suggestions from Google Places API.
+    """
+    if not GOOGLE_API_KEY:
+        return []
+
+    async with httpx.AsyncClient() as client:
+        url = "https://maps.googleapis.com/maps/api/place/autocomplete/json"
+        params = {
+            "input": input_text,
+            "key": GOOGLE_API_KEY,
+            "language": "zh-TW",
+            "types": "establishment"  # Limit to businesses
+        }
+        try:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            suggestions = []
+            if "predictions" in data:
+                for prediction in data["predictions"]:
+                    suggestions.append({
+                        "description": prediction["description"],
+                        "place_id": prediction["place_id"],
+                        "main_text": prediction["structured_formatting"]["main_text"],
+                        "secondary_text": prediction["structured_formatting"].get("secondary_text", "")
+                    })
+            return suggestions
+            
+        except Exception as e:
+            print(f"Error fetching autocomplete suggestions: {e}")
+            return []
