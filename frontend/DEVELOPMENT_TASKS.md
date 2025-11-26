@@ -794,10 +794,10 @@ npm install class-variance-authority clsx tailwind-merge
 ### Phase 3: 優化與測試 (Week 3, Day 1-7)
 
 #### FE-034 🎬 優化頁面轉場動畫
-- [ ] 研究 View Transitions API
-- [ ] 實作頁面間轉場效果
-- [ ] 測試瀏覽器兼容性
-- [ ] 提供降級方案
+- [x] 研究 View Transitions API
+- [x] 實作頁面間轉場效果
+- [x] 測試瀏覽器兼容性
+- [x] 提供降級方案
 
 **預估時間**: 3 小時
 
@@ -806,10 +806,10 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-035 🎉 實作慶祝動畫
-- [ ] 整合 canvas-confetti
-- [ ] 完成所有決策時觸發
-- [ ] 調整顏色配置（caramel, terracotta, sage）
-- [ ] 調整密度與擴散範圍
+- [x] 整合 canvas-confetti
+- [x] 完成所有決策時觸發
+- [x] 調整顏色配置（caramel, terracotta, sage）
+- [x] 調整密度與擴散範圍
 
 **預估時間**: 1.5 小時
 
@@ -818,10 +818,10 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-036 💫 優化微互動
-- [ ] 加入按鈕 hover 波紋效果
-- [ ] 加入輸入框 focus 動畫
-- [ ] 加入卡片 hover 陰影變化
-- [ ] 加入觸覺回饋（振動，手機端）
+- [x] 加入按鈕 hover 波紋效果
+- [x] 加入輸入框 focus 動畫
+- [x] 加入卡片 hover 陰影變化
+- [x] 加入觸覺回饋（振動，手機端）
 
 **預估時間**: 2 小時
 
@@ -830,10 +830,10 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-037 💀 實作骨架屏
-- [ ] 建立 Skeleton 組件
-- [ ] 加入到推薦頁載入時
-- [ ] 加入到菜單頁載入時
-- [ ] 調整動畫效果（pulse）
+- [x] 建立 Skeleton 組件
+- [x] 加入到推薦頁載入時（DishCardSkeleton, MenuSummarySkeleton）
+- [x] 加入到菜單頁載入時
+- [x] 調整動畫效果（pulse）
 
 **預估時間**: 2 小時
 
@@ -842,11 +842,11 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-038 ⚠️ 實作錯誤處理
-- [ ] 加入 ErrorBoundary 組件
-- [ ] 實作 API 錯誤提示（Toast）
-- [ ] 實作網路斷線提示
-- [ ] 實作 404 頁面
-- [ ] 實作 500 錯誤頁面
+- [x] 加入 ErrorBoundary 組件
+- [x] 實作 API 錯誤提示（Toast）
+- [x] 實作網路斷線提示（NetworkStatus）
+- [x] 實作 404 頁面（not-found.tsx）
+- [x] 實作 500 錯誤頁面（error.tsx）
 
 **預估時間**: 3 小時
 
@@ -855,9 +855,9 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-039 🚨 實作候選池用完提示
-- [ ] 檢測 alternatives 為空且 API 無更多資料
-- [ ] 顯示 Dialog（該類別暫無更多推薦）
-- [ ] 提供選項：保留當前菜品 / 查看之前換掉的菜品
+- [x] 檢測 alternatives 為空且 API 無更多資料
+- [x] 顯示 Dialog（該類別暫無更多推薦）
+- [x] 提供選項：保留當前菜品 / 查看之前換掉的菜品
 
 **預估時間**: 2 小時
 
@@ -866,9 +866,9 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-040 💰 實作超預算警告
-- [ ] 計算總價與預算差異
-- [ ] 超過 20% 時顯示警告 Dialog
-- [ ] 提供選項：繼續 / 返回調整
+- [x] 計算總價與預算差異
+- [x] 超過 20% 時顯示警告 Dialog
+- [x] 提供選項：繼續 / 返回調整
 
 **預估時間**: 1.5 小時
 
@@ -877,11 +877,11 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-041 🚀 效能優化
-- [ ] 實作圖片懶加載（next/image）
-- [ ] 實作路由預載（next/link prefetch）
-- [ ] 動態導入大組件（React.lazy）
-- [ ] 優化字體載入（font-display: swap）
-- [ ] 分析 Bundle Size（next/bundle-analyzer）
+- [x] 實作圖片懶加載（next/image）
+- [x] 實作路由預載（next/link prefetch）
+- [x] 動態導入大組件（React.lazy, dynamic-imports.tsx）
+- [x] 優化字體載入（font-display: swap）
+- [x] 分析 Bundle Size（next/bundle-analyzer）
 
 **預估時間**: 4 小時
 
@@ -890,9 +890,9 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-042 ♿ 無障礙改進
-- [ ] 加入鍵盤導航支援（Tab, Enter, Esc）
-- [ ] 加入 ARIA 標籤（aria-label, aria-describedby）
-- [ ] 檢查顏色對比（WCAG AA）
+- [x] 加入鍵盤導航支援（Tab, Enter, Esc）
+- [x] 加入 ARIA 標籤（aria-label, aria-describedby）
+- [x] 檢查顏色對比（WCAG AA）
 - [ ] 測試螢幕閱讀器（VoiceOver / NVDA）
 
 **預估時間**: 4 小時
@@ -902,11 +902,11 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-043 📱 響應式測試
-- [ ] 測試 iPhone SE (375px)
-- [ ] 測試 iPhone 14 Pro (393px)
-- [ ] 測試 iPad (768px)
-- [ ] 測試 Desktop (1280px, 1920px)
-- [ ] 修正溢出或錯位問題
+- [x] 測試 iPhone SE (375px)
+- [x] 測試 iPhone 14 Pro (393px)
+- [x] 測試 iPad (768px)
+- [x] 測試 Desktop (1280px, 1920px)
+- [x] 修正溢出或錯位問題
 
 **預估時間**: 3 小時
 
