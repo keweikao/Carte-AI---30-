@@ -18,14 +18,26 @@ export function RestaurantSearch({ onSelect, defaultValue }: RestaurantSearchPro
     onSelect({ name: newValue });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow escape to clear the input
+    if (e.key === 'Escape') {
+      setValue('');
+      onSelect({ name: '' });
+    }
+  };
+
   return (
     <Input
       type="text"
       placeholder="例如：鼎泰豐、海底撈..."
       value={value}
       onChange={handleChange}
+      onKeyDown={handleKeyDown}
       className="text-lg py-6 bg-background border-border"
       autoFocus
+      aria-label="搜尋餐廳名稱"
+      aria-describedby="restaurant-search-hint"
+      role="searchbox"
     />
   );
 }

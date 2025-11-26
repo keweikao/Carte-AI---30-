@@ -288,21 +288,21 @@ function MenuPageContent() {
         <div className="min-h-screen bg-background pb-20">
             {/* Header - Hidden on print */}
             <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur print:hidden" role="banner">
-                <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
-                    <Button variant="ghost" onClick={handleBack} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="返回上一頁修改菜單">
+                <div className="container flex h-14 items-center justify-between px-4">
+                    <Button variant="ghost" onClick={handleBack} className="gap-2" aria-label="返回上一頁修改菜單">
                         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
                         返回修改
                     </Button>
-                    <div className="flex gap-1 sm:gap-2" role="group" aria-label="菜單操作">
-                        <Button variant="outline" onClick={handlePrint} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="列印菜單">
+                    <div className="flex gap-2" role="group" aria-label="菜單操作">
+                        <Button variant="outline" onClick={handlePrint} className="gap-2" aria-label="列印菜單">
                             <Printer className="w-4 h-4" aria-hidden="true" />
                             列印
                         </Button>
-                        <Button variant="outline" onClick={handleShare} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="分享菜單">
+                        <Button variant="outline" onClick={handleShare} className="gap-2" aria-label="分享菜單">
                             <Share2 className="w-4 h-4" aria-hidden="true" />
                             分享
                         </Button>
-                        <Button onClick={handleRating} className="gap-1 sm:gap-2 px-2 sm:px-4 bg-primary" aria-label="為這次推薦評分">
+                        <Button onClick={handleRating} className="gap-2 bg-primary" aria-label="為這次推薦評分">
                             <Star className="w-4 h-4" aria-hidden="true" />
                             評分
                         </Button>
@@ -321,7 +321,7 @@ function MenuPageContent() {
                     <Badge variant="neutral" className="mb-4">
                         {menu.cuisine_type}
                     </Badge>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2 font-display">
+                    <h1 className="text-4xl font-bold text-foreground mb-2 font-display">
                         {menu.restaurant_name}
                     </h1>
                     <p className="text-muted-foreground">
@@ -339,13 +339,13 @@ function MenuPageContent() {
                         <div className="flex justify-between items-end">
                             <div>
                                 <p className="text-sm text-muted-foreground mb-1">菜單總價</p>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-foreground font-mono">
+                                <h2 className="text-3xl font-bold text-foreground font-mono">
                                     NT$ {menu.total_price.toLocaleString()}
                                 </h2>
                             </div>
                             <div className="text-right">
                                 <p className="text-sm text-muted-foreground mb-1">人均約</p>
-                                <p className="text-xl sm:text-2xl font-bold text-primary font-mono">
+                                <p className="text-2xl font-bold text-primary font-mono">
                                     NT$ {perPerson.toLocaleString()}
                                 </p>
                             </div>

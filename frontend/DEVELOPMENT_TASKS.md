@@ -946,11 +946,11 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-046 🌐 跨瀏覽器測試
-- [ ] 測試 Chrome（最新版）
-- [ ] 測試 Safari（iOS + macOS）
-- [ ] 測試 Firefox（最新版）
-- [ ] 測試 Edge（最新版）
-- [ ] 修正兼容性問題
+- [x] 測試 Chrome（最新版）
+- [x] 測試 Safari（iOS + macOS）
+- [x] 測試 Firefox（最新版）
+- [x] 測試 Edge（最新版）
+- [x] 修正兼容性問題
 
 **預估時間**: 3 小時
 
@@ -959,10 +959,10 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-047 🔧 環境變數設定
-- [ ] 建立 `.env.example` 檔案
-- [ ] 定義必要的環境變數（API_URL, GOOGLE_PLACES_KEY 等）
-- [ ] 更新 `.gitignore`（排除 .env.local）
-- [ ] 撰寫環境變數說明文檔
+- [x] 建立 `.env.example` 檔案
+- [x] 定義必要的環境變數（API_URL, GOOGLE_PLACES_KEY 等）
+- [x] 更新 `.gitignore`（排除 .env.local）
+- [x] 撰寫環境變數說明文檔（ENV_SETUP_GUIDE.md）
 
 **預估時間**: 1 小時
 
@@ -971,10 +971,10 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-048 📦 Build 優化
-- [ ] 執行 `npm run build`
-- [ ] 檢查 Build 輸出（無錯誤）
-- [ ] 分析 Bundle Size（是否過大）
-- [ ] 優化大依賴（考慮替代方案或動態導入）
+- [x] 執行 `npm run build`
+- [x] 檢查 Build 輸出（無錯誤）
+- [x] 分析 Bundle Size（是否過大）
+- [x] 優化大依賴（考慮替代方案或動態導入）
 
 **預估時間**: 2 小時
 
@@ -983,10 +983,10 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-049 🔍 SEO 設定
-- [ ] 更新 `app/layout.tsx` 的 metadata
-- [ ] 設定 title, description
-- [ ] 加入 Open Graph tags
-- [ ] 加入 favicon
+- [x] 更新 `app/layout.tsx` 的 metadata
+- [x] 設定 title, description
+- [x] 加入 Open Graph tags
+- [x] 加入 favicon（已存在）
 
 **預估時間**: 1.5 小時
 
@@ -1006,10 +1006,10 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-051 🚀 部署至 Cloud Run
-- [ ] 建立 Dockerfile（如果還沒有）
-- [ ] 建立 Cloud Run service
-- [ ] 設定環境變數
-- [ ] 部署並測試
+- [x] 建立 Dockerfile
+- [x] 建立 Cloud Run service
+- [x] 設定環境變數
+- [x] 部署並測試（已部署至 https://dining-frontend-u33peegeaa-de.a.run.app）
 
 **預估時間**: 3 小時
 

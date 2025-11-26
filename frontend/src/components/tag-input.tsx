@@ -51,6 +51,9 @@ export function TagInput({
       const newTags = [...value];
       newTags.pop();
       onChange(newTags);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setInputValue("");
     }
   };
 
@@ -67,10 +70,23 @@ export function TagInput({
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="flex flex-wrap gap-2">
-        {value.map((tag) => (
-          <Badge key={tag} className="flex items-center gap-1.5 cursor-pointer" onClick={() => removeTag(tag)}>
-            {tag} <X className="size-3" />
+      <div className="flex flex-wrap gap-2" role="list" aria-label="已選擇的標籤">
+        {value.map((tag, index) => (
+          <Badge
+            key={tag}
+            className="flex items-center gap-1.5 cursor-pointer"
+            onClick={() => removeTag(tag)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                removeTag(tag);
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label={`移除標籤 ${tag}`}
+          >
+            {tag} <X className="size-3" aria-hidden="true" />
           </Badge>
         ))}
       </div>
@@ -82,10 +98,18 @@ export function TagInput({
         onChange={handleInputChange}
         onKeyDown={handleInputKeyDown}
         className="w-full"
+        aria-label="輸入新標籤"
+        aria-describedby="tag-input-hint"
+        role="combobox"
+        aria-expanded={activeSuggestions.length > 0}
+        aria-controls="tag-suggestions"
       />
+      <span id="tag-input-hint" className="sr-only">
+        輸入標籤後按 Enter 新增，或按 Backspace 刪除最後一個標籤
+      </span>
 
       {activeSuggestions.length > 0 && (
-        <div className="flex flex-wrap gap-2 pt-1">
+        <div id="tag-suggestions" className="flex flex-wrap gap-2 pt-1" role="listbox" aria-label="建議標籤">
           {activeSuggestions.map((sug) => (
             <Button
               key={sug.id}
@@ -93,8 +117,10 @@ export function TagInput({
               size="sm"
               className="rounded-full gap-1.5 h-auto py-1.5"
               onClick={() => addTag(sug.label)}
+              role="option"
+              aria-label={`新增標籤 ${sug.label}`}
             >
-              {sug.icon && <span className="text-sm">{sug.icon}</span>}
+              {sug.icon && <span className="text-sm" aria-hidden="true">{sug.icon}</span>}
               {sug.label}
             </Button>
           ))}

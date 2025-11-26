@@ -27,8 +27,63 @@ const handwriting = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "AI Dining Agent",
-  description: "Your personalized dining assistant",
+  title: {
+    default: "Carte AI - 智慧餐廳點餐助手 | 30秒快速決定吃什麼",
+    template: "%s | Carte AI"
+  },
+  description: "Carte AI 分析數千則 Google 評論，為您推薦最適合的菜色。精準避雷、預算控制、飲食客製化，30秒快速決定吃什麼！",
+  keywords: ["AI點餐", "餐廳推薦", "美食推薦", "Google評論分析", "智慧點餐", "台灣美食"],
+  authors: [{ name: "Carte AI Team" }],
+  creator: "Carte AI",
+  publisher: "Carte AI",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://dining-frontend-u33peegeaa-de.a.run.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: "Carte AI - 智慧餐廳點餐助手",
+    description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
+    url: 'https://dining-frontend-u33peegeaa-de.a.run.app',
+    siteName: 'Carte AI',
+    locale: 'zh_TW',
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Carte AI - 智慧餐廳點餐助手',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Carte AI - 智慧餐廳點餐助手",
+    description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
 };
 
 import AuthProvider from "@/components/AuthProvider";
