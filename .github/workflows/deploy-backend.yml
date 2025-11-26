@@ -1,0 +1,62 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '*.py'
+      - 'schemas/**'
+      - 'services/**'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: gen-lang-client-0415289079
+  REGION: asia-east1
+  SERVICE_NAME: dining-backend
+
+jobs:
+  deploy:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get secrets from Secret Manager
+        id: secrets
+        run: |
+          echo "GEMINI_API_KEY=$(gcloud secrets versions access latest --secret='GEMINI_API_KEY')" >> $GITHUB_OUTPUT
+          echo "GOOGLE_API_KEY=$(gcloud secrets versions access latest --secret='GOOGLE_API_KEY')" >> $GITHUB_OUTPUT
+          echo "GOOGLE_CLIENT_ID=$(gcloud secrets versions access latest --secret='GOOGLE_CLIENT_ID')" >> $GITHUB_OUTPUT
+          echo "SEARCH_ENGINE_ID=$(gcloud secrets versions access latest --secret='SEARCH_ENGINE_ID')" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --source . \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars="GEMINI_API_KEY=${{ steps.secrets.outputs.GEMINI_API_KEY }},GOOGLE_API_KEY=${{ steps.secrets.outputs.GOOGLE_API_KEY }},GOOGLE_CLIENT_ID=${{ steps.secrets.outputs.GOOGLE_CLIENT_ID }},SEARCH_ENGINE_ID=${{ steps.secrets.outputs.SEARCH_ENGINE_ID }}" \
+            --quiet
+
+      - name: Show deployment URL
+        run: |
+          echo "Backend deployed to: https://dining-backend-1045148759148.asia-east1.run.app"
