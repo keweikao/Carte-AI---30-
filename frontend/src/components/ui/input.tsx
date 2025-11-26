@@ -53,7 +53,8 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         onFocus={handleFocus}
         onBlur={handleBlur}
         {...motionProps}
-        {...props}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {...(props as any)}
       />
       {!reducedMotion && (
         <motion.div

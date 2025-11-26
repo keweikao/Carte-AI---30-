@@ -5,7 +5,8 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
   DURATION,
-  prefersReducedMotion
+  prefersReducedMotion,
+  SPRING_CONFIGS
 } from "@/lib/animation-utils"
 
 const cardVariants = cva(
@@ -57,7 +58,8 @@ function Card({
         transition: "box-shadow 0.2s ease-out",
       }}
       {...motionProps}
-      {...props}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {...(props as any)}
     >
       {props.children}
     </motion.div>
