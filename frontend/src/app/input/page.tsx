@@ -212,12 +212,12 @@ function InputPageContents() {
                                     <RestaurantSearch
                                         onSelect={({ name }) => {
                                             updateData("restaurant_name", name);
-                                            // Automatically move to next step after selection for a smoother experience
-                                            setTimeout(() => {
-                                                if (name) {
-                                                    setStep(2);
-                                                }
-                                            }, 100);
+                                            if (name) {
+                                                setStep(2);
+                                            }
+                                        }}
+                                        onChange={(value) => {
+                                            updateData("restaurant_name", value);
                                         }}
                                         defaultValue={formData.restaurant_name}
                                     />

@@ -5,24 +5,31 @@ import { Input } from '@/components/ui/input';
 
 interface RestaurantSearchProps {
   onSelect: (details: { name: string }) => void;
+  onChange?: (value: string) => void;
   defaultValue?: string;
 }
 
-export function RestaurantSearch({ onSelect, defaultValue }: RestaurantSearchProps) {
+export function RestaurantSearch({ onSelect, onChange, defaultValue }: RestaurantSearchProps) {
   const [value, setValue] = useState(defaultValue || '');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setValue(newValue);
-    // 簡單版本：直接使用輸入的文字作為餐廳名稱
-    onSelect({ name: newValue });
+    if (onChange) {
+      onChange(newValue);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Allow escape to clear the input
     if (e.key === 'Escape') {
       setValue('');
+      if (onChange) onChange('');
       onSelect({ name: '' });
+    }
+    // Allow Enter to submit
+    if (e.key === 'Enter') {
+      onSelect({ name: value });
     }
   };
 

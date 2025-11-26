@@ -113,7 +113,7 @@ function ErrorState({ error }: ErrorStateProps) {
             <h2 className="text-2xl font-bold text-foreground">出錯了！</h2>
             <p className="text-muted-foreground">{error}</p>
             <Link href="/input">
-                <Button aria-label="返回輸入頁重新設定">返回重新設定</Button>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" aria-label="返回輸入頁重新設定">返回重新設定</Button>
             </Link>
         </div>
     );
@@ -222,7 +222,10 @@ function RecommendationPageContent() {
                 // --- Build V2 Request from URL Search Params ---
                 const restaurant_name = searchParams.get("restaurant") || "";
                 const party_size = parseInt(searchParams.get("people") || "2");
-                const dining_style = (searchParams.get("mode") as "Shared" | "Individual") || "Shared";
+                
+                const rawMode = searchParams.get("mode");
+                const dining_style = (rawMode === "Shared" || rawMode === "sharing") ? "Shared" : "Individual";
+                
                 const dish_count_str = searchParams.get("dish_count");
 
                 // Parse budget - now it's a number from the slider

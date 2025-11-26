@@ -143,9 +143,8 @@ export default function Error({
 
                 <Button
                   size="lg"
-                  variant="outline"
                   onClick={() => (window.location.href = "/")}
-                  className="border-caramel-700 text-caramel-900 hover:bg-caramel-50 px-8 py-6 text-base w-full sm:w-auto"
+                  className="bg-white border border-caramel-700 text-caramel-900 hover:bg-caramel-50 px-8 py-6 text-base w-full sm:w-auto"
                 >
                   <Home className="w-5 h-5 mr-2" />
                   返回首頁
