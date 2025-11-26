@@ -90,6 +90,9 @@ import AuthProvider from "@/components/AuthProvider";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
 import { NetworkStatus } from "@/components/network-status";
+import { Analytics, GA_MEASUREMENT_ID } from "@/lib/analytics";
+import Script from "next/script";
+import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 
 export default function RootLayout({
   children,
@@ -98,6 +101,30 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-Hant" className="light">
+      <head>
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              strategy="afterInteractive"
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            />
+            <Script
+              id="google-analytics"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${GA_MEASUREMENT_ID}', {
+                    page_path: window.location.pathname,
+                  });
+                `,
+              }}
+            />
+          </>
+        )}
+      </head>
       <body
         className={[
           display.variable,
@@ -114,6 +141,8 @@ export default function RootLayout({
           {children}
           <Toaster />
           <NetworkStatus />
+          <Analytics />
+          <WebVitalsReporter />
         </AuthProvider>
       </body>
     </html>

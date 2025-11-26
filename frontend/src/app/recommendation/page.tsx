@@ -509,23 +509,23 @@ function RecommendationPageContent() {
         <div className="relative min-h-screen bg-background pb-32 font-sans">
             <div className="absolute inset-0 w-full h-full overflow-y-auto">
                 <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur" role="banner">
-                    <div className="container flex h-14 items-center justify-between px-4">
-                        <Button variant="ghost" onClick={handleBackToSettings} className="gap-2" aria-label="返回設定頁"><ArrowLeft className="w-4 h-4" aria-hidden="true" />返回設定</Button>
-                        <Button onClick={() => allDecided && alert("導航到最終菜單頁")} disabled={!allDecided} className="gap-2 bg-primary hover:bg-primary/90" aria-label={allDecided ? "產出最終點餐菜單" : "請先確認所有菜品"} aria-disabled={!allDecided}>
+                    <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
+                        <Button variant="ghost" onClick={handleBackToSettings} className="gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4" aria-label="返回設定頁"><ArrowLeft className="w-4 h-4" aria-hidden="true" />返回設定</Button>
+                        <Button onClick={() => allDecided && alert("導航到最終菜單頁")} disabled={!allDecided} className="gap-1 sm:gap-2 bg-primary hover:bg-primary/90 text-sm sm:text-base px-2 sm:px-4" aria-label={allDecided ? "產出最終點餐菜單" : "請先確認所有菜品"} aria-disabled={!allDecided}>
                             <Check className="w-4 h-4" aria-hidden="true" />產出點餐菜單
                         </Button>
                     </div>
                 </div>
 
-                <div className="bg-background/95 backdrop-blur-sm sticky top-14 z-10 px-6 py-4 shadow-sm border-b" role="region" aria-label="價格摘要">
+                <div className="bg-background/95 backdrop-blur-sm sticky top-14 z-10 px-4 sm:px-6 py-4 shadow-sm border-b" role="region" aria-label="價格摘要">
                     <div className="flex justify-between items-end mb-2">
                         <div>
                             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">菜單總價</p>
-                            <h1 className="text-3xl font-bold text-foreground font-mono transition-colors duration-300" aria-live="polite">NT$ {totalPrice.toLocaleString()}</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-mono transition-colors duration-300" aria-live="polite">NT$ {totalPrice.toLocaleString()}</h1>
                         </div>
                         <div className="text-right">
                             <p className="text-xs text-muted-foreground mb-1">人均約</p>
-                            <p className="text-xl font-bold text-orange-600 font-mono" aria-live="polite">NT$ {perPerson.toLocaleString()}</p>
+                            <p className="text-lg sm:text-xl font-bold text-orange-600 font-mono" aria-live="polite">NT$ {perPerson.toLocaleString()}</p>
                         </div>
                     </div>
                 </div>

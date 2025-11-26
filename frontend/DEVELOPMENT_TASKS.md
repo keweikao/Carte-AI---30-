@@ -995,9 +995,9 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-050 📊 Analytics 整合
-- [ ] 整合 Google Analytics（選用）
-- [ ] 追蹤關鍵事件（頁面瀏覽、按鈕點擊、完成流程）
-- [ ] 測試事件是否正確發送
+- [x] 整合 Google Analytics（選用）
+- [x] 追蹤關鍵事件（頁面瀏覽、按鈕點擊、完成流程）
+- [x] 測試事件是否正確發送
 
 **預估時間**: 2 小時
 
@@ -1029,9 +1029,9 @@ npm install class-variance-authority clsx tailwind-merge
 ---
 
 #### FE-053 📈 效能監控
-- [ ] 整合 Web Vitals
-- [ ] 設定 LCP, FID, CLS 追蹤
-- [ ] 建立效能儀表板（選用）
+- [x] 整合 Web Vitals
+- [x] 設定 LCP, FID, CLS, FCP, TTFB, INP 追蹤
+- [x] 建立效能監控（發送至 Google Analytics）
 
 **預估時間**: 2 小時
 
