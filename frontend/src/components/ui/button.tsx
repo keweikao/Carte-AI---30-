@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   DURATION,
   EASING,
-  prefersReducedMotion,
-  SPRING_CONFIGS
+  prefersReducedMotion
 } from "@/lib/animation-utils"
 import { hapticLight } from "@/lib/haptic-utils"
 
@@ -51,7 +50,7 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
-  const Comp = asChild ? Slot : ("button" as any)
+  const Comp = asChild ? Slot : "button"
   const [ripples, setRipples] = React.useState<
     Array<{ x: number; y: number; id: number }>
   >([])
@@ -118,7 +117,7 @@ function Button({
             }
           : undefined
       }
-      {...(props as any)}
+      {...props}
     >
       {props.children}
       {!reducedMotion && (

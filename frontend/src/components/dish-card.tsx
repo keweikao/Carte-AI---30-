@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle2, RotateCw, Trophy, Star } from "lucide-react";
+import { CheckCircle2, RotateCw, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import type { MenuItem, DishStatus } from "@/types";
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ export function DishCard({ item, status, onSelect, onSwap, isSwapping }: DishCar
             </div>
 
             {/* Row 2: Reason & Review Count */}
-            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-body">"{item.reason}"</p>
+            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-body">&quot;{item.reason}&quot;</p>
             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
               {item.review_count && (
                 <span className="flex items-center gap-1">

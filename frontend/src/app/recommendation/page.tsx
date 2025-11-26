@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Check, Utensils, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getRecommendations, getAlternatives, submitFeedback, UserInputV2 } from "@/lib/api";
+import { getRecommendations, getAlternatives, UserInputV2 } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
 import type { MenuItem } from "@/types";
 import {

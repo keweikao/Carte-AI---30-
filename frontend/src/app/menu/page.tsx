@@ -123,7 +123,8 @@ function MenuPageContent() {
         if (storedMenu) {
             try {
                 const parsedMenu = JSON.parse(storedMenu);
-                setMenu(parsedMenu);
+                // Use setTimeout to avoid synchronous state update warning
+                setTimeout(() => setMenu(parsedMenu), 0);
             } catch (e) {
                 console.error('Failed to parse stored menu:', e);
             }

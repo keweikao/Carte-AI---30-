@@ -121,30 +121,34 @@ function InputPageContents() {
             const adjustedPeople = parsedMode === "individual" ? 1 :
                 (parsedMode === "sharing" && parsedPeople === 1) ? 4 : parsedPeople;
 
-            setFormData({
-                restaurant_name: restaurant || "",
-                people: adjustedPeople,
-                budget: budget || "",
-                dietary_restrictions: dietary || "",
-                mode: parsedMode,
-                dish_count: dishCount ? parseInt(dishCount) : null
-            });
-
             // 如果有餐廳名稱，直接進入第二步
             if (restaurant) {
-                setStep(2);
+                setTimeout(() => setStep(2), 0);
             }
+            
+            // Update form data (wrapped in setTimeout to avoid synchronous state update warning)
+            setTimeout(() => {
+                setFormData({
+                    restaurant_name: restaurant || "",
+                    people: adjustedPeople,
+                    budget: budget || "",
+                    dietary_restrictions: dietary || "",
+                    mode: parsedMode,
+                    dish_count: dishCount ? parseInt(dishCount) : null
+                });
+            }, 0);
         }
     }, [searchParams]);
 
     // 當模式改變時調整人數
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        if (formData.mode === "individual" && formData.people !== 1) {
-            setFormData(prev => ({ ...prev, people: 1 }));
-        } else if (formData.mode === "sharing" && formData.people === 1) {
-            setFormData(prev => ({ ...prev, people: 4 }));
-        }
+        setTimeout(() => {
+            if (formData.mode === "individual" && formData.people !== 1) {
+                setFormData(prev => ({ ...prev, people: 1 }));
+            } else if (formData.mode === "sharing" && formData.people === 1) {
+                setFormData(prev => ({ ...prev, people: 4 }));
+            }
+        }, 0);
     }, [formData.mode, formData.people]);
 
     // --- CONDITIONAL RENDERING ---

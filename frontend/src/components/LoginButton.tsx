@@ -12,6 +12,7 @@ export default function LoginButton() {
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                     {session.user?.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={session.user.image} alt={session.user.name || "User"} className="w-8 h-8 rounded-full" />
                     ) : (
                         <User className="w-8 h-8 p-1 bg-secondary rounded-full" />

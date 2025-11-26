@@ -107,11 +107,8 @@ export default function NotFound() {
               {/* Decorative Quote */}
               <div className="mt-12 pt-8 border-t border-charcoal/10">
                 <blockquote className="text-center">
-                  <p className="font-handwriting text-2xl text-caramel-900 mb-2">
-                    "迷路也是一種探索"
-                  </p>
-                  <p className="text-sm text-charcoal/50">
-                    但我們還是希望幫您找到正確的路
+                  <p className="font-handwriting text-xl text-caramel-900">
+                    &quot;找不到的路，也許是另一個起點&quot;
                   </p>
                 </blockquote>
               </div>

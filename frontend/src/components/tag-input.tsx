@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
@@ -22,17 +22,15 @@ export function TagInput({
   className,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState("");
-  const [activeSuggestions, setActiveSuggestions] = useState(suggestions);
 
-  useEffect(() => {
-    setActiveSuggestions(
-      suggestions.filter(
-        (suggestion) =>
-          !value.includes(suggestion.label) &&
-          suggestion.label.toLowerCase().includes(inputValue.toLowerCase())
-      )
-    );
-  }, [inputValue, suggestions, value]);
+  const activeSuggestions = useMemo(() => 
+    suggestions.filter(
+      (suggestion) =>
+        !value.includes(suggestion.label) &&
+        suggestion.label.toLowerCase().includes(inputValue.toLowerCase())
+    ),
+    [suggestions, value, inputValue]
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -71,7 +69,7 @@ export function TagInput({
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex flex-wrap gap-2" role="list" aria-label="已選擇的標籤">
-        {value.map((tag, index) => (
+        {value.map((tag) => (
           <Badge
             key={tag}
             className="flex items-center gap-1.5 cursor-pointer"

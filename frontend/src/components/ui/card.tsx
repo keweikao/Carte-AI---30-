@@ -3,7 +3,10 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
-import { DURATION, EASING, SPRING_CONFIGS, prefersReducedMotion } from "@/lib/animation-utils"
+import {
+  DURATION,
+  prefersReducedMotion
+} from "@/lib/animation-utils"
 
 const cardVariants = cva(
   "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 px-0 transition-colors",
@@ -54,8 +57,10 @@ function Card({
         transition: "box-shadow 0.2s ease-out",
       }}
       {...motionProps}
-      {...(props as any)}
-    />
+      {...props}
+    >
+      {props.children}
+    </motion.div>
   )
 }
 

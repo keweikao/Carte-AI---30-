@@ -53,7 +53,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         onFocus={handleFocus}
         onBlur={handleBlur}
         {...motionProps}
-        {...(props as any)}
+        {...props}
       />
       {!reducedMotion && (
         <motion.div

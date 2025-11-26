@@ -186,7 +186,7 @@ export default function Error({
               <div className="mt-8">
                 <blockquote className="text-center">
                   <p className="font-handwriting text-xl text-caramel-900">
-                    "即使是最好的系統，偶爾也需要休息一下"
+                    &quot;即使是最好的系統，偶爾也需要休息一下&quot;
                   </p>
                 </blockquote>
               </div>

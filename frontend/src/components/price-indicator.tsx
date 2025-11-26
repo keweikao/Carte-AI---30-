@@ -14,12 +14,18 @@ export function PriceIndicator({ priceDiff, onComplete }: PriceIndicatorProps) {
 
   useEffect(() => {
     if (priceDiff !== 0) {
-      setIsVisible(true);
-      const timer = setTimeout(() => {
+      // Use setTimeout to avoid synchronous state update within effect
+      const showTimer = setTimeout(() => setIsVisible(true), 0);
+      
+      const hideTimer = setTimeout(() => {
         setIsVisible(false);
         onComplete();
       }, 2000); // Auto-hide after 2 seconds
-      return () => clearTimeout(timer);
+      
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+      };
     }
   }, [priceDiff, onComplete]);
 

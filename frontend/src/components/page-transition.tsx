@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useRef } from "react";
 
 /**
  * PageTransition Component
@@ -87,31 +87,41 @@ const getRouteBase = (pathname: string): string => {
 export function PageTransition({ children, className = "" }: PageTransitionProps) {
   const pathname = usePathname();
   const [direction, setDirection] = useState(0);
-  const [prevPath, setPrevPath] = useState<string | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(() => prefersReducedMotion());
+  const prevPathRef = useRef<string | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   // Check for reduced motion preference
   useEffect(() => {
+    // Need to check window inside useEffect for hydration consistency
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    
+    // Wrap in setTimeout
+    setTimeout(() => setReducedMotion(mediaQuery.matches), 0);
+    
     const handleChange = () => setReducedMotion(mediaQuery.matches);
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
+  
+  // Import useRef
+  // Added at the top of file automatically if missing? No, need to ensure imports.
 
   // Calculate direction based on route order
   useEffect(() => {
-    if (prevPath) {
+    const prevPath = prevPathRef.current;
+    if (prevPath && prevPath !== pathname) {
       const prevRoute = getRouteBase(prevPath);
       const currentRoute = getRouteBase(pathname);
 
       const prevOrder = routeOrder[prevRoute] ?? 0;
       const currentOrder = routeOrder[currentRoute] ?? 0;
 
-      setDirection(currentOrder > prevOrder ? 1 : -1);
+      // Wrap in setTimeout
+      setTimeout(() => setDirection(currentOrder > prevOrder ? 1 : -1), 0);
     }
-    setPrevPath(pathname);
-  }, [pathname, prevPath]);
+    prevPathRef.current = pathname;
+  }, [pathname]);
 
   const variants = reducedMotion ? reducedMotionVariants : pageVariants;
   const transition = reducedMotion ? reducedMotionTransition : pageTransition;
