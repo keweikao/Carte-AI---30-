@@ -15,8 +15,38 @@ env:
   SERVICE_NAME: dining-frontend
 
 jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Lint
+        run: npm run lint
+
+      # Currently we don't have tests set up to run reliably in CI, 
+      # but this placeholder ensures we can add 'npm run test' later easily.
+      # - name: Run Tests
+      #   run: npm run test
+
   deploy:
     name: Deploy Frontend
+    needs: lint-and-test
     runs-on: ubuntu-latest
     
     permissions:

@@ -1,0 +1,6 @@
+# 切換到 frontend 目錄（如果存在）
+if [ -d "frontend" ]; then
+  cd frontend
+fi
+
+npx lint-staged
