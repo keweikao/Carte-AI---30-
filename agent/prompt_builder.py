@@ -124,6 +124,7 @@ Example:
 ```
 
 ## 1. Pre-processing and Filtering (Hard Bans)
+- **Exclude Plain Staples**: Do NOT recommend plain white rice (白飯/米飯), plain noodles (白麵), or water as a standalone "dish" unless it is a specialty (e.g., "Truffle Risotto" or "Signature Fried Rice" is OK). Plain rice is assumed to be ordered separately or included.
 - **Natural Input Priority**: If the `Natural_Input` conflicts with `Preferences` buttons, `Natural_Input` takes higher priority.
 - **Absolute Prohibitions**:
   - If "No_Beef" in `Preferences`: Exclude all beef dishes.
