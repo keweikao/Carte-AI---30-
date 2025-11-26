@@ -88,12 +88,10 @@ export function PageTransition({ children, className = "" }: PageTransitionProps
   const pathname = usePathname();
   const [direction, setDirection] = useState(0);
   const [prevPath, setPrevPath] = useState<string | null>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() => prefersReducedMotion());
 
   // Check for reduced motion preference
   useEffect(() => {
-    setReducedMotion(prefersReducedMotion());
-
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handleChange = () => setReducedMotion(mediaQuery.matches);
 
@@ -153,21 +151,21 @@ export function SlideInUp({ children, delay = 0, className = "" }: SlideInUpProp
 
   const variants: Variants = reducedMotion
     ? {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1 },
-      }
+      hidden: { opacity: 0 },
+      visible: { opacity: 1 },
+    }
     : {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 },
-      };
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0 },
+    };
 
   const transition = reducedMotion
     ? { duration: 0.1 }
     : {
-        duration: 0.3,
-        delay,
-        ease: [0, 0, 0.2, 1] as [number, number, number, number] // --ease-out
-      };
+      duration: 0.3,
+      delay,
+      ease: [0, 0, 0.2, 1] as [number, number, number, number] // --ease-out
+    };
 
   return (
     <motion.div
@@ -234,21 +232,21 @@ export function ScaleIn({ children, delay = 0, className = "" }: ScaleInProps) {
 
   const variants: Variants = reducedMotion
     ? {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1 },
-      }
+      hidden: { opacity: 0 },
+      visible: { opacity: 1 },
+    }
     : {
-        hidden: { opacity: 0, scale: 0.95 },
-        visible: { opacity: 1, scale: 1 },
-      };
+      hidden: { opacity: 0, scale: 0.95 },
+      visible: { opacity: 1, scale: 1 },
+    };
 
   const transition = reducedMotion
     ? { duration: 0.1 }
     : {
-        duration: 0.2,
-        delay,
-        ease: [0, 0, 0.2, 1] as [number, number, number, number]
-      };
+      duration: 0.2,
+      delay,
+      ease: [0, 0, 0.2, 1] as [number, number, number, number]
+    };
 
   return (
     <motion.div
@@ -318,13 +316,13 @@ export function StaggerItem({ children, className = "" }: StaggerItemProps) {
 
   const variants: Variants = reducedMotion
     ? {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1 },
-      }
+      hidden: { opacity: 0 },
+      visible: { opacity: 1 },
+    }
     : {
-        hidden: { opacity: 0, y: 10 },
-        visible: { opacity: 1, y: 0 },
-      };
+      hidden: { opacity: 0, y: 10 },
+      visible: { opacity: 1, y: 0 },
+    };
 
   const transition = reducedMotion
     ? { duration: 0.1 }

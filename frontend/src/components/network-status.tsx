@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/use-toast";
-import { WifiOff, Wifi } from "lucide-react";
+import { WifiOff } from "lucide-react";
 
 /**
  * Network Status Monitor
@@ -15,13 +15,12 @@ import { WifiOff, Wifi } from "lucide-react";
  * ```
  */
 export function NetworkStatus() {
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof window !== 'undefined' ? navigator.onLine : true
+  );
   const [hasShownOffline, setHasShownOffline] = useState(false);
 
   useEffect(() => {
-    // Initialize online status
-    setIsOnline(navigator.onLine);
-
     const handleOnline = () => {
       setIsOnline(true);
       setHasShownOffline(false);
