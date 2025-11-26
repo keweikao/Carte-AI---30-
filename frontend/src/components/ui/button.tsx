@@ -117,7 +117,8 @@ function Button({
             }
           : undefined
       }
-      {...props}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {...(props as any)}
     >
       {props.children}
       {!reducedMotion && (
