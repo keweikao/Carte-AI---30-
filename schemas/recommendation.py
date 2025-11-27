@@ -60,7 +60,8 @@ class UserInputV2(BaseModel):
 
 class MenuItemV2(BaseModel):
     dish_id: Optional[str] = Field(None, description="Corresponding menu item ID")
-    dish_name: str = Field(..., description="Name of the dish")
+    dish_name: str = Field(..., description="Name of the dish (User's preferred language)")
+    dish_name_local: Optional[str] = Field(None, description="Name of the dish in the restaurant's local language (e.g., Japanese)")
     price: int = Field(..., description="Price of the dish")
     quantity: int = Field(..., description="Quantity of this dish to order", ge=1)
     reason: str = Field(..., description="Reason for recommending this dish")

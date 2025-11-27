@@ -117,6 +117,7 @@ function MenuPageContent() {
     const [copied, setCopied] = useState(false);
     const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
     const [showShareMenu, setShowShareMenu] = useState(false);
+    const [showLocalLanguage, setShowLocalLanguage] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -377,9 +378,20 @@ function MenuPageContent() {
                     <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2 font-display">
                         {menu.restaurant_name}
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground mb-4">
                         {menu.party_size} 人用餐 • {menu.dishes.length} 道菜
                     </p>
+
+                    <div className="flex justify-center">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowLocalLanguage(!showLocalLanguage)}
+                            className="gap-2"
+                        >
+                            {showLocalLanguage ? "顯示中文菜名" : "顯示原文菜名"}
+                        </Button>
+                    </div>
                 </motion.div>
 
                 {/* Price Summary */}
@@ -425,7 +437,7 @@ function MenuPageContent() {
                                                     {index + 1}.
                                                 </span>
                                                 <h4 className="text-lg font-bold text-foreground">
-                                                    {dish.dish_name} {dish.quantity > 1 && <span className="text-caramel">x{dish.quantity}</span>}
+                                                    {(showLocalLanguage && dish.dish_name_local) ? dish.dish_name_local : dish.dish_name} {dish.quantity > 1 && <span className="text-caramel">x{dish.quantity}</span>}
                                                 </h4>
                                                 {dish.category && (
                                                     <Badge variant="neutral" className="text-xs" aria-label={`類別：${dish.category}`}>

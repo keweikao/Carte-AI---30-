@@ -24,7 +24,19 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
             "menu_items": {
                 "type": "array",
                 "description": "A list of 20-25 diverse and high-quality dish recommendations.",
-                "items": MenuItemV2.model_json_schema()
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "dish_name": {"type": "string", "description": "Name of the dish (User's preferred language)"},
+                        "dish_name_local": {"type": "string", "description": "Name of the dish in the restaurant's local language"},
+                        "price": {"type": "integer"},
+                        "quantity": {"type": "integer"},
+                        "reason": {"type": "string"},
+                        "category": {"type": "string"},
+                        "review_count": {"type": "integer"}
+                    },
+                    "required": ["dish_name", "price", "quantity", "reason", "category"]
+                }
             }
         },
         "required": ["cuisine_type", "currency", "menu_items"]
@@ -230,7 +242,10 @@ You MUST return a valid JSON object that strictly follows the schema below. Your
 3.  **Detect cuisine type**: The `cuisine_type` MUST be one of: "中式餐館", "日本料理", "美式餐廳", "義式料理", "泰式料理".
 4.  **Detect Currency**: Analyze the menu prices and restaurant location (if implied) to determine the currency (e.g., "JPY" for Japan, "TWD" for Taiwan).
 5.  **Ensure variety**: The list should cover different categories and price points suitable for the user. Do not just recommend all expensive items.
-# 6.  **Language**: All output text (including `reason`, `dish_name` if possible, and `recommendation_summary`) MUST be in the user's preferred language: **{user_input.language}**. If the dish name is better kept in original language, append the translation in brackets.
+6.  **Language**: 
+    - `dish_name`: MUST be in the user's preferred language: **{user_input.language}**.
+    - `dish_name_local`: MUST be in the restaurant's local language (e.g., Japanese for a restaurant in Japan). If the local language IS the user's language, this can be the same as `dish_name`.
+    - `reason` and `recommendation_summary`: MUST be in the user's preferred language.
 
 **Example Output Structure:**
 ```json

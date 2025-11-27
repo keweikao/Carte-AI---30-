@@ -3,6 +3,7 @@
 export interface MenuItem {
   dish_id: string | null;
   dish_name: string;
+  dish_name_local?: string;
   price: number;
   quantity: number;
   category: string;
