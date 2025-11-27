@@ -20,7 +20,7 @@ export function RecommendationSummary({
     <Card className="mb-6 p-4 bg-cream-100 border-caramel/20">
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="text-2xl" aria-hidden="true">📊</span>
+          <span className="text-2xl" aria-hidden="true">✨</span>
           <h2 className="text-lg font-semibold text-foreground">
             為您推薦 {totalDishes} 道菜
           </h2>
