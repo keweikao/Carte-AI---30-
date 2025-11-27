@@ -73,7 +73,7 @@ jobs:
             --region=${{ env.REGION }} \
             --platform=managed \
             --allow-unauthenticated \
-            --set-env-vars="NEXTAUTH_URL=https://dining-frontend-1045148759148.asia-east1.run.app,NEXT_PUBLIC_API_URL=https://dining-backend-1045148759148.asia-east1.run.app" \
+            --set-env-vars="NEXTAUTH_URL=https://dining-frontend-1045148759148.asia-east1.run.app,NEXT_PUBLIC_API_URL=https://dining-backend-1045148759148.asia-east1.run.app,AUTH_TRUST_HOST=true" \
             --set-secrets="GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest" \
             --quiet
 
