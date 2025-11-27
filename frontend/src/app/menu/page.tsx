@@ -209,9 +209,10 @@ function MenuPageContent() {
         menu.dishes.forEach((dish, index) => {
             ctx.font = '20px sans-serif'; // Larger font
             ctx.fillStyle = '#2D2D2D';
-            ctx.fillText(`${index + 1}. ${dish.dish_name}`, 50, y);
+            const dishName = dish.quantity > 1 ? `${dish.dish_name} x${dish.quantity}` : dish.dish_name;
+            ctx.fillText(`${index + 1}. ${dishName}`, 50, y);
             ctx.textAlign = 'right';
-            ctx.fillText(`NT$ ${dish.price}`, canvas.width - 50, y); // Adjusted X position
+            ctx.fillText(`NT$ ${(dish.price * dish.quantity).toLocaleString()}`, canvas.width - 50, y); // Adjusted X position
             ctx.textAlign = 'center'; // Reset for next line
             y += 55; // Adjusted line height
         });
@@ -423,7 +424,7 @@ function MenuPageContent() {
                                                     {index + 1}.
                                                 </span>
                                                 <h4 className="text-lg font-bold text-foreground">
-                                                    {dish.dish_name}
+                                                    {dish.dish_name} {dish.quantity > 1 && <span className="text-caramel">x{dish.quantity}</span>}
                                                 </h4>
                                                 {dish.category && (
                                                     <Badge variant="neutral" className="text-xs" aria-label={`類別：${dish.category}`}>
@@ -441,9 +442,14 @@ function MenuPageContent() {
                                             )}
                                         </div>
                                         <div className="text-right flex-shrink-0">
-                                            <p className="text-lg font-bold font-mono text-foreground" aria-label={`價格 ${dish.price} 元`}>
-                                                NT$ {dish.price}
+                                            <p className="text-lg font-bold font-mono text-foreground" aria-label={`價格 ${dish.price * dish.quantity} 元`}>
+                                                NT$ {(dish.price * dish.quantity).toLocaleString()}
                                             </p>
+                                            {dish.quantity > 1 && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {dish.quantity} × NT$ {dish.price}
+                                                </p>
+                                            )}
                                             {dish.price_estimated && (
                                                 <p className="text-xs text-muted-foreground">估價</p>
                                             )}

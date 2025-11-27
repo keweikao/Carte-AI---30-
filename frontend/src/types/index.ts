@@ -4,6 +4,7 @@ export interface MenuItem {
   dish_id: string | null;
   dish_name: string;
   price: number;
+  quantity: number;
   category: string;
   reason: string;
   review_count?: number;

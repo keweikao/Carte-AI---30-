@@ -60,6 +60,7 @@ class MenuItemV2(BaseModel):
     dish_id: Optional[str] = Field(None, description="Corresponding menu item ID")
     dish_name: str = Field(..., description="Name of the dish")
     price: int = Field(..., description="Price of the dish")
+    quantity: int = Field(..., description="Quantity of this dish to order", ge=1)
     reason: str = Field(..., description="Reason for recommending this dish")
     category: str = Field(..., description="Dish category (e.g., 冷菜, 熱菜, 刺身, 壽司)")
     review_count: Optional[int] = Field(None, description="Number of reviews mentioning this dish")

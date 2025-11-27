@@ -150,21 +150,45 @@ Example:
 - **Shared Style**: Recommend `Party_Size + 1` dishes. Structure should include: 1 starch, 1 main protein, 1 vegetable, 1 soup/other.
 - **Individual Style**: Recommend `Party_Size` complete sets.
 
-## 4. Portion Size & Satiety Check
+## 4. Portion Size, Quantity & Satiety Check
 **CRITICAL: Ensure recommended dishes provide adequate portions for the number of diners.**
-- **Portion Analysis**: When selecting dishes, consider whether each dish's portion size is suitable for the party size:
-  - For **Shared Style**: Each dish should be shareable. If a dish is typically "single-serving" (e.g., 一人份), either:
-    - Recommend `Party_Size` quantities of that dish (e.g., "小籠包 x3" for 3 people), OR
-    - Choose a larger "family-style" or "sharing platter" version if available, OR
-    - Skip it in favor of genuinely shareable dishes
-  - For **Individual Style**: Each set should be one complete meal per person
-- **Satiety Guidelines**:
-  - **Shared Style (Party_Size + 1 dishes)**: The total food volume should satisfy all diners. Prioritize dishes with substantial portions (e.g., main proteins at 300-500g, rice/noodles at 200-300g per person).
-  - **Individual Style**: Each set must be a complete meal with sufficient calories (~600-800 kcal for lunch, ~800-1000 kcal for dinner)
-- **Special Cases**:
-  - If the restaurant is known for small portions (e.g., tapas, dim sum), recommend MORE dishes than the default formula
-  - If the restaurant serves large portions (e.g., American steakhouse, family-style Chinese), the default `Party_Size + 1` may be sufficient
-  - Always mention portion size considerations in your `recommendation_summary` if relevant
+
+### Quantity Calculation (MANDATORY for every dish)
+Every dish MUST include a `quantity` field indicating how many portions to order:
+
+- **Shared Style**:
+  - **Main Dishes** (熱菜, 主菜, 主餐, 炒飯麵, 咖哩, etc.): `quantity = 1` (one sharing portion)
+  - **Small Dishes / Sides** (冷菜, 前菜, 配菜, 開胃菜, etc.): `quantity = ceil(Party_Size / 2)` (e.g., 3 people = 2 portions, 4 people = 2 portions, 5 people = 3 portions)
+  - **Staples** (主食, 米飯, 麵類, etc.): `quantity = Party_Size` (one per person)
+  - **Soups** (湯品, 湯類, 湯物): `quantity = 1` (one large soup to share)
+  - **Desserts** (甜點, 甜品, Dolci): `quantity = ceil(Party_Size / 2)` (shared desserts)
+
+- **Individual Style**:
+  - **All dishes**: `quantity = Party_Size` (each person gets their own portion)
+
+**Examples:**
+- Party of 3, Shared Style:
+  - "宮保雞丁" (main): quantity = 1
+  - "涼拌小黃瓜" (cold dish): quantity = 2 (ceil(3/2))
+  - "白飯" (staple): quantity = 3
+
+- Party of 4, Individual Style:
+  - "牛肉麵" (main): quantity = 4
+  - "小籠包" (appetizer): quantity = 4
+
+### Portion Analysis
+When selecting dishes, consider whether each dish's portion size is suitable for the party size:
+- For **Shared Style**: Each dish should be shareable. If a dish is typically "single-serving" (e.g., 一人份), adjust the quantity accordingly
+- For **Individual Style**: Each set should be one complete meal per person
+
+### Satiety Guidelines
+- **Shared Style (Party_Size + 1 dishes)**: The total food volume should satisfy all diners. Prioritize dishes with substantial portions (e.g., main proteins at 300-500g, rice/noodles at 200-300g per person).
+- **Individual Style**: Each set must be a complete meal with sufficient calories (~600-800 kcal for lunch, ~800-1000 kcal for dinner)
+
+### Special Cases
+- If the restaurant is known for small portions (e.g., tapas, dim sum), recommend MORE dishes than the default formula OR increase quantities
+- If the restaurant serves large portions (e.g., American steakhouse, family-style Chinese), the default `Party_Size + 1` may be sufficient with quantity = 1
+- Always mention portion size considerations in your `recommendation_summary` if relevant
 
 ## 5. Pairing & Budgeting Algorithm
 - **Variety Check**: Avoid more than two dishes with the same main protein (chicken, pork, beef) unless requested.
@@ -189,6 +213,7 @@ You MUST return a valid JSON object that strictly follows the schema below. Your
       "dish_id": null,
       "dish_name": "小籠包",
       "price": 200,
+      "quantity": 2,
       "reason": "鼎泰豐招牌菜品，342 則評論提到皮薄汁多",
       "category": "點心",
       "review_count": 342
@@ -197,6 +222,7 @@ You MUST return a valid JSON object that strictly follows the schema below. Your
       "dish_id": null,
       "dish_name": "蟹粉小籠包",
       "price": 380,
+      "quantity": 1,
       "reason": "奢華版小籠包，適合想嘗鮮的顧客",
       "category": "點心",
       "review_count": 98
@@ -205,6 +231,7 @@ You MUST return a valid JSON object that strictly follows the schema below. Your
       "dish_id": null,
       "dish_name": "紅油抄手",
       "price": 180,
+      "quantity": 2,
       "reason": "麻辣香濃，156 則評論推薦",
       "category": "冷菜",
       "review_count": 156
