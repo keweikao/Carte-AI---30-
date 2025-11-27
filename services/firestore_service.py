@@ -350,3 +350,32 @@ def get_recommendation_candidates(recommendation_id: str) -> dict:
         print(f"Error getting recommendation candidates: {e}")
     
     return None
+def save_user_activity(user_id: str, activity_type: str, data: dict) -> bool:
+    """
+    Saves a user activity (e.g., search, generate_menu) to Firestore.
+
+    Args:
+        user_id: The user's ID.
+        activity_type: The type of activity (e.g., 'search', 'generate_menu').
+        data: The activity data.
+
+    Returns:
+        bool: True if successful, False otherwise.
+    """
+    if not db:
+        print("Warning: Firestore not available, activity not saved.")
+        return False
+
+    try:
+        activity_ref = db.collection("users").document(user_id).collection("activities").document()
+        activity_data = {
+            "type": activity_type,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc),
+            **data
+        }
+        activity_ref.set(activity_data)
+        print(f"Saved user activity '{activity_type}' for user {user_id}")
+        return True
+    except Exception as e:
+        print(f"Error saving user activity: {e}")
+        return False

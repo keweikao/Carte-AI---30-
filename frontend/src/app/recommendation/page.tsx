@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Check, Utensils, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getRecommendations, getAlternatives, UserInputV2 } from "@/lib/api";
+import { getRecommendations, getAlternatives, finalizeOrder, UserInputV2 } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
 import { CategoryHeader } from "@/components/category-header";
 import { RecommendationSummary } from "@/components/recommendation-summary";
@@ -176,6 +176,7 @@ function RecommendationPageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { data: session } = useSession();
+    const startTimeRef = useRef(Date.now());
 
     // Core states
     const [initialLoading, setInitialLoading] = useState(true); // Only true for the very first load
@@ -591,78 +592,100 @@ function RecommendationPageContent() {
                                         const status = slotStatus.get(slot.display.dish_name) || 'pending';
                                         const isSwapping = swappingSlots.has(index);
 
-                        return (
-                            <motion.div
-                                key={slot.display.dish_name}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                data-slot-index={index}
-                                role="listitem"
-                            >
-                                <Card
-                                    className={`p-4 transition-all duration-300 rounded-xl bg-white shadow-sm ${status === 'selected' ? 'opacity-50' : ''}`}
-                                    role="article"
-                                    aria-label={`菜品推薦：${slot.display.dish_name}，價格 ${slot.display.price} 元`}
-                                >
-                                    <div className="flex gap-4">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-bold text-lg text-foreground leading-tight">{slot.display.dish_name}</h3>
-                                                    {slot.display.quantity > 1 && (
-                                                        <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
-                                                            x{slot.display.quantity}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <span className="text-lg font-mono font-semibold text-foreground" aria-label={`價格 ${slot.display.price} 元`}>NT$ {slot.display.price}</span>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">&ldquo;{slot.display.reason}&rdquo;</p>
+                                        return (
+                                            <motion.div
+                                                key={slot.display.dish_name}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.1 }}
+                                                data-slot-index={index}
+                                                role="listitem"
+                                            >
+                                                <Card
+                                                    className={`p-4 transition-all duration-300 rounded-xl bg-white shadow-sm ${status === 'selected' ? 'opacity-50' : ''}`}
+                                                    role="article"
+                                                    aria-label={`菜品推薦：${slot.display.dish_name}，價格 ${slot.display.price} 元`}
+                                                >
+                                                    <div className="flex gap-4">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <h3 className="font-bold text-lg text-foreground leading-tight">{slot.display.dish_name}</h3>
+                                                                    {slot.display.quantity > 1 && (
+                                                                        <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
+                                                                            x{slot.display.quantity}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-lg font-mono font-semibold text-foreground" aria-label={`價格 ${slot.display.price} 元`}>NT$ {slot.display.price}</span>
+                                                            </div>
+                                                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">&ldquo;{slot.display.reason}&rdquo;</p>
 
-                                            <div className="flex items-center gap-2 mt-4" role="group" aria-label="菜品操作">
-                                                <Button
-                                                    size="sm"
-                                                    className={`flex-1 h-9 rounded-full ${status === 'selected' ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'} text-primary-foreground`}
-                                                    onClick={() => handleSelect(slot.display.dish_name, index)}
-                                                    aria-label={status === 'selected' ? `取消選擇 ${slot.display.dish_name}` : `確認要點 ${slot.display.dish_name}`}
-                                                    aria-pressed={status === 'selected'}
-                                                >
-                                                    <CheckCircle2 className="w-4 h-4 mr-1.5" aria-hidden="true" />
-                                                    {status === 'selected' ? '已選擇' : '我要點'}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-9 rounded-full px-4"
-                                                    onClick={() => handleSwap(index)}
-                                                    disabled={isSwapping}
-                                                    aria-label={`換一道菜替代 ${slot.display.dish_name}`}
-                                                    aria-busy={isSwapping}
-                                                >
-                                                    <RotateCw className={`w-4 h-4 mr-1.5 ${isSwapping ? 'animate-spin' : ''}`} aria-hidden="true" />
-                                                    換一道
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Card>
-                            </motion.div>
+                                                            <div className="flex items-center gap-2 mt-4" role="group" aria-label="菜品操作">
+                                                                <Button
+                                                                    size="sm"
+                                                                    className={`flex-1 h-9 rounded-full ${status === 'selected' ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'} text-primary-foreground`}
+                                                                    onClick={() => handleSelect(slot.display.dish_name, index)}
+                                                                    aria-label={status === 'selected' ? `取消選擇 ${slot.display.dish_name}` : `確認要點 ${slot.display.dish_name}`}
+                                                                    aria-pressed={status === 'selected'}
+                                                                >
+                                                                    <CheckCircle2 className="w-4 h-4 mr-1.5" aria-hidden="true" />
+                                                                    {status === 'selected' ? '已選擇' : '我要點'}
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="h-9 rounded-full px-4"
+                                                                    onClick={() => handleSwap(index)}
+                                                                    disabled={isSwapping}
+                                                                    aria-label={`換一道菜替代 ${slot.display.dish_name}`}
+                                                                    aria-busy={isSwapping}
+                                                                >
+                                                                    <RotateCw className={`w-4 h-4 mr-1.5 ${isSwapping ? 'animate-spin' : ''}`} aria-hidden="true" />
+                                                                    換一道
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         );
                     })}
                 </div>
             </div>
-        );
-    })}
-</div>
-</div>
 
             {/* Fixed Bottom Bar for Generate Menu */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t z-50">
                 <div className="container max-w-4xl mx-auto">
                     <Button
-                        onClick={() => {
+                        onClick={async () => {
                             if (allDecided) {
+                                try {
+                                    // Calculate session duration
+                                    const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+
+                                    // Track finalization
+                                    await finalizeOrder(data.recommendation_id, {
+                                        final_selections: dishSlots.map(slot => ({
+                                            dish_name: slot.display.dish_name,
+                                            category: slot.category,
+                                            price: slot.display.price,
+                                            // We don't track swap count per dish in frontend state yet, 
+                                            // but we can infer was_swapped if we had initial state.
+                                            // For now, let's keep it simple.
+                                        })),
+                                        total_price: totalPrice,
+                                        session_duration_seconds: duration
+                                    });
+                                } catch (e) {
+                                    console.error("Failed to track order finalization:", e);
+                                    // Proceed anyway
+                                }
+
                                 const finalMenu = {
                                     recommendation_id: data.recommendation_id,
                                     restaurant_name: data.restaurant_name,

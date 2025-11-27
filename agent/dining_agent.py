@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from schemas.recommendation import UserInputV2, RecommendationResponseV2, MenuItemV2, DishSlotResponse, RecommendationRequest, FullRecommendationResponse
 from agent.data_fetcher import fetch_place_details, fetch_menu_from_search
 from agent.prompt_builder import create_prompt_for_gemini_v2
-from services.firestore_service import get_cached_data, save_restaurant_data, get_user_profile, save_recommendation_candidates
+from services.firestore_service import get_cached_data, save_restaurant_data, get_user_profile, save_recommendation_candidates, save_user_activity
 
 load_dotenv()
 
@@ -61,8 +61,18 @@ class DiningAgent:
         if request.user_id:
             try:
                 user_profile = get_user_profile(request.user_id)
+                # Record search activity
+                save_user_activity(request.user_id, "search", {
+                    "restaurant_name": request.restaurant_name,
+                    "place_id": request.place_id,
+                    "dining_style": request.dining_style,
+                    "party_size": request.party_size,
+                    "budget": request.budget.model_dump(),
+                    "occasion": request.occasion,
+                    "preferences": request.preferences
+                })
             except Exception as e:
-                print(f"Warning: Failed to get user profile. Proceeding without it. Error: {e}")
+                print(f"Warning: Failed to get user profile or save activity. Error: {e}")
         
         # 3. Build V2 Prompt for a large candidate pool
         prompt = create_prompt_for_gemini_v2(request, menu_json, reviews_json, user_profile)

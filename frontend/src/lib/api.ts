@@ -42,29 +42,29 @@ export async function getRecommendations(
         // Clone the response so we can read it multiple times if needed
         const clonedResponse = response.clone();
 
-                try {
+        try {
 
-                    const errorData = await response.json();
+            const errorData = await response.json();
 
-                    throw new Error(errorData.detail || `HTTP ${response.status}: Failed to fetch recommendations`);
+            throw new Error(errorData.detail || `HTTP ${response.status}: Failed to fetch recommendations`);
 
-                } catch {
+        } catch {
 
-                    // If JSON parsing fails, try to get text from the cloned response
+            // If JSON parsing fails, try to get text from the cloned response
 
-                    try {
+            try {
 
-                        const errorText = await clonedResponse.text();
+                const errorText = await clonedResponse.text();
 
-                        throw new Error(`HTTP ${response.status}: ${errorText || 'Failed to fetch recommendations'}`);
+                throw new Error(`HTTP ${response.status}: ${errorText || 'Failed to fetch recommendations'}`);
 
-                    } catch {
+            } catch {
 
-                        throw new Error(`HTTP ${response.status}: Failed to fetch recommendations`);
+                throw new Error(`HTTP ${response.status}: Failed to fetch recommendations`);
 
-                    }
+            }
 
-                }
+        }
     }
 
     return response.json();
@@ -94,49 +94,49 @@ export async function getAlternatives(
         },
     });
 
-        if (!response.ok) {
+    if (!response.ok) {
 
-            try {
+        try {
 
-                const errorData = await response.json();
+            const errorData = await response.json();
 
-                throw new Error(errorData.detail || `HTTP ${response.status}: Failed to fetch alternatives`);
+            throw new Error(errorData.detail || `HTTP ${response.status}: Failed to fetch alternatives`);
 
-            } catch {
+        } catch {
 
-                throw new Error(`HTTP ${response.status}: Failed to fetch alternatives`);
-
-            }
+            throw new Error(`HTTP ${response.status}: Failed to fetch alternatives`);
 
         }
 
-        return response.json();                             
-    }                                                       
-    
-    export async function getPlaceAutocomplete(input: string, token?: string) {
-        const authToken = token || DEV_TOKEN;
-        const params = new URLSearchParams({ input });
-        
-        const response = await fetch(`${API_BASE_URL}/places/autocomplete?${params.toString()}`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${authToken}`
-            },
-        });
-    
-        if (!response.ok) {
-            throw new Error("Failed to fetch autocomplete suggestions");
-        }
-    
-        return response.json();
     }
-    
-    export async function submitFeedback(    data: {
-        recommendation_id: string;
-        rating: number;
-        selected_items: string[];
-        comment?: string;
-    },
+
+    return response.json();
+}
+
+export async function getPlaceAutocomplete(input: string, token?: string) {
+    const authToken = token || DEV_TOKEN;
+    const params = new URLSearchParams({ input });
+
+    const response = await fetch(`${API_BASE_URL}/places/autocomplete?${params.toString()}`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${authToken}`
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch autocomplete suggestions");
+    }
+
+    return response.json();
+}
+
+export async function submitFeedback(data: {
+    recommendation_id: string;
+    rating: number;
+    selected_items: string[];
+    comment?: string;
+},
     token?: string
 ) {
     const authToken = token || DEV_TOKEN;
@@ -152,6 +152,41 @@ export async function getAlternatives(
 
     if (!response.ok) {
         throw new Error("Failed to submit feedback");
+    }
+
+    return response.json();
+}
+export async function finalizeOrder(
+    recommendationId: string,
+    data: {
+        final_selections: {
+            dish_name: string;
+            category: string;
+            price: number;
+            was_swapped?: boolean;
+            swap_count?: number;
+        }[];
+        total_price: number;
+        session_duration_seconds?: number;
+    },
+    token?: string
+) {
+    const authToken = token || DEV_TOKEN;
+
+    const response = await fetch(`${API_BASE_URL}/v2/recommendations/${recommendationId}/finalize`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+            recommendation_id: recommendationId,
+            ...data
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to finalize order");
     }
 
     return response.json();

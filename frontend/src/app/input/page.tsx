@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User } from "lucide-react";
+import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
@@ -31,6 +31,7 @@ function InputPageContents() {
         budget: string;
         dietary_restrictions: string;
         mode: "sharing" | "individual";
+        occasion: "business" | "date" | "family" | "friends" | "fitness";
         dish_count: number | null;
     }>({
         restaurant_name: "",
@@ -39,6 +40,7 @@ function InputPageContents() {
         budget: "200",
         dietary_restrictions: "",
         mode: "sharing",
+        occasion: "friends",
         dish_count: null
     });
     const [budgetType, setBudgetType] = useState<"person" | "total">("person");
@@ -91,7 +93,8 @@ function InputPageContents() {
                 budget: formData.budget,
                 dietary: formData.dietary_restrictions,
                 mode: formData.mode,
-                budget_type: budgetType, // Add budget_type here
+                occasion: formData.occasion, // Add occasion here
+                budget_type: budgetType,
                 ...(formData.dish_count && { dish_count: formData.dish_count.toString() }),
                 ...(formData.place_id && { place_id: formData.place_id })
             });
@@ -139,6 +142,7 @@ function InputPageContents() {
                     budget: budget || "",
                     dietary_restrictions: dietary || "",
                     mode: parsedMode,
+                    occasion: "friends", // Default to friends if not specified
                     dish_count: dishCount ? parseInt(dishCount) : null
                 });
             }, 0);
@@ -315,6 +319,35 @@ function InputPageContents() {
                                     </RadioGroup>
                                 </div>
 
+                                {/* Occasion (New) */}
+                                <div className="space-y-3">
+                                    <Label className="text-base">用餐情境</Label>
+                                    <RadioGroup
+                                        defaultValue={formData.occasion}
+                                        onValueChange={(val) => updateData("occasion", val)}
+                                        className="grid grid-cols-3 sm:grid-cols-5 gap-2"
+                                    >
+                                        {[
+                                            { id: "friends", label: "朋友聚會", icon: Users },
+                                            { id: "family", label: "家庭聚餐", icon: Home },
+                                            { id: "date", label: "約會慶祝", icon: Heart },
+                                            { id: "business", label: "商務聚餐", icon: Briefcase },
+                                            { id: "fitness", label: "健身減脂", icon: Dumbbell },
+                                        ].map((item) => (
+                                            <div key={item.id}>
+                                                <RadioGroupItem value={item.id} id={`occasion-${item.id}`} className="peer sr-only" />
+                                                <Label
+                                                    htmlFor={`occasion-${item.id}`}
+                                                    className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all h-full"
+                                                >
+                                                    <item.icon className="h-5 w-5" />
+                                                    <span className="text-xs font-medium text-center">{item.label}</span>
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+
                                 {/* People Count */}
                                 <div className="space-y-3">
                                     <Label htmlFor="people-count" className="text-base">幾位用餐？</Label>
@@ -426,20 +459,16 @@ function InputPageContents() {
 
                                 {/* Dietary */}
                                 <div className="space-y-3">
-                                    <Label className="text-base">用餐風格偏好</Label>
+                                    <Label className="text-base">飲食禁忌與偏好</Label>
                                     <TagInput
                                         value={formData.dietary_restrictions.split(',').map(s => s.trim()).filter(Boolean)}
                                         onChange={(tags) => updateData("dietary_restrictions", tags.join(", "))}
                                         suggestions={[
-                                            { id: "love_meat", label: "愛吃肉", icon: "🥩" },
-                                            { id: "more_seafood", label: "多點海鮮", icon: "🦐" },
-                                            { id: "need_vegetarian", label: "需要素食選項", icon: "🥬" },
-                                            { id: "more_vegetables", label: "多蔬菜", icon: "🥗" },
-                                            { id: "prefer_light", label: "偏好清淡", icon: "🍃" },
-                                            { id: "can_eat_spicy", label: "能吃辣", icon: "🌶️" },
+                                            { id: "no_beef", label: "不吃牛", icon: "🥩" },
+                                            { id: "no_pork", label: "不吃豬", icon: "🐷" },
                                             { id: "no_spicy", label: "不吃辣", icon: "🚫" },
-                                            { id: "kid_friendly", label: "有小孩", icon: "👶" },
-                                            { id: "elderly", label: "長輩友善", icon: "👴" },
+                                            { id: "vegetarian", label: "素食", icon: "🥬" },
+                                            { id: "seafood_allergy", label: "海鮮過敏", icon: "🦐" },
                                         ]}
                                         placeholder="例如：不吃花生、奶蛋素..."
                                     />

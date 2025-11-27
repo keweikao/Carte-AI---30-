@@ -55,6 +55,7 @@ class UserInputV2(BaseModel):
     preferences: List[str] = Field(default_factory=list, description="List of preference tags (e.g., 'No_Beef', 'Spicy')")
     natural_input: Optional[str] = Field(None, description="User's free-text supplementary description")
     user_id: Optional[str] = Field(None, description="User ID for personalization")
+    occasion: Optional[str] = Field(None, description="Dining occasion (e.g., 'business', 'date', 'family', 'friends', 'fitness')")
 
 class MenuItemV2(BaseModel):
     dish_id: Optional[str] = Field(None, description="Corresponding menu item ID")
