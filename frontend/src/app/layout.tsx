@@ -28,14 +28,14 @@ const handwriting = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "Carte AI - 智慧餐廳點餐助手 | 30秒快速決定吃什麼",
-    template: "%s | Carte AI"
+    default: "今天吃什麼 AI - 智慧餐廳點餐助手 | 30秒快速決定吃什麼",
+    template: "%s | 今天吃什麼 AI"
   },
-  description: "Carte AI 分析數千則 Google 評論，為您推薦最適合的菜色。精準避雷、預算控制、飲食客製化，30秒快速決定吃什麼！",
+  description: "今天吃什麼 AI 分析數千則 Google 評論，為您推薦最適合的菜色。精準避雷、預算控制、飲食客製化，30秒快速決定吃什麼！",
   keywords: ["AI點餐", "餐廳推薦", "美食推薦", "Google評論分析", "智慧點餐", "台灣美食"],
-  authors: [{ name: "Carte AI Team" }],
-  creator: "Carte AI",
-  publisher: "Carte AI",
+  authors: [{ name: "今天吃什麼 AI Team" }],
+  creator: "今天吃什麼 AI",
+  publisher: "今天吃什麼 AI",
   formatDetection: {
     email: false,
     address: false,
@@ -46,10 +46,10 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "Carte AI - 智慧餐廳點餐助手",
+    title: "今天吃什麼 AI - 智慧餐廳點餐助手",
     description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
     url: 'https://dining-frontend-u33peegeaa-de.a.run.app',
-    siteName: 'Carte AI',
+    siteName: '今天吃什麼 AI',
     locale: 'zh_TW',
     type: 'website',
     images: [
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Carte AI - 智慧餐廳點餐助手",
+    title: "今天吃什麼 AI - 智慧餐廳點餐助手",
     description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
     images: ['/og-image.png'],
   },
