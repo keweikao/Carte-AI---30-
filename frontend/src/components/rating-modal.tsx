@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface RatingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (data: { rating: "up" | "down"; comment: string }) => void;
+  onSubmit?: (data: { rating: "up" | "down"; comment: string; product_feedback?: string }) => void;
 }
 
 export function RatingModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
@@ -19,6 +19,7 @@ export function RatingModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
   const [step, setStep] = useState<"rating" | "feedback" | "done">("rating");
   const [rating, setRating] = useState<"up" | "down" | null>(null);
   const [comment, setComment] = useState("");
+  const [productFeedback, setProductFeedback] = useState("");
 
   const handleRatingSelect = (selectedRating: "up" | "down") => {
     setRating(selectedRating);
@@ -27,7 +28,7 @@ export function RatingModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
 
   const handleSubmit = () => {
     if (rating && onSubmit) {
-      onSubmit({ rating, comment });
+      onSubmit({ rating, comment, product_feedback: productFeedback });
     }
     setStep("done");
   };
@@ -36,6 +37,7 @@ export function RatingModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
     setStep("rating");
     setRating(null);
     setComment("");
+    setProductFeedback("");
     onClose();
   };
 
@@ -100,39 +102,58 @@ export function RatingModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
 
           {/* Feedback Step */}
           {step === "feedback" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="text-center">
                 <h3 className="text-xl font-bold text-foreground">
-                  建議增加什麼功能？(選填)
+                  感謝您的評分！
                 </h3>
+                <p className="text-sm text-muted-foreground">
+                  您的回饋是我們進步的動力
+                </p>
               </div>
 
-              <div className="space-y-3">
+              {/* 推薦回饋 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  對這次推薦有什麼想法？(選填)
+                </label>
                 <Input
-                  placeholder="例如：希望能有圖片..."
+                  placeholder="例如：價格太高、菜色不喜歡..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="bg-secondary border-transparent h-12"
+                  className="bg-secondary border-transparent"
                 />
               </div>
 
-              <div className="flex flex-wrap gap-2 justify-center">
-                {["更便宜", "更多圖片", "介面更快", "更多選擇"].map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="neutral"
-                    className="cursor-pointer border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all py-2 px-3"
-                    onClick={() =>
-                      setComment((prev) => (prev ? `${prev}, ${tag}` : tag))
-                    }
-                  >
-                    {tag}
-                  </Badge>
-                ))}
+              {/* 產品建議 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  希望 Carte AI 增加什麼功能？(選填)
+                </label>
+                <Input
+                  placeholder="例如：希望有地圖模式、深色主題..."
+                  value={productFeedback}
+                  onChange={(e) => setProductFeedback(e.target.value)}
+                  className="bg-secondary border-transparent"
+                />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {["更多圖片", "地圖模式", "分享功能", "儲存餐廳"].map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="neutral"
+                      className="cursor-pointer border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all py-1 px-2 text-xs"
+                      onClick={() =>
+                        setProductFeedback((prev) => (prev ? `${prev}, ${tag}` : tag))
+                      }
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               </div>
 
               <Button
-                className="w-full py-6 text-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+                className="w-full py-6 text-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl mt-2"
                 onClick={handleSubmit}
               >
                 完成並送出

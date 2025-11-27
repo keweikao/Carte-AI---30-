@@ -318,7 +318,7 @@ function MenuPageContent() {
         }
     };
 
-    const handleRatingSubmit = async (data: { rating: "up" | "down"; comment: string }) => {
+    const handleRatingSubmit = async (data: { rating: "up" | "down"; comment: string; product_feedback?: string }) => {
         if (!menu || !session) return;
 
         try {
@@ -328,7 +328,8 @@ function MenuPageContent() {
                 recommendation_id: menu.recommendation_id,
                 rating: data.rating === "up" ? 5 : 1,
                 selected_items: menu.dishes.map(d => d.dish_name),
-                comment: data.comment
+                comment: data.comment,
+                product_feedback: data.product_feedback
             }, token);
             setShowRatingModal(false);
             alert('感謝您的評分！');

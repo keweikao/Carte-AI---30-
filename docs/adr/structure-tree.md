@@ -1,0 +1,98 @@
+## agent
+  - data_fetcher.py
+  - dining_agent.py
+  - prompt_builder.py
+
+## services
+  - firestore_service.py
+
+## schemas
+  - feedback.py
+  - recommendation.py
+  - tracking.py
+
+## auth
+  - google_auth.py
+
+## frontend/src/app
+  - api/
+    - auth/
+      - [...nextauth]/
+  - input/
+    - page.tsx
+  - menu/
+    - page.tsx
+  - micro-interactions-demo/
+    - page.tsx
+  - recommendation/
+    - page.tsx
+  - test-colors/
+    - page.tsx
+  - transition-demo/
+    - page.tsx
+  - error.tsx
+  - favicon.ico
+  - globals.css
+  - layout.tsx
+  - not-found.tsx
+  - page.tsx
+  - template.tsx
+
+## frontend/src/components
+  - __tests__/
+    - dish-card.test.tsx
+  - ui/
+    - __tests__/
+      - button.test.tsx
+    - alert-dialog.tsx
+    - avatar.tsx
+    - badge.tsx
+    - button.tsx
+    - card.tsx
+    - dialog.tsx
+    - dropdown-menu.tsx
+    - input.tsx
+    - label.tsx
+    - progress.tsx
+    - radio-group.tsx
+    - skeleton.tsx
+    - slider.tsx
+    - textarea.tsx
+    - toast.tsx
+    - toaster.tsx
+  - add-on-section.tsx
+  - AuthProvider.tsx
+  - brand-header.tsx
+  - category-header.tsx
+  - dish-card-skeleton.tsx
+  - dish-card.tsx
+  - error-boundary.tsx
+  - feature-showcase.tsx
+  - gamified-loading-state.tsx
+  - header.tsx
+  - LoginButton.tsx
+  - menu-summary-skeleton.tsx
+  - menu-summary.tsx
+  - network-status.tsx
+  - page-transition.tsx
+  - price-indicator.tsx
+  - pricing-modal.tsx
+  - rating-modal.tsx
+  - recommendation-summary.tsx
+  - restaurant-search.tsx
+  - step-indicator.tsx
+  - swap-animation.tsx
+  - tag-input.tsx
+  - web-vitals-reporter.tsx
+
+## frontend/src/lib
+  - analytics.tsx
+  - animation-utils.ts
+  - api-error-handler.ts
+  - api.ts
+  - dynamic-imports.tsx
+  - error-handling-example.tsx.md
+  - haptic-utils.ts
+  - use-toast.ts
+  - utils.ts
+  - web-vitals.ts

@@ -14,7 +14,8 @@ from services.firestore_service import (
     get_recommendation_session,
     add_swap_to_session,
     finalize_recommendation_session,
-    get_recommendation_candidates # New import
+    get_recommendation_candidates,
+    save_user_activity
 )
 import uvicorn
 import os
@@ -55,6 +56,13 @@ async def get_place_autocomplete(
     Proxies Google Places Autocomplete API to get restaurant suggestions.
     Requires authentication to prevent abuse.
     """
+    # Record search activity
+    try:
+        user_id = user_info.get("sub")
+        save_user_activity(user_id, "search", {"query": input})
+    except Exception as e:
+        print(f"Failed to record search activity: {e}")
+
     suggestions = await fetch_place_autocomplete(input)
     return {"suggestions": suggestions}
 

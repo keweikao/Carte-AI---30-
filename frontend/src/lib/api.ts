@@ -137,6 +137,7 @@ export async function submitFeedback(data: {
     rating: number;
     selected_items: string[];
     comment?: string;
+    product_feedback?: string;
 },
     token?: string
 ) {
