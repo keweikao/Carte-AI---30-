@@ -8,6 +8,7 @@ on:
       - '*.py'
       - 'schemas/**'
       - 'services/**'
+      - 'agent/**'
       - 'requirements.txt'
       - 'Dockerfile'
       - '.github/workflows/deploy-backend.yml'
