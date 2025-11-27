@@ -3,6 +3,7 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,8 +23,15 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-            🍽️
+          <div className="w-8 h-8 flex items-center justify-center">
+            <Image
+              src="/logo-mark.svg"
+              alt="Carte AI Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+              priority
+            />
           </div>
           Carte AI 點餐助手
         </Link>
