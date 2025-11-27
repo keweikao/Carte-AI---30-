@@ -23,13 +23,13 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 flex items-center justify-center">
+          <div className="w-10 h-10 flex items-center justify-center">
             <Image
-              src="/logo-mark.svg"
+              src="/logo-cloche.svg"
               alt="Carte AI Logo"
-              width={32}
-              height={32}
-              className="w-8 h-8"
+              width={40}
+              height={40}
+              className="w-10 h-10"
               priority
             />
           </div>

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
 import { TagInput } from "@/components/tag-input"; // New import
 
@@ -207,8 +208,15 @@ function InputPageContents() {
                             aria-label="步驟一：選擇餐廳"
                         >
                             <div className="space-y-2 text-center">
-                                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-                                    <Utensils className="text-primary w-6 h-6" />
+                                <div className="w-24 h-24 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+                                    <Image
+                                        src="/logo-cloche.svg"
+                                        alt="Carte AI Smart Cloche"
+                                        width={96}
+                                        height={96}
+                                        className="w-24 h-24"
+                                        priority
+                                    />
                                 </div>
                                 <h2 className="text-2xl font-bold">不知道怎麼點？</h2>
                                 <p className="text-muted-foreground">輸入餐廳名稱，AI 根據 Google Map 及實際評價幫你推薦菜色。</p>

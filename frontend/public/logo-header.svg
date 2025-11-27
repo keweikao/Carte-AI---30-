@@ -1,0 +1,23 @@
+<svg width="800" height="250" viewBox="0 0 800 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <desc>Carte AI - Primary Logo (Smart Cloche)</desc>
+
+  <g transform="translate(50, 20) scale(0.4)">
+    <path d="M60 420H452C474.091 420 492 428.954 492 440C492 451.046 474.091 460 452 460H60C37.9086 460 20 451.046 20 440C20 428.954 37.9086 420 60 420Z" fill="#8B9D83"/>
+    <path d="M150 430C170 410 190 380 230 390C270 400 280 430 310 430C340 430 360 400 390 380" stroke="#D4A574" stroke-width="20" stroke-linecap="round"/>
+    <circle cx="220" cy="380" r="15" fill="#D4A574"/>
+    <circle cx="360" cy="360" r="20" fill="#D4A574"/>
+    <circle cx="300" cy="410" r="10" fill="#D4A574"/>
+    <path d="M430 290 L445 325 L480 340 L445 355 L430 390 L415 355 L380 340 L415 325 Z" fill="#C85A54"/>
+    <path d="M380 260 L388 278 L406 286 L388 294 L380 312 L372 294 L354 286 L372 278 Z" fill="#C85A54"/>
+    <path d="M460 380 L465 390 L475 395 L465 400 L460 410 L455 400 L445 395 L455 390 Z" fill="#C85A54"/>
+    <g transform="rotate(-15 256 430)">
+        <path d="M56 430C56 319.543 145.543 230 256 230C366.457 230 456 319.543 456 430" stroke="#8B9D83" stroke-width="40" stroke-linecap="round"/>
+        <circle cx="256" cy="210" r="40" fill="#8B9D83"/>
+    </g>
+  </g>
+
+  <g transform="translate(300, 140)">
+    <text font-family="'serif'" font-weight="bold" font-size="100" fill="#2C2C2C" letter-spacing="-2">Carte AI</text>
+    <text x="5" y="60" font-family="'sans-serif'" font-weight="normal" font-size="40" fill="#555555" letter-spacing="1">Dining Agent</text>
+  </g>
+</svg>
