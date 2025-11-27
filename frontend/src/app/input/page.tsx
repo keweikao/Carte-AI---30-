@@ -14,6 +14,7 @@ import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, U
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
+import { PricingModal } from "@/components/pricing-modal";
 import { TagInput } from "@/components/tag-input"; // New import
 
 function InputPageContents() {
@@ -24,6 +25,7 @@ function InputPageContents() {
     const error = searchParams.get('error');
 
     const [step, setStep] = useState(1);
+    const [showPricingModal, setShowPricingModal] = useState(false); // New state
     const [formData, setFormData] = useState<{
         restaurant_name: string;
         place_id?: string;
@@ -197,7 +199,21 @@ function InputPageContents() {
 
     // --- FULL COMPONENT RENDER ---
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
+            <PricingModal
+                isOpen={showPricingModal}
+                onClose={() => setShowPricingModal(false)}
+                currentCredits={0}
+            />
+
+            {/* Temporary Demo Button */}
+            <div className="absolute top-4 right-4 z-50">
+                <Button variant="outline" size="sm" onClick={() => setShowPricingModal(true)}>
+                    💎 升級方案
+                </Button>
+            </div>
+
+            {/* Background Decoration */}
             <div className="w-full max-w-md">
                 <AnimatePresence mode="wait">
                     {/* Step 1: Restaurant Name */}
