@@ -147,7 +147,10 @@ Example:
   - Prioritize the intersection: "Soft textures" and "Mild flavors" above all.
 
 ## 3. Dish Quantity Estimation (if Dish_Count_Target is null)
-- **Shared Style**: Recommend `Party_Size + 1` dishes. Structure should include: 1 starch, 1 main protein, 1 vegetable, 1 soup/other.
+- **Shared Style**: 
+  - Base Rule: Recommend `Party_Size + 1` dishes.
+  - **Budget Expansion**: If the budget allows (i.e., current total is < 70% of budget), YOU SHOULD recommend more dishes (e.g., `Party_Size + 2` or `Party_Size + 3`) to provide a richer feast.
+  - Structure: 1 starch, 1-2 main proteins, 1 vegetable, 1 soup/other.
 - **Individual Style**: Recommend `Party_Size` complete sets.
 
 ## 4. Portion Size, Quantity & Satiety Check
@@ -157,24 +160,14 @@ Example:
 Every dish MUST include a `quantity` field indicating how many portions to order:
 
 - **Shared Style**:
-  - **Main Dishes** (熱菜, 主菜, 主餐, 炒飯麵, 咖哩, etc.): `quantity = 1` (one sharing portion)
-  - **Small Dishes / Sides** (冷菜, 前菜, 配菜, 開胃菜, etc.): `quantity = ceil(Party_Size / 2)` (e.g., 3 people = 2 portions, 4 people = 2 portions, 5 people = 3 portions)
+  - **Main Dishes** (熱菜, 主菜, 主餐, 炒飯麵, 咖哩, etc.): `quantity = 1` (one sharing portion). If budget allows, consider ordering 2 portions of popular dishes for larger groups (>4 people).
+  - **Small Dishes / Sides** (冷菜, 前菜, 配菜, 開胃菜, etc.): `quantity = ceil(Party_Size / 2)`
   - **Staples** (主食, 米飯, 麵類, etc.): `quantity = Party_Size` (one per person)
   - **Soups** (湯品, 湯類, 湯物): `quantity = 1` (one large soup to share)
-  - **Desserts** (甜點, 甜品, Dolci): `quantity = ceil(Party_Size / 2)` (shared desserts)
+  - **Desserts** (甜點, 甜品, Dolci): `quantity = ceil(Party_Size / 2)`
 
 - **Individual Style**:
   - **All dishes**: `quantity = Party_Size` (each person gets their own portion)
-
-**Examples:**
-- Party of 3, Shared Style:
-  - "宮保雞丁" (main): quantity = 1
-  - "涼拌小黃瓜" (cold dish): quantity = 2 (ceil(3/2))
-  - "白飯" (staple): quantity = 3
-
-- Party of 4, Individual Style:
-  - "牛肉麵" (main): quantity = 4
-  - "小籠包" (appetizer): quantity = 4
 
 ### Portion Analysis
 When selecting dishes, consider whether each dish's portion size is suitable for the party size:
@@ -182,8 +175,8 @@ When selecting dishes, consider whether each dish's portion size is suitable for
 - For **Individual Style**: Each set should be one complete meal per person
 
 ### Satiety Guidelines
-- **Shared Style (Party_Size + 1 dishes)**: The total food volume should satisfy all diners. Prioritize dishes with substantial portions (e.g., main proteins at 300-500g, rice/noodles at 200-300g per person).
-- **Individual Style**: Each set must be a complete meal with sufficient calories (~600-800 kcal for lunch, ~800-1000 kcal for dinner)
+- **Shared Style**: The total food volume should satisfy all diners. Prioritize dishes with substantial portions.
+- **Individual Style**: Each set must be a complete meal with sufficient calories.
 
 ### Special Cases
 - If the restaurant is known for small portions (e.g., tapas, dim sum), recommend MORE dishes than the default formula OR increase quantities
@@ -193,7 +186,10 @@ When selecting dishes, consider whether each dish's portion size is suitable for
 ## 5. Pairing & Budgeting Algorithm
 - **Variety Check**: Avoid more than two dishes with the same main protein (chicken, pork, beef) unless requested.
 - **Cooking Style Mix**: Mix cooking methods (e.g., fried, steamed, stir-fried) for a balanced experience.
-- **Budget Control**: The total price must not exceed the budget. A 5-10% buffer is acceptable for 'Total' budgets, but mention it in the summary. For 'Per_Person' budgets, be strict.
+- **Budget Control**: 
+  - **Target**: Aim to utilize **80-100%** of the user's budget to provide the best possible experience. Do not be overly frugal unless the user specifically asked for "cheap" options.
+  - **Constraint**: The total price must NOT exceed the budget.
+  - **Buffer**: A 5-10% buffer is acceptable for 'Total' budgets, but mention it in the summary. For 'Per_Person' budgets, be strict.
 
 # Output Format
 You MUST return a valid JSON object that strictly follows the schema below. Your main goal is to generate a LONG and DIVERSE list of about 20-25 recommended dishes in `menu_items`. The Python backend will handle the final selection and formatting. Do not use Markdown (e.g., ```json).

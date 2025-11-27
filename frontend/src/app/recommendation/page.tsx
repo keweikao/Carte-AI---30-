@@ -558,7 +558,14 @@ function RecommendationPageContent() {
                                     <div className="flex gap-4">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-bold text-lg text-foreground leading-tight">{slot.display.dish_name}</h3>
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-bold text-lg text-foreground leading-tight">{slot.display.dish_name}</h3>
+                                                    {slot.display.quantity > 1 && (
+                                                        <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
+                                                            x{slot.display.quantity}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="text-lg font-mono font-semibold text-foreground" aria-label={`價格 ${slot.display.price} 元`}>NT$ {slot.display.price}</span>
                                             </div>
                                             <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">&ldquo;{slot.display.reason}&rdquo;</p>
