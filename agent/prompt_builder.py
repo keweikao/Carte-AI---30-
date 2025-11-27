@@ -190,7 +190,14 @@ You will receive the following data:
   - Base Rule: Recommend `Party_Size + 1` dishes.
   - **Budget Expansion**: If the budget allows (i.e., current total is < 70% of budget), YOU SHOULD recommend more dishes (e.g., `Party_Size + 2` or `Party_Size + 3`) to provide a richer feast.
   - Structure: 1 starch, 1-2 main proteins, 1 vegetable, 1 soup/other.
-- **Individual Style**: Recommend `Party_Size` complete sets.
+- **Individual Style**: 
+  - **Base Rule**: Recommend `Party_Size` complete meal sets.
+  - **Each set MUST include**:
+    - 1 substantial main dish (主菜)
+    - 1 staple (主食) if not included in main dish
+    - Optional: 1-2 sides if budget allows
+  - **DO NOT focus on category balance** (e.g., don't force "1 appetizer + 1 main" if appetizer is not substantial)
+  - **Prioritize filling, complete meals** over variety of categories
 
 ## 7. Portion Size, Quantity & Satiety Check
 **CRITICAL: Ensure recommended dishes provide adequate portions for the number of diners.**
@@ -213,9 +220,21 @@ When selecting dishes, consider whether each dish's portion size is suitable for
 - For **Shared Style**: Each dish should be shareable. If a dish is typically "single-serving" (e.g., 一人份), adjust the quantity accordingly
 - For **Individual Style**: Each set should be one complete meal per person
 
-### Satiety Guidelines
+### Satiety Guidelines (CRITICAL FOR INDIVIDUAL STYLE)
 - **Shared Style**: The total food volume should satisfy all diners. Prioritize dishes with substantial portions.
-- **Individual Style**: Each set must be a complete meal with sufficient calories.
+- **Individual Style (MOST IMPORTANT)**:
+  - **Each person MUST receive a COMPLETE MEAL**, not just a single side dish or appetizer.
+  - **Minimum Requirements for Individual Meal**:
+    - **1 Main Dish** (主菜): A substantial protein dish (e.g., grilled fish, steak, curry, ramen, rice bowl with toppings)
+    - **1 Staple** (主食): Rice, noodles, or bread (unless already included in the main dish like ramen or donburi)
+    - **Optional**: 1-2 side dishes or appetizers if budget allows
+  - **DO NOT recommend only appetizers, side dishes, or condiments** (e.g., NEVER recommend just "明太子" or "泡菜" as the only dish for a person)
+  - **Example of CORRECT Individual Meal**:
+    - Person 1: Ramen + Gyoza + Drink
+    - Person 1: Donburi (rice bowl with toppings) + Miso Soup + Salad
+  - **Example of WRONG Individual Meal**:
+    - Person 1: Just 明太子 ❌ (This is a condiment/side, not a meal!)
+    - Person 1: Just Salad ❌ (Not filling enough)
 
 ### Special Cases
 - If the restaurant is known for small portions (e.g., tapas, dim sum), recommend MORE dishes than the default formula OR increase quantities

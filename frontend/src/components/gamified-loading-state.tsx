@@ -73,37 +73,44 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-8 relative overflow-hidden" role="status" aria-live="polite">
             {/* Background Decoration Removed to fix visual glitch */}
 
-            {/* Main Loading Animation */}
-            <div className="relative w-32 h-32 flex items-center justify-center z-10">
-                {/* Background circle */}
-                <svg className="absolute inset-0 w-full h-full -rotate-90">
-                    <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="hsl(var(--muted))"
-                        strokeWidth="8"
-                        fill="none"
-                        opacity="0.3"
+            {/* Main Loading Animation - AI Analyzing */}
+            <div className="relative w-full max-w-md z-10">
+                {/* Progress Bar Track */}
+                <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden">
+                    {/* Progress Fill */}
+                    <motion.div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/80 rounded-full"
+                        style={{ width: `${progress}%` }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
                     />
-                    {/* Progress circle */}
-                    <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="8"
-                        fill="none"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={circumference - (progress / 100) * circumference}
-                        strokeLinecap="round"
-                        className="transition-all duration-300 ease-out"
-                    />
-                </svg>
-                {/* Progress percentage */}
-                <div className="flex flex-col items-center">
-                    <Utensils className="w-8 h-8 text-primary mb-1" />
-                    <span className="text-sm font-bold text-primary">{Math.round(progress)}%</span>
+                </div>
+
+                {/* AI Agent Icon */}
+                <motion.div
+                    className="absolute -top-10 flex flex-col items-center"
+                    style={{ left: `${Math.max(0, Math.min(progress, 100))}%`, transform: 'translateX(-50%)' }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                    {/* Rotating Search/Brain Icon */}
+                    <motion.div
+                        animate={{
+                            rotate: 360,
+                        }}
+                        transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "linear"
+                        }}
+                        className="relative"
+                    >
+                        <BrainCircuit className="w-10 h-10 text-primary" />
+                    </motion.div>
+                </motion.div>
+
+                {/* Percentage Display */}
+                <div className="mt-8 text-center">
+                    <span className="text-2xl font-bold text-primary">{Math.round(progress)}%</span>
+                    <p className="text-sm text-muted-foreground mt-1">AI 正在分析 {reviewCount} 則評論...</p>
                 </div>
             </div>
 
