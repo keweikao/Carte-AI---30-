@@ -8,11 +8,11 @@ export function BrandHeader() {
       <div className="flex items-center gap-3">
         <div className="w-14 h-14 flex items-center justify-center">
           <Image
-            src="/logo-mark.svg"
+            src="/icon_small.png"
             alt="Carte AI Logo"
             width={56}
             height={56}
-            className="w-14 h-14"
+            className="w-14 h-14 object-contain"
             priority
           />
         </div>
