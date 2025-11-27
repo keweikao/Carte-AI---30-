@@ -47,32 +47,28 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
     const [showAnswer, setShowAnswer] = useState(false);
 
     useEffect(() => {
-        // Change trivia every 6 seconds
+        // Change trivia every 12 seconds (7s for reading question + 5s for answer)
         const interval = setInterval(() => {
             setShowAnswer(false);
             setTimeout(() => {
                 setCurrentTriviaIndex((prev) => (prev + 1) % TRIVIA_QUESTIONS.length);
             }, 500); // Wait for exit animation
-        }, 8000);
+        }, 12000);
 
         return () => clearInterval(interval);
     }, []);
 
-    // Show answer after 3 seconds
+    // Show answer after 7 seconds
     useEffect(() => {
         const timer = setTimeout(() => {
             setShowAnswer(true);
-        }, 3000);
+        }, 7000);
         return () => clearTimeout(timer);
     }, [currentTriviaIndex]);
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-8 relative overflow-hidden" role="status" aria-live="polite">
-            {/* Background Decoration */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-                <div className="absolute top-10 left-10 animate-bounce duration-[3000ms]"><Utensils className="w-24 h-24" /></div>
-                <div className="absolute bottom-20 right-10 animate-pulse duration-[4000ms]"><BrainCircuit className="w-32 h-32" /></div>
-            </div>
+            {/* Background Decoration Removed to fix visual glitch */}
 
             {/* Main Loading Animation */}
             <div className="relative w-32 h-32 flex items-center justify-center z-10">

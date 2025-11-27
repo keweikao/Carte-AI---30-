@@ -11,11 +11,6 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
     simplified_schema = {
         "type": "object",
         "properties": {
-            "cuisine_type": {
-                "type": "string",
-                "description": "The detected cuisine type of the restaurant.",
-                "enum": ["中式餐館", "日本料理", "美式餐廳", "義式料理", "泰式料理"]
-            },
             "currency": {
                 "type": "string",
                 "description": "The currency code detected from the menu or location (e.g., TWD, JPY, USD, EUR). Default to TWD if uncertain.",
@@ -23,7 +18,7 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
             },
             "menu_items": {
                 "type": "array",
-                "description": "A list of 20-25 diverse and high-quality dish recommendations.",
+                "description": "A list of 20-25 diverse and high-quality dish recommendations. PRIORITIZE SIGNATURE DISHES.",
                 "items": {
                     "type": "object",
                     "properties": {
@@ -31,15 +26,15 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
                         "dish_name_local": {"type": "string", "description": "Name of the dish in the restaurant's local language"},
                         "price": {"type": "integer"},
                         "quantity": {"type": "integer"},
-                        "reason": {"type": "string"},
-                        "category": {"type": "string"},
+                        "reason": {"type": "string", "description": "Why recommended? Mention if it is a signature dish (招牌/必點)."},
+                        "category": {"type": "string", "description": "A logical category for the dish (e.g., Main, Side, Drink, Dessert, or specific like 'Beef', 'Seafood'). Do NOT force strict cuisine types."},
                         "review_count": {"type": "integer"}
                     },
                     "required": ["dish_name", "price", "quantity", "reason", "category"]
                 }
             }
         },
-        "required": ["cuisine_type", "currency", "menu_items"]
+        "required": ["currency", "menu_items"]
     }
     output_schema = json.dumps(simplified_schema, indent=2, ensure_ascii=False)
     

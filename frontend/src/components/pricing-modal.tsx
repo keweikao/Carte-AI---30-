@@ -30,7 +30,7 @@ export function PricingModal({ isOpen, onClose, currentCredits }: PricingModalPr
         {
             id: 'monthly',
             title: '月費訂閱',
-            price: 'NT$ 60',
+            price: 'NT$ 90',
             period: '/ 月',
             description: '最受歡迎！適合愛嚐鮮的你',
             features: ['無限次使用推薦', '優先使用新功能', '隨時可取消'],
@@ -40,9 +40,9 @@ export function PricingModal({ isOpen, onClose, currentCredits }: PricingModalPr
         {
             id: 'yearly',
             title: '年費訂閱',
-            price: 'NT$ 590',
+            price: 'NT$ 720',
             period: '/ 年',
-            description: '超值優惠！省下 18%',
+            description: '超值優惠！省下 33%',
             features: ['包含所有月費功能', '專屬 VIP 客服', '支持我們持續開發'],
             icon: Crown,
             highlight: false
@@ -67,8 +67,8 @@ export function PricingModal({ isOpen, onClose, currentCredits }: PricingModalPr
                         <Card
                             key={plan.id}
                             className={`relative p-6 cursor-pointer transition-all hover:shadow-lg border-2 ${selectedPlan === plan.id
-                                    ? 'border-primary bg-primary/5 shadow-md'
-                                    : 'border-border hover:border-primary/50'
+                                ? 'border-primary bg-primary/5 shadow-md'
+                                : 'border-border hover:border-primary/50'
                                 }`}
                             onClick={() => setSelectedPlan(plan.id as any)}
                         >

@@ -18,8 +18,8 @@ This document outlines the plan to integrate **TapPay (Tappy)** for payment proc
     - **Balance**: 10 Credits (1 Credit = 1 Recommendation Request).
     - **Limit**: Hard stop when credits = 0.
 2.  **Subscriber (Pro)**:
-    - **Monthly Plan**: NT$ 60/month.
-    - **Yearly Plan**: NT$ 590/year (Save ~18%).
+    - **Monthly Plan**: NT$ 90/month.
+    - **Yearly Plan**: NT$ 720/year (Save ~33%).
     - **Benefit**: Unlimited searches.
 3.  **Pay-As-You-Go (Single)**:
     - One-time purchase.
