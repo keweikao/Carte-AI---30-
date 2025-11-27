@@ -12,6 +12,7 @@ import type { MenuItem } from "@/types";
 import { RatingModalDynamic } from "@/lib/dynamic-imports";
 import { submitFeedback } from "@/lib/api";
 import { useSession } from "next-auth/react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface FinalMenu {
     recommendation_id: string;
@@ -113,6 +114,8 @@ function MenuPageContent() {
     const [menu, setMenu] = useState<FinalMenu | null>(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+    const [showShareMenu, setShowShareMenu] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -282,7 +285,7 @@ function MenuPageContent() {
         try {
             const response = await fetch(shareImageUrl);
             const blob = await response.blob();
-            // @ts-expect-error - ClipboardItem is a standard API but may not be in all TS types
+            // ClipboardItem is a standard API but may not be in all TS types
             await navigator.clipboard.write([
                 new ClipboardItem({ 'image/png': blob })
             ]);
@@ -469,6 +472,37 @@ function MenuPageContent() {
                 onClose={() => setShowRatingModal(false)}
                 onSubmit={handleRatingSubmit}
             />
+
+            {/* Share Menu Dialog */}
+            <Dialog open={showShareMenu} onOpenChange={setShowShareMenu}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>分享菜單</DialogTitle>
+                        <DialogDescription>
+                            您的瀏覽器不支援直接分享，您可以下載圖片或複製到剪貼簿。
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col items-center gap-4 py-4">
+                        {shareImageUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={shareImageUrl}
+                                alt="Menu Preview"
+                                className="w-full rounded-lg border shadow-sm max-h-[60vh] object-contain"
+                            />
+                        )}
+                        <div className="flex gap-2 w-full">
+                            <Button onClick={handleDownloadImage} className="flex-1 gap-2" variant="outline">
+                                <Download className="w-4 h-4" /> 下載圖片
+                            </Button>
+                            <Button onClick={handleCopyImage} className="flex-1 gap-2" variant="outline">
+                                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                {copied ? "已複製" : "複製圖片"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Hidden Canvas for generating share image */}
             <canvas ref={canvasRef} className="hidden" />

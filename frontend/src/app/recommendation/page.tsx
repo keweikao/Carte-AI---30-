@@ -277,7 +277,8 @@ function RecommendationPageContent() {
     }, [searchParams, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const perPerson = Math.round(totalPrice / (parseInt(searchParams.get("people") || "2")));
-    const budgetType = searchParams.get("budget_type") || "total"; // Default to total if not specified
+    // Get budget type from URL params, fallback to "person" as default (matching input page default)
+    const budgetType = searchParams.get("budget_type") || "person";
 
     // Determine the value to compare against the budget
     const comparisonPrice = budgetType === "person" ? perPerson : totalPrice;
@@ -508,7 +509,7 @@ function RecommendationPageContent() {
     if (!data) return null;
 
     const allDecided = Array.from(slotStatus.values()).every(status => status === 'selected');
-    const perPerson = Math.round(totalPrice / (parseInt(searchParams.get("people") || "2")));
+
 
     return (
         <div className="relative min-h-screen bg-background pb-32 font-sans">

@@ -93,7 +93,7 @@ function InputPageContents() {
             });
             router.push(`/recommendation?${params.toString()}`);
         }
-    }, [step, formData, router]);
+    }, [step, formData, router, budgetType]);
 
     // --- EFFECTS ---
     useEffect(() => {
@@ -465,6 +465,7 @@ function InputPageContents() {
                                     budget: formData.budget,
                                     dietary: formData.dietary_restrictions,
                                     mode: formData.mode,
+                                    budget_type: budgetType, // Add budget_type here
 
                                     ...(formData.dish_count && { dish_count: formData.dish_count.toString() })
                                 });

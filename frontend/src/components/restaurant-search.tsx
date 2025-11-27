@@ -83,6 +83,11 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue }: Restauran
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Prevent triggering search when using IME (e.g. typing Chinese)
+    if (e.nativeEvent.isComposing) {
+      return;
+    }
+
     // Allow escape to clear the input or close dropdown
     if (e.key === 'Escape') {
       if (isOpen) {
@@ -95,6 +100,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue }: Restauran
     }
     // Allow Enter to submit current value (even if not selected from list)
     if (e.key === 'Enter') {
+      e.preventDefault();
       setIsOpen(false);
       onSelect({ name: value });
     }
@@ -121,7 +127,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue }: Restauran
           autoFocus
           aria-label="搜尋餐廳名稱"
           aria-describedby="restaurant-search-hint"
-          role="searchbox"
+          role="combobox"
           aria-expanded={isOpen}
           aria-controls="restaurant-suggestions"
         />
@@ -147,6 +153,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue }: Restauran
               )}
               onClick={() => handleSelectSuggestion(suggestion)}
               role="option"
+              aria-selected={false}
             >
               <MapPin className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
               <div className="flex flex-col overflow-hidden">
@@ -158,7 +165,8 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue }: Restauran
             </li>
           ))}
           <div className="px-2 py-2 border-t mt-1">
-             <img src="/powered_by_google_on_white.png" alt="Powered by Google" className="h-4 w-auto opacity-70" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/powered_by_google_on_white.png" alt="Powered by Google" className="h-4 w-auto opacity-70" />
           </div>
         </ul>
       )}

@@ -65,13 +65,6 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Get secrets from Secret Manager
-        id: secrets
-        run: |
-          echo "GOOGLE_CLIENT_ID=$(gcloud secrets versions access latest --secret='GOOGLE_CLIENT_ID')" >> $GITHUB_OUTPUT
-          echo "GOOGLE_CLIENT_SECRET=$(gcloud secrets versions access latest --secret='GOOGLE_CLIENT_SECRET')" >> $GITHUB_OUTPUT
-          echo "NEXTAUTH_SECRET=$(gcloud secrets versions access latest --secret='NEXTAUTH_SECRET')" >> $GITHUB_OUTPUT
-
       - name: Deploy to Cloud Run
         run: |
           cd frontend
@@ -80,7 +73,8 @@ jobs:
             --region=${{ env.REGION }} \
             --platform=managed \
             --allow-unauthenticated \
-            --set-env-vars="GOOGLE_CLIENT_ID=${{ steps.secrets.outputs.GOOGLE_CLIENT_ID }},GOOGLE_CLIENT_SECRET=${{ steps.secrets.outputs.GOOGLE_CLIENT_SECRET }},NEXTAUTH_SECRET=${{ steps.secrets.outputs.NEXTAUTH_SECRET }},NEXTAUTH_URL=https://dining-frontend-u33peegeaa-de.a.run.app,NEXT_PUBLIC_API_URL=https://dining-backend-1045148759148.asia-east1.run.app" \
+            --set-env-vars="NEXTAUTH_URL=https://dining-frontend-1045148759148.asia-east1.run.app,NEXT_PUBLIC_API_URL=https://dining-backend-1045148759148.asia-east1.run.app" \
+            --set-secrets="GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest" \
             --quiet
 
       - name: Show deployment URL
