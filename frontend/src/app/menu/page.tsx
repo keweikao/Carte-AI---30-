@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Share2, Printer, Star, Download, Copy, Check } from "lucide-react";
+import { ArrowLeft, Share2, Printer, Star, Download, Copy, Check, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { MenuItem } from "@/types";
@@ -360,11 +360,15 @@ function MenuPageContent() {
             {/* Header - Hidden on print */}
             <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur print:hidden" role="banner">
                 <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
-                    <Button variant="ghost" onClick={handleBack} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="返回上一頁修改菜單">
+                    <Button variant="ghost" onClick={() => router.push('/input')} className="gap-2" aria-label="返回上一頁修改菜單">
                         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
                         返回修改
                     </Button>
                     <div className="flex gap-1 sm:gap-2" role="group" aria-label="菜單操作">
+                        <Button variant="outline" onClick={() => router.push('/')} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="搜尋新餐廳">
+                            <Search className="w-4 h-4" aria-hidden="true" />
+                            搜尋新餐廳
+                        </Button>
                         <Button variant="outline" onClick={handlePrint} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="列印菜單">
                             <Printer className="w-4 h-4" aria-hidden="true" />
                             列印
@@ -511,9 +515,17 @@ function MenuPageContent() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6 }}
-                    className="mt-8 text-center text-sm text-muted-foreground"
+                    className="mt-8 text-center space-y-4"
                 >
-                    <p>由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️</p>
+                    <p className="text-sm text-muted-foreground">由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️</p>
+                    <Button
+                        variant="outline"
+                        onClick={() => router.push('/')}
+                        className="gap-2"
+                    >
+                        <Search className="w-4 h-4" />
+                        搜尋新餐廳
+                    </Button>
                 </motion.div>
             </div>
 

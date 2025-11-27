@@ -17,6 +17,7 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
     // Start with a random question
     const [currentTriviaIndex, setCurrentTriviaIndex] = useState(() => Math.floor(Math.random() * TRIVIA_QUESTIONS.length));
     const [showAnswer, setShowAnswer] = useState(false);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         // Change trivia every 12 seconds (7s for reading question + 5s for answer)
@@ -42,8 +43,31 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
         const timer = setTimeout(() => {
             setShowAnswer(true);
         }, 7000);
+
         return () => clearTimeout(timer);
     }, [currentTriviaIndex]);
+
+    // Simulate progress (0-100%) over estimated time (20-30 seconds)
+    useEffect(() => {
+        const estimatedTime = 25000; // 25 seconds
+        const intervalTime = 100; // Update every 100ms
+        const increment = (100 / estimatedTime) * intervalTime;
+
+        const progressInterval = setInterval(() => {
+            setProgress((prev) => {
+                if (prev >= 95) {
+                    // Slow down near the end to avoid reaching 100% before actual completion
+                    return Math.min(prev + increment * 0.1, 98);
+                }
+                return Math.min(prev + increment, 100);
+            });
+        }, intervalTime);
+
+        return () => clearInterval(progressInterval);
+    }, []);
+
+    const radius = 60; // Half of w-32 (128px) minus border (6px)
+    const circumference = 2 * Math.PI * radius;
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-8 relative overflow-hidden" role="status" aria-live="polite">
@@ -52,21 +76,35 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
             {/* Main Loading Animation */}
             <div className="relative w-32 h-32 flex items-center justify-center z-10">
                 {/* Background circle */}
-                <motion.div
-                    className="absolute inset-0 border-[6px] border-muted/30 rounded-full"
-                />
-                {/* Rotating progress arc */}
-                <motion.div
-                    className="absolute inset-0 border-[6px] rounded-full"
-                    style={{
-                        borderColor: 'transparent',
-                        borderTopColor: 'hsl(var(--primary))',
-                        borderRightColor: 'hsl(var(--primary))',
-                    }}
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                />
-                <Utensils className="w-12 h-12 text-primary" />
+                <svg className="absolute inset-0 w-full h-full -rotate-90">
+                    <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="hsl(var(--muted))"
+                        strokeWidth="8"
+                        fill="none"
+                        opacity="0.3"
+                    />
+                    {/* Progress circle */}
+                    <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={circumference - (progress / 100) * circumference}
+                        strokeLinecap="round"
+                        className="transition-all duration-300 ease-out"
+                    />
+                </svg>
+                {/* Progress percentage */}
+                <div className="flex flex-col items-center">
+                    <Utensils className="w-8 h-8 text-primary mb-1" />
+                    <span className="text-sm font-bold text-primary">{Math.round(progress)}%</span>
+                </div>
             </div>
 
             <div className="space-y-2 max-w-sm mx-auto z-10">
