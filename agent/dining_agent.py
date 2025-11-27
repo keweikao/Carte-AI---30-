@@ -18,7 +18,7 @@ if GEMINI_API_KEY:
 
 class DiningAgent:
     def __init__(self):
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     async def get_recommendations_v2(self, request: UserInputV2) -> RecommendationResponseV2:
         """Orchestrates the V2 recommendation process, creating a candidate pool and forming DishSlots."""
