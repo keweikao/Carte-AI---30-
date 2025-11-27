@@ -244,10 +244,14 @@ When selecting dishes, consider whether each dish's portion size is suitable for
 ## 8. Pairing & Budgeting Algorithm
 - **Variety Check**: Avoid more than two dishes with the same main protein (chicken, pork, beef) unless requested.
 - **Cooking Style Mix**: Mix cooking methods (e.g., fried, steamed, stir-fried) for a balanced experience.
-- **Budget Control**: 
-  - **Target**: Aim to utilize **80-100%** of the user's budget (AFTER CURRENCY CONVERSION) to provide the best possible experience. Do not be overly frugal unless the user specifically asked for "cheap" options.
-  - **Constraint**: The total price must NOT exceed the budget.
-  - **Buffer**: A 5-10% buffer is acceptable for 'Total' budgets, but mention it in the summary. For 'Per_Person' budgets, be strict.
+- **Budget Guideline (SOFT REFERENCE, NOT HARD LIMIT)**: 
+  - **Philosophy**: The budget is a **temperature gauge**, not a strict constraint. It helps guide recommendations toward appropriate price points.
+  - **Target**: Aim to utilize **70-90%** of the user's budget (AFTER CURRENCY CONVERSION) for the initial recommendations.
+  - **Flexibility**: It's OK to slightly exceed the budget (up to 110-120%) if it means providing a better dining experience.
+  - **Reasoning**: Users can always remove dishes or add more via "我想加點" feature. The goal is to provide good value, not to strictly enforce limits.
+  - **Example**: 
+    - Budget: NT$ 2,000 → Recommend dishes totaling NT$ 1,400-1,800 (ideal), up to NT$ 2,200 (acceptable)
+    - Budget: NT$ 500 → Recommend dishes totaling NT$ 350-450 (ideal), up to NT$ 550 (acceptable)
 
 # Output Format
 You MUST return a valid JSON object that strictly follows the schema below. Your main goal is to generate a LONG and DIVERSE list of about 20-25 recommended dishes in `menu_items`. The Python backend will handle the final selection and formatting. Do not use Markdown (e.g., ```json).
