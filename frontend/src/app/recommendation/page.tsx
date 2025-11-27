@@ -536,7 +536,7 @@ function RecommendationPageContent() {
                     </div>
                 </div>
 
-                <div className="p-4 space-y-4" role="list" aria-label="推薦菜品列表">
+                <div className="p-4 pb-32 space-y-4" role="list" aria-label="推薦菜品列表">
                     {dishSlots.map((slot, index) => {
                         const status = slotStatus.get(slot.display.dish_name) || 'pending';
                         const isSwapping = swappingSlots.has(index);
