@@ -42,19 +42,27 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
     past_preferences = ""
     if user_profile and user_profile.get("feedback_history"):
         history = user_profile.get("feedback_history", [])
-        past_preferences = f"\\n- User's Past Feedback History: {json.dumps(history[:3], ensure_ascii=False)}"
+        past_preferences = f"\n- User's Past Feedback History: {json.dumps(history[:3], ensure_ascii=False)}"
 
-    # Construct the user input section for the prompt
-    user_input_str = f"""
-# User Input
-- Dining_Style: "{user_input.dining_style}"
-- Party_Size: {user_input.party_size}
-- Budget: {{ "Type": "{user_input.budget.type}", "Amount": {user_input.budget.amount} }}
-- Dish_Count_Target: {user_input.dish_count_target or "null (AI to decide)"}
-- Preferences: {json.dumps(user_input.preferences, ensure_ascii=False)}
-- Natural_Input: "{user_input.natural_input or 'None'}"
+    # Create the user prompt
+    user_prompt = f"""
+User Request:
+- Restaurant: {user_input.restaurant_name} (Place ID: {user_input.place_id})
+- Party Size: {user_input.party_size}
+- Dining Style: {user_input.dining_style}
+- Budget: {user_input.budget.amount} TWD ({user_input.budget.type}) 
+  (IMPORTANT: The user's budget is in TWD. If the restaurant's local currency is different (e.g., JPY, USD), please convert this TWD amount to the local currency to correctly filter menu items. Do NOT reject items just because the raw number doesn't match if the currency is different.)
+- Dietary Restrictions: {', '.join(user_input.preferences) if user_input.preferences else 'None'}
+- Dish Count Target: {user_input.dish_count_target if user_input.dish_count_target else 'Auto-calculate'}
+- Language: {user_input.language}
 - Occasion: "{user_input.occasion or 'None'}"
 {past_preferences}
+
+Menu Data:
+{menu_data[:20000]}... (truncated if too long)
+
+Reviews Data:
+{reviews_data[:15000]}... (truncated if too long)
 """
 
     # Occasion Logic
@@ -106,60 +114,27 @@ You will receive the following data:
 
 # Core Logic & Constraints
 
-## 0. Cuisine Type Detection & Categorization (MANDATORY FIRST STEP)
+## 1. Signature Dish Detection (PRIORITY)
+- **Identify Signatures**: Scan reviews and menu for terms like "Must-try", "Signature", "Best-seller", "招牌", "必點", "推薦".
+- **Prioritize**: Ensure these items are included in the `menu_items` list if they fit the user's dietary restrictions.
+- **Highlight**: In the `reason` field, explicitly mention if it is a signature dish.
 
-### Step 1: Determine Cuisine Type
-Analyze the restaurant name and menu to determine which cuisine type. Choose from:
-- **"中式餐館"** (Chinese): Look for dishes like 小籠包, 炒飯, 紅燒肉, 涼拌, 川菜, 粵菜, etc.
-- **"日本料理"** (Japanese): Look for 壽司, 刺身, 拉麵, 丼飯, 居酒屋, 天婦羅, etc.
-- **"美式餐廳"** (American): Look for Burger, Steak, BBQ, Wings, Fries, etc.
-- **"義式料理"** (Italian): Look for Pasta, Pizza, Risotto, Carbonara, etc.
-- **"泰式料理"** (Thai): Look for 打拋, 冬蔭功, 咖哩, 椰奶, 月亮蝦餅, etc.
+## 2. Flexible Categorization
+- **No Strict Buckets**: Do NOT force dishes into fixed categories like "Cold Dish" or "Hot Dish" unless it makes sense.
+- **Logical Grouping**: Use natural categories found in the menu (e.g., "Beef Dishes", "Noodles", "Appetizers", "Desserts").
+- **Goal**: The categorization should help the user understand the menu structure, not confuse them.
 
-**Default**: If uncertain, default to "中式餐館".
+## 3. Currency Detection & Budget Conversion (CRITICAL)
+- **Detect Local Currency**: Analyze the menu prices and restaurant location to determine the currency (e.g., "JPY" for Japan, "TWD" for Taiwan, "USD" for USA).
+- **Budget Conversion**: The user's budget is ALWAYS provided in **TWD**. If the restaurant uses a different currency:
+  - **Convert the TWD budget to the local currency** using approximate exchange rates:
+    - 1 TWD ≈ 4.5 JPY (Japan)
+    - 1 TWD ≈ 0.032 USD (USA)
+    - 1 TWD ≈ 0.029 EUR (Europe)
+  - **Example**: If user budget is 500 TWD and restaurant is in Japan, convert to ~2,250 JPY before filtering dishes.
+- **Price Filtering**: Use the CONVERTED budget amount to filter menu items, not the raw TWD number.
 
-### Step 2: Categorize Each Dish
-Based on the detected cuisine type, assign each recommended dish to the appropriate category:
-
-**中式餐館 Categories:**
-- 冷菜 (Cold Dishes): 涼拌, 泡菜, 皮蛋豆腐
-- 熱菜 (Hot Dishes): 炒菜, 燉菜, 煎炸類
-- 主食 (Staples): 飯, 麵, 餃子
-- 湯品 (Soups): 湯, 羹
-- 點心 (Dim Sum): 小籠包, 包子, 燒賣
-
-**日本料理 Categories:**
-- 刺身 (Sashimi): 生魚片
-- 壽司 (Sushi): 握壽司, 卷壽司
-- 燒烤 (Grilled): 燒烤, 串燒
-- 麵類 (Noodles): 拉麵, 烏龍麵, 蕎麥麵
-- 湯物 (Soup): 味噌湯, 豚骨湯
-
-**美式餐廳 Categories:**
-- 前菜 (Appetizers): Wings, Fries, Salad
-- 主餐 (Main): Burger, Steak, BBQ
-- 配菜 (Sides): Mashed Potato, Coleslaw
-- 甜點 (Desserts): Cake, Ice Cream
-- 飲料 (Beverages): Soda, Milkshake
-
-**義式料理 Categories:**
-- 前菜 (Antipasti): Bruschetta, Caprese
-- 義大利麵 (Pasta): Spaghetti, Carbonara, Penne
-- 披薩 (Pizza): Margherita, Quattro Formaggi
-- 主菜 (Main): Osso Buco, Saltimbocca
-- 甜點 (Dolci): Tiramisu, Panna Cotta
-
-**泰式料理 Categories:**
-- 開胃菜 (Appetizers): 月亮蝦餅, 春捲
-- 咖哩 (Curry): 綠咖哩, 紅咖哩, 黃咖哩
-- 炒飯麵 (Rice/Noodles): 泰式炒河粉, 打拋豬飯
-- 湯類 (Soups): 冬蔭功湯
-- 甜品 (Desserts): 芒果糯米飯
-
-### Step 3: Generate Category Summary
-After categorizing all recommended dishes, count how many dishes fall into each category. This will be returned as `category_summary` in the JSON output.
-
-## 1. Pre-processing and Filtering (Hard Bans)
+## 4. Pre-processing and Filtering (Hard Bans)
 - **Exclude Plain Staples**: Do NOT recommend plain white rice (白飯/米飯), plain noodles (白麵), or water as a standalone "dish" unless it is a specialty (e.g., "Truffle Risotto" or "Signature Fried Rice" is OK). Plain rice is assumed to be ordered separately or included.
 - **Natural Input Priority**: If the `Natural_Input` conflicts with `Preferences` buttons, `Natural_Input` takes higher priority.
 - **Absolute Prohibitions**:
@@ -169,7 +144,7 @@ After categorizing all recommended dishes, count how many dishes fall into each 
   - If "Vegetarian" in `Preferences`: Only include vegetarian dishes.
   - If "Not_Spicy" in `Preferences`: Exclude dishes marked as spicy.
 
-## 2. Contextual Boosting (Soft Preferences)
+## 5. Contextual Boosting (Soft Preferences)
 {occasion_instructions}
 - **For Kids ("Kids" tag)**:
   - **Exclude**: Dishes with many bones/spikes, very spicy, caffeine, raw food.
@@ -183,14 +158,14 @@ After categorizing all recommended dishes, count how many dishes fall into each 
 - **Combined Context (e.g., "Kids" AND "Elderly")**:
   - Prioritize the intersection: "Soft textures" and "Mild flavors" above all.
 
-## 3. Dish Quantity Estimation (if Dish_Count_Target is null)
+## 6. Dish Quantity Estimation (if Dish_Count_Target is null)
 - **Shared Style**: 
   - Base Rule: Recommend `Party_Size + 1` dishes.
   - **Budget Expansion**: If the budget allows (i.e., current total is < 70% of budget), YOU SHOULD recommend more dishes (e.g., `Party_Size + 2` or `Party_Size + 3`) to provide a richer feast.
   - Structure: 1 starch, 1-2 main proteins, 1 vegetable, 1 soup/other.
 - **Individual Style**: Recommend `Party_Size` complete sets.
 
-## 4. Portion Size, Quantity & Satiety Check
+## 7. Portion Size, Quantity & Satiety Check
 **CRITICAL: Ensure recommended dishes provide adequate portions for the number of diners.**
 
 ### Quantity Calculation (MANDATORY for every dish)
@@ -220,11 +195,11 @@ When selecting dishes, consider whether each dish's portion size is suitable for
 - If the restaurant serves large portions (e.g., American steakhouse, family-style Chinese), the default `Party_Size + 1` may be sufficient with quantity = 1
 - Always mention portion size considerations in your `recommendation_summary` if relevant
 
-## 5. Pairing & Budgeting Algorithm
+## 8. Pairing & Budgeting Algorithm
 - **Variety Check**: Avoid more than two dishes with the same main protein (chicken, pork, beef) unless requested.
 - **Cooking Style Mix**: Mix cooking methods (e.g., fried, steamed, stir-fried) for a balanced experience.
 - **Budget Control**: 
-  - **Target**: Aim to utilize **80-100%** of the user's budget to provide the best possible experience. Do not be overly frugal unless the user specifically asked for "cheap" options.
+  - **Target**: Aim to utilize **80-100%** of the user's budget (AFTER CURRENCY CONVERSION) to provide the best possible experience. Do not be overly frugal unless the user specifically asked for "cheap" options.
   - **Constraint**: The total price must NOT exceed the budget.
   - **Buffer**: A 5-10% buffer is acceptable for 'Total' budgets, but mention it in the summary. For 'Per_Person' budgets, be strict.
 
@@ -233,67 +208,34 @@ You MUST return a valid JSON object that strictly follows the schema below. Your
 
 **CRITICAL REQUIREMENTS:**
 1.  **Generate a large candidate pool**: The `menu_items` array should contain approximately 20-25 diverse, high-quality dish recommendations that fit the user's request.
-2.  **Categorize every dish**: Every dish in `menu_items` MUST include a `category` field that correctly matches one of the categories for the detected `cuisine_type`.
-3.  **Detect cuisine type**: The `cuisine_type` MUST be one of: "中式餐館", "日本料理", "美式餐廳", "義式料理", "泰式料理".
-4.  **Detect Currency**: Analyze the menu prices and restaurant location (if implied) to determine the currency (e.g., "JPY" for Japan, "TWD" for Taiwan).
-5.  **Ensure variety**: The list should cover different categories and price points suitable for the user. Do not just recommend all expensive items.
-6.  **Language**: 
+2.  **Categorize every dish**: Every dish in `menu_items` MUST include a `category` field.
+3.  **Detect Currency**: Set the `currency` field to the detected local currency (e.g., "JPY", "TWD", "USD").
+4.  **Ensure variety**: The list should cover different categories and price points suitable for the user. Do not just recommend all expensive items.
+5.  **Language**: 
     - `dish_name`: MUST be in the user's preferred language: **{user_input.language}**.
     - `dish_name_local`: MUST be in the restaurant's local language (e.g., Japanese for a restaurant in Japan). If the local language IS the user's language, this can be the same as `dish_name`.
-    - `reason` and `recommendation_summary`: MUST be in the user's preferred language.
-
-**Example Output Structure:**
-```json
-{{
-  "cuisine_type": "中式餐館",
-  "currency": "TWD",
-  "menu_items": [
-    {{
-      "dish_id": null,
-      "dish_name": "小籠包",
-      "price": 200,
-      "quantity": 2,
-      "reason": "鼎泰豐招牌菜品，342 則評論提到皮薄汁多",
-      "category": "點心",
-      "review_count": 342
-    }},
-    {{
-      "dish_id": null,
-      "dish_name": "蟹粉小籠包",
-      "price": 380,
-      "quantity": 1,
-      "reason": "奢華版小籠包，適合想嘗鮮的顧客",
-      "category": "點心",
-      "review_count": 98
-    }},
-    {{
-      "dish_id": null,
-      "dish_name": "紅油抄手",
-      "price": 180,
-      "quantity": 2,
-      "reason": "麻辣香濃，156 則評論推薦",
-      "category": "冷菜",
-      "review_count": 156
-    }}
-  ]
-}}
-```
+    - `reason`: MUST be in the user's preferred language. Mention if it's a signature dish.
 
 **Full Schema:**
 ```json
 {output_schema}
 ```
 
-# Execution
-Now, process the user's request based on the provided data.
-
-{user_input_str}
+# User Request
+- Restaurant: {user_input.restaurant_name} (Place ID: {user_input.place_id})
+- Party Size: {user_input.party_size}
+- Dining Style: {user_input.dining_style}
+- Budget: {user_input.budget.amount} TWD ({user_input.budget.type})
+- Dietary Restrictions: {', '.join(user_input.preferences) if user_input.preferences else 'None'}
+- Dish Count Target: {user_input.dish_count_target if user_input.dish_count_target else 'Auto-calculate'}
+- Language: {user_input.language}
+- Occasion: {user_input.occasion or 'None'}{past_preferences}
 
 # Menu Data
-{menu_data}
+{menu_data[:20000]}
 
 # Reviews Data
-{reviews_data}
+{reviews_data[:15000]}
 """
     return system_prompt.strip()
 

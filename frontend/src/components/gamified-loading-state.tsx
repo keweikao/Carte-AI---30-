@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, Loader2, Check, BrainCircuit, Lightbulb, Circle, CheckCircle2 } from "lucide-react";
 
+import { TRIVIA_QUESTIONS } from "../data/trivia";
+
 interface GamifiedLoadingStateProps {
     reviewCount: number;
     restaurantName: string;
@@ -11,39 +13,9 @@ interface GamifiedLoadingStateProps {
     analysisStep: number;
 }
 
-const TRIVIA_QUESTIONS = [
-    {
-        question: "你知道為什麼壽司通常是兩個一組嗎？",
-        answer: "因為早期的壽司很大，為了方便食用才切成兩半，後來就演變成兩個一組的習慣！"
-    },
-    {
-        question: "世界上最貴的香料是什麼？",
-        answer: "番紅花 (Saffron)，因為採收非常困難，需要大量的人力！"
-    },
-    {
-        question: "凱薩沙拉 (Caesar Salad) 是以凱薩大帝命名的嗎？",
-        answer: "不是！是以發明它的義大利主廚 Caesar Cardini 命名的。"
-    },
-    {
-        question: "哪種水果的種子在外面？",
-        answer: "草莓！它是唯一種子長在果肉外面的水果。"
-    },
-    {
-        question: "蜂蜜會過期嗎？",
-        answer: "純蜂蜜在密封良好的情況下，幾乎永遠不會變質！考古學家曾在埃及古墓發現還能吃的蜂蜜。"
-    },
-    {
-        question: "法式薯條 (French Fries) 是法國人發明的嗎？",
-        answer: "其實很有可能是比利時人發明的！"
-    },
-    {
-        question: "辣椒為什麼會辣？",
-        answer: "因為含有「辣椒素」，它會欺騙你的大腦，讓你覺得「熱」和「痛」，而不是味覺上的辣。"
-    }
-];
-
 export function GamifiedLoadingState({ reviewCount, restaurantName, analysisSteps, analysisStep }: GamifiedLoadingStateProps) {
-    const [currentTriviaIndex, setCurrentTriviaIndex] = useState(0);
+    // Start with a random question
+    const [currentTriviaIndex, setCurrentTriviaIndex] = useState(() => Math.floor(Math.random() * TRIVIA_QUESTIONS.length));
     const [showAnswer, setShowAnswer] = useState(false);
 
     useEffect(() => {
@@ -51,7 +23,14 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
         const interval = setInterval(() => {
             setShowAnswer(false);
             setTimeout(() => {
-                setCurrentTriviaIndex((prev) => (prev + 1) % TRIVIA_QUESTIONS.length);
+                setCurrentTriviaIndex((prev) => {
+                    // Ensure we don't repeat the same question immediately
+                    let nextIndex = Math.floor(Math.random() * TRIVIA_QUESTIONS.length);
+                    while (nextIndex === prev && TRIVIA_QUESTIONS.length > 1) {
+                        nextIndex = Math.floor(Math.random() * TRIVIA_QUESTIONS.length);
+                    }
+                    return nextIndex;
+                });
             }, 500); // Wait for exit animation
         }, 12000);
 
@@ -72,13 +51,20 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
 
             {/* Main Loading Animation */}
             <div className="relative w-32 h-32 flex items-center justify-center z-10">
+                {/* Background circle */}
                 <motion.div
-                    className="absolute inset-0 border-4 border-muted rounded-full"
+                    className="absolute inset-0 border-[6px] border-muted/30 rounded-full"
                 />
+                {/* Rotating progress arc */}
                 <motion.div
-                    className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent"
+                    className="absolute inset-0 border-[6px] rounded-full"
+                    style={{
+                        borderColor: 'transparent',
+                        borderTopColor: 'hsl(var(--primary))',
+                        borderRightColor: 'hsl(var(--primary))',
+                    }}
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                 />
                 <Utensils className="w-12 h-12 text-primary" />
             </div>
