@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useRef } from "react";
+import { useState, useEffect, Suspense, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,9 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { getRecommendations, getAlternatives, UserInputV2 } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
+import { CategoryHeader } from "@/components/category-header";
+import { RecommendationSummary } from "@/components/recommendation-summary";
+import { getSortedCategories } from "@/constants/categories";
 import type { MenuItem } from "@/types";
 import {
     AlertDialog,
@@ -506,6 +509,30 @@ function RecommendationPageContent() {
         router.push(`/input?${searchParams.toString()}`);
     };
 
+    // Group dishes by category
+    const groupedByCategory = useMemo(() => {
+        if (!dishSlots || dishSlots.length === 0) return new Map();
+
+        const grouped = new Map<string, DishSlot[]>();
+        dishSlots.forEach((slot) => {
+            const category = slot.category;
+            if (!grouped.has(category)) {
+                grouped.set(category, []);
+            }
+            grouped.get(category)!.push(slot);
+        });
+
+        return grouped;
+    }, [dishSlots]);
+
+    // Get sorted categories
+    const orderedCategories = useMemo(() => {
+        if (!data) return [];
+
+        const categories = Array.from(groupedByCategory.keys());
+        return getSortedCategories(categories, data.cuisine_type);
+    }, [groupedByCategory, data]);
+
     if (initialLoading) return <LoadingState reviewCount={reviewCount} restaurantName={searchParams.get("restaurant") || ""} analysisSteps={analysisSteps} analysisStep={analysisStep} />;
     if (error) return <ErrorState error={error} />;
     if (!data) return null;
@@ -536,10 +563,33 @@ function RecommendationPageContent() {
                     </div>
                 </div>
 
-                <div className="p-4 pb-32 space-y-4" role="list" aria-label="推薦菜品列表">
-                    {dishSlots.map((slot, index) => {
-                        const status = slotStatus.get(slot.display.dish_name) || 'pending';
-                        const isSwapping = swappingSlots.has(index);
+                <div className="p-4 pb-32" role="list" aria-label="推薦菜品列表">
+                    {/* Recommendation Summary */}
+                    <RecommendationSummary
+                        totalDishes={dishSlots.length}
+                        categorySummary={data.category_summary}
+                    />
+
+                    {/* Category Sections */}
+                    {orderedCategories.map((category) => {
+                        const slotsInCategory = groupedByCategory.get(category)!;
+
+                        return (
+                            <div key={category} className="mb-8">
+                                <CategoryHeader
+                                    category={category}
+                                    count={slotsInCategory.length}
+                                    cuisineType={data.cuisine_type}
+                                />
+
+                                <div className="space-y-4">
+                                    {slotsInCategory.map((slot: DishSlot) => {
+                                        // Find original index for swap/select handlers
+                                        const index = dishSlots.findIndex(
+                                            (s) => s.display.dish_name === slot.display.dish_name
+                                        );
+                                        const status = slotStatus.get(slot.display.dish_name) || 'pending';
+                                        const isSwapping = swappingSlots.has(index);
 
                         return (
                             <motion.div
@@ -602,6 +652,10 @@ function RecommendationPageContent() {
                     })}
                 </div>
             </div>
+        );
+    })}
+</div>
+</div>
 
             {/* Fixed Bottom Bar for Generate Menu */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t z-50">
