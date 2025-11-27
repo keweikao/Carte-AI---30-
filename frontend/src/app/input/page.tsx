@@ -212,16 +212,7 @@ function InputPageContents() {
                             aria-label="步驟一：選擇餐廳"
                         >
                             <div className="space-y-2 text-center">
-                                <div className="w-24 h-24 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-                                    <Image
-                                        src="/icon_small.png"
-                                        alt="Carte AI Smart Cloche"
-                                        width={96}
-                                        height={96}
-                                        className="w-24 h-24"
-                                        priority
-                                    />
-                                </div>
+
                                 <h2 className="text-2xl font-bold">不知道怎麼點？</h2>
                                 <p className="text-muted-foreground">輸入餐廳名稱，AI 根據 Google Map 及實際評價幫你推薦菜色。</p>
                             </div>
