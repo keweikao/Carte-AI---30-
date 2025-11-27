@@ -1,27 +1,14 @@
 import { Sparkles } from "lucide-react";
-import Image from "next/image";
 
 export function BrandHeader() {
   return (
     <div className="space-y-6">
-      {/* Brand Icon + Name */}
-      <div className="flex items-center gap-3">
-        <div className="w-14 h-14 flex items-center justify-center">
-          <Image
-            src="/icon_small.png"
-            alt="Carte AI Logo"
-            width={56}
-            height={56}
-            className="w-14 h-14 object-contain"
-            priority
-          />
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold text-foreground">Carte AI 點餐助手</h1>
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span>AI 驅動的用餐助手</span>
-          </div>
+      {/* Brand Name */}
+      <div>
+        <h1 className="text-4xl font-bold text-foreground">Carte AI 點餐助手</h1>
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <span>AI 驅動的用餐助手</span>
         </div>
       </div>
 
