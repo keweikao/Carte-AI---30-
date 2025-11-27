@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Loader2, Check, BrainCircuit, Lightbulb } from "lucide-react";
+import { Utensils, Loader2, Check, BrainCircuit, Lightbulb, Circle, CheckCircle2 } from "lucide-react";
 
 interface GamifiedLoadingStateProps {
     reviewCount: number;
@@ -110,12 +110,14 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
                     >
                         <div className="w-6 h-6 flex items-center justify-center">
                             {analysisStep > index ? (
-                                <Check className="w-5 h-5 text-green-500" />
+                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                            ) : analysisStep === index ? (
+                                <Loader2 className="w-5 h-5 text-primary animate-spin" />
                             ) : (
-                                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                <Circle className="w-4 h-4 text-muted-foreground" />
                             )}
                         </div>
-                        <span className={`text-sm font-medium ${analysisStep > index ? "text-foreground" : "text-muted-foreground"}`}>
+                        <span className={`text-sm font-medium ${analysisStep >= index ? "text-foreground" : "text-muted-foreground"}`}>
                             {step.text}
                         </span>
                     </motion.div>

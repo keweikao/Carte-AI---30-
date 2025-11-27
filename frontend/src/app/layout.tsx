@@ -28,8 +28,8 @@ const handwriting = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "Carte AI 點餐助手 - 智慧餐廳點餐助手 | 30秒快速決定吃什麼",
-    template: "%s | Carte AI 點餐助手"
+    default: "Carte AI: Dining Agent",
+    template: "%s | Carte AI: Dining Agent"
   },
   description: "Carte AI 點餐助手 分析數千則 Google 評論，為您推薦最適合的菜色。精準避雷、預算控制、飲食客製化，30秒快速決定吃什麼！",
   keywords: ["AI點餐", "餐廳推薦", "美食推薦", "Google評論分析", "智慧點餐", "台灣美食"],

@@ -218,10 +218,16 @@ function RecommendationPageContent() {
 
             } catch (err) {
                 const error = err as Error;
-                console.error(error);
+                console.error("Fetch error:", error);
                 if (interval) clearInterval(interval);
-                setError(error.message || "無法取得推薦，請稍後再試");
-                setInitialLoading(false); // Ensure loading state is reset even on error
+
+                // Extract useful message
+                let message = error.message || "無法取得推薦，請稍後再試";
+                if (message.includes("504")) message = "伺服器回應逾時，請稍後再試或減少菜品數量";
+                if (message.includes("500")) message = "伺服器發生錯誤，請稍後再試";
+
+                setError(message);
+                setInitialLoading(false);
             }
         };
 

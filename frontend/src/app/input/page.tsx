@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home } from "lucide-react";
+import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home, Zap, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
@@ -326,29 +326,33 @@ function InputPageContents() {
                                     </RadioGroup>
                                 </div>
 
-                                {/* Occasion (New) */}
+                                {/* Occasion (Contextual) */}
                                 <div className="space-y-3">
                                     <Label className="text-base">用餐情境</Label>
                                     <RadioGroup
                                         defaultValue={formData.occasion}
                                         onValueChange={(val) => updateData("occasion", val)}
-                                        className="grid grid-cols-3 sm:grid-cols-5 gap-2"
+                                        className="grid grid-cols-2 sm:grid-cols-4 gap-2"
                                     >
-                                        {[
+                                        {(formData.mode === "individual" ? [
+                                            { id: "quick", label: "快速解決", icon: Zap },
+                                            { id: "treat", label: "犒賞自己", icon: Sparkles },
+                                            { id: "fitness", label: "健身減脂", icon: Dumbbell },
+                                            { id: "adventure", label: "全新探險", icon: Compass },
+                                        ] : [
                                             { id: "friends", label: "朋友聚會", icon: Users },
                                             { id: "family", label: "家庭聚餐", icon: Home },
                                             { id: "date", label: "約會慶祝", icon: Heart },
                                             { id: "business", label: "商務聚餐", icon: Briefcase },
-                                            { id: "fitness", label: "健身減脂", icon: Dumbbell },
-                                        ].map((item) => (
+                                        ]).map((item) => (
                                             <div key={item.id}>
                                                 <RadioGroupItem value={item.id} id={`occasion-${item.id}`} className="peer sr-only" />
                                                 <Label
                                                     htmlFor={`occasion-${item.id}`}
-                                                    className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all h-full"
+                                                    className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all h-full"
                                                 >
                                                     <item.icon className="h-5 w-5" />
-                                                    <span className="text-xs font-medium text-center">{item.label}</span>
+                                                    <span className="text-sm font-medium text-center">{item.label}</span>
                                                 </Label>
                                             </div>
                                         ))}
@@ -473,9 +477,10 @@ function InputPageContents() {
                                         suggestions={[
                                             { id: "no_beef", label: "不吃牛", icon: "🥩" },
                                             { id: "no_pork", label: "不吃豬", icon: "🐷" },
-                                            { id: "no_spicy", label: "不吃辣", icon: "🚫" },
+                                            { id: "no_seafood", label: "不吃海鮮", icon: "🦐" },
                                             { id: "vegetarian", label: "素食", icon: "🥬" },
-                                            { id: "seafood_allergy", label: "海鮮過敏", icon: "🦐" },
+                                            { id: "no_spicy", label: "不吃辣", icon: "🚫" },
+                                            { id: "no_cilantro", label: "不吃香菜", icon: "🌿" },
                                         ]}
                                         placeholder="例如：不吃花生、奶蛋素..."
                                     />
