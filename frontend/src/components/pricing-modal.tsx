@@ -40,9 +40,9 @@ export function PricingModal({ isOpen, onClose, currentCredits }: PricingModalPr
         {
             id: 'yearly',
             title: '年費訂閱',
-            price: 'NT$ 720',
+            price: 'NT$ 890',
             period: '/ 年',
-            description: '超值優惠！省下 33%',
+            description: '超值優惠！約 2 個月免費',
             features: ['包含所有月費功能', '專屬 VIP 客服', '支持我們持續開發'],
             icon: Crown,
             highlight: false

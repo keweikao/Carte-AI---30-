@@ -19,7 +19,7 @@ This document outlines the plan to integrate **TapPay (Tappy)** for payment proc
     - **Limit**: Hard stop when credits = 0.
 2.  **Subscriber (Pro)**:
     - **Monthly Plan**: NT$ 90/month.
-    - **Yearly Plan**: NT$ 720/year (Save ~33%).
+    - **Yearly Plan**: NT$ 890/year (Save ~18%, about 2 months free).
     - **Benefit**: Unlimited searches.
 3.  **Pay-As-You-Go (Single)**:
     - One-time purchase.
