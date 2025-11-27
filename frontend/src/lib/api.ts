@@ -18,6 +18,7 @@ export interface UserInputV2 {
     dish_count_target?: number | null;
     preferences?: string[];
     natural_input?: string;
+    language?: string;
 }
 
 export async function getRecommendations(

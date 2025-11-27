@@ -56,6 +56,7 @@ class UserInputV2(BaseModel):
     natural_input: Optional[str] = Field(None, description="User's free-text supplementary description")
     user_id: Optional[str] = Field(None, description="User ID for personalization")
     occasion: Optional[str] = Field(None, description="Dining occasion (e.g., 'business', 'date', 'family', 'friends', 'fitness')")
+    language: str = Field("zh-TW", description="User's preferred language (e.g., 'zh-TW', 'en-US', 'ja-JP')")
 
 class MenuItemV2(BaseModel):
     dish_id: Optional[str] = Field(None, description="Corresponding menu item ID")
