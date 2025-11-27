@@ -517,28 +517,7 @@ function RecommendationPageContent() {
                 <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur" role="banner">
                     <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
                         <Button variant="ghost" onClick={handleBackToSettings} className="gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4" aria-label="返回設定頁"><ArrowLeft className="w-4 h-4" aria-hidden="true" />返回修改偏好</Button>
-                        <Button
-                            onClick={() => {
-                                if (allDecided) {
-                                    const finalMenu = {
-                                        recommendation_id: data.recommendation_id,
-                                        restaurant_name: data.restaurant_name,
-                                        cuisine_type: data.cuisine_type,
-                                        dishes: dishSlots.map(slot => slot.display),
-                                        total_price: totalPrice,
-                                        party_size: parseInt(searchParams.get("people") || "2")
-                                    };
-                                    localStorage.setItem('final_menu', JSON.stringify(finalMenu));
-                                    router.push('/menu');
-                                }
-                            }}
-                            disabled={!allDecided}
-                            className="gap-1 sm:gap-2 bg-primary hover:bg-primary/90 text-sm sm:text-base px-2 sm:px-4"
-                            aria-label={allDecided ? "產出最終點餐菜單" : "請先確認所有菜品"}
-                            aria-disabled={!allDecided}
-                        >
-                            <Check className="w-4 h-4" aria-hidden="true" />產出點餐菜單
-                        </Button>
+
                     </div>
                 </div>
 
@@ -612,6 +591,35 @@ function RecommendationPageContent() {
                             </motion.div>
                         );
                     })}
+                </div>
+            </div>
+
+            {/* Fixed Bottom Bar for Generate Menu */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t z-50">
+                <div className="container max-w-4xl mx-auto">
+                    <Button
+                        onClick={() => {
+                            if (allDecided) {
+                                const finalMenu = {
+                                    recommendation_id: data.recommendation_id,
+                                    restaurant_name: data.restaurant_name,
+                                    cuisine_type: data.cuisine_type,
+                                    dishes: dishSlots.map(slot => slot.display),
+                                    total_price: totalPrice,
+                                    party_size: parseInt(searchParams.get("people") || "2")
+                                };
+                                localStorage.setItem('final_menu', JSON.stringify(finalMenu));
+                                router.push('/menu');
+                            }
+                        }}
+                        disabled={!allDecided}
+                        className="w-full h-12 text-lg font-bold gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                        aria-label={allDecided ? "產出最終點餐菜單" : "請先確認所有菜品"}
+                        aria-disabled={!allDecided}
+                    >
+                        <Check className="w-5 h-5" aria-hidden="true" />
+                        {allDecided ? "產出點餐菜單" : `還有 ${Array.from(slotStatus.values()).filter(s => s === 'pending').length} 道菜未確認`}
+                    </Button>
                 </div>
             </div>
 

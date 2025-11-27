@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle } from "lucide-react";
+import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RestaurantSearch } from "@/components/restaurant-search";
 import { TagInput } from "@/components/tag-input"; // New import
@@ -250,11 +250,22 @@ function InputPageContents() {
                             role="region"
                             aria-label="步驟二：設定用餐偏好"
                         >
+                            {/* 返回按鈕 */}
+                            <Button
+                                variant="ghost"
+                                onClick={() => setStep(1)}
+                                className="gap-2 mb-4"
+                                aria-label="返回上一步"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                返回
+                            </Button>
+
                             <div className="space-y-2 text-center">
                                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                                     <Sparkles className="text-primary w-6 h-6" />
                                 </div>
-                                <h2 className="text-2xl font-bold">客製化你的餐點</h2>
+                                <h2 className="text-2xl font-bold">開啟你的美食探索之旅</h2>
                                 <p className="text-muted-foreground">告訴我們你的喜好。</p>
                             </div>
 
@@ -328,19 +339,23 @@ function InputPageContents() {
                                         </Label>
                                         <div className="flex bg-secondary/50 rounded-lg p-1" role="group" aria-label="預算計算方式">
                                             <button
-                                                className={`px-2 sm:px-3 py-1 text-xs rounded-md transition-all ${budgetType === "person" ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground"}`}
+                                                type="button"
+                                                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition-all cursor-pointer ${budgetType === "person" ? "bg-white shadow-md text-foreground font-semibold border-2 border-primary" : "text-muted-foreground hover:bg-white/50 hover:text-foreground border-2 border-transparent"}`}
                                                 onClick={() => setBudgetType("person")}
-                                                aria-label="按每人預算計算"
+                                                aria-label="選擇每人預算模式"
                                                 aria-pressed={budgetType === "person"}
                                             >
+                                                <User className="w-4 h-4" />
                                                 每人(客單)
                                             </button>
                                             <button
-                                                className={`px-3 py-1 text-xs rounded-md transition-all ${budgetType === "total" ? "bg-white shadow-sm text-foreground font-medium" : "text-muted-foreground"}`}
+                                                type="button"
+                                                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition-all cursor-pointer ${budgetType === "total" ? "bg-white shadow-md text-foreground font-semibold border-2 border-primary" : "text-muted-foreground hover:bg-white/50 hover:text-foreground border-2 border-transparent"}`}
                                                 onClick={() => setBudgetType("total")}
-                                                aria-label="按總預算計算"
+                                                aria-label="選擇總預算模式"
                                                 aria-pressed={budgetType === "total"}
                                             >
+                                                <Users className="w-4 h-4" />
                                                 總預算
                                             </button>
                                         </div>
@@ -368,7 +383,7 @@ function InputPageContents() {
                                                         updateData("budget", val);
                                                     }}
                                                     className="h-8 w-24 text-center font-mono font-semibold text-primary bg-primary/10 border-none focus:ring-1 focus:ring-primary"
-                                                    placeholder="200"
+                                                    placeholder="例如：500"
                                                 />
                                             </div>
                                             <span>NT$ {budgetType === 'person' ? "3,000+" : "10,000+"}</span>
@@ -397,25 +412,25 @@ function InputPageContents() {
 
                                 {/* Dietary */}
                                 <div className="space-y-3">
-                                    <Label className="text-base">飲食偏好</Label>
+                                    <Label className="text-base">用餐風格偏好</Label>
                                     <TagInput
                                         value={formData.dietary_restrictions.split(',').map(s => s.trim()).filter(Boolean)}
                                         onChange={(tags) => updateData("dietary_restrictions", tags.join(", "))}
                                         suggestions={[
-                                            { id: "no_beef", label: "不吃牛", icon: "🥩" },
-                                            { id: "no_pork", label: "不吃豬", icon: "🐷" },
-                                            { id: "vegetarian", label: "素食", icon: "🥬" },
-                                            { id: "seafood_allergy", label: "海鮮過敏", icon: "🦐" },
-                                            { id: "spicy", label: "愛吃辣", icon: "🌶️" },
+                                            { id: "love_meat", label: "愛吃肉", icon: "🥩" },
+                                            { id: "more_seafood", label: "多點海鮮", icon: "🦐" },
+                                            { id: "need_vegetarian", label: "需要素食選項", icon: "🥬" },
+                                            { id: "more_vegetables", label: "多蔬菜", icon: "🥗" },
+                                            { id: "prefer_light", label: "偏好清淡", icon: "🍃" },
+                                            { id: "can_eat_spicy", label: "能吃辣", icon: "🌶️" },
                                             { id: "no_spicy", label: "不吃辣", icon: "🚫" },
-                                            { id: "alcohol", label: "想喝酒", icon: "🍺" },
                                             { id: "kid_friendly", label: "有小孩", icon: "👶" },
                                             { id: "elderly", label: "長輩友善", icon: "👴" },
                                         ]}
                                         placeholder="例如：不吃花生、奶蛋素..."
                                     />
                                     <Textarea
-                                        placeholder="若你要用自然語言描述讓 AI 更了解你的需求也可以唷..."
+                                        placeholder="還有什麼特別需求都可以告訴我，例如：不吃牛、怕過敏、偏好當季食材..."
                                         value={formData.dietary_restrictions}
                                         onChange={(e) => updateData("dietary_restrictions", e.target.value)}
                                         className="h-24 bg-secondary/30 border-transparent focus:border-primary resize-none"
