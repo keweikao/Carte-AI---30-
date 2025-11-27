@@ -34,11 +34,11 @@ async def fetch_place_details(restaurant_name: str) -> dict:
             
             place_id = data["results"][0]["place_id"]
             
-            # 2. Get Details (Reviews)
+            # 2. Get Details (Reviews + Photos)
             details_url = "https://maps.googleapis.com/maps/api/place/details/json"
             details_params = {
                 "place_id": place_id,
-                "fields": "name,rating,reviews,formatted_address",
+                "fields": "name,rating,reviews,formatted_address,photos",
                 "key": GOOGLE_API_KEY,
                 "language": "zh-TW"
             }
@@ -49,6 +49,28 @@ async def fetch_place_details(restaurant_name: str) -> dict:
         except Exception as e:
             print(f"Error fetching place details: {e}")
             return {"error": str(e)}
+
+async def fetch_place_photo(photo_reference: str, max_width: int = 400) -> bytes:
+    """
+    Fetches a photo from Google Places API.
+    """
+    if not GOOGLE_API_KEY:
+        return None
+
+    async with httpx.AsyncClient() as client:
+        url = "https://maps.googleapis.com/maps/api/place/photo"
+        params = {
+            "maxwidth": max_width,
+            "photo_reference": photo_reference,
+            "key": GOOGLE_API_KEY
+        }
+        try:
+            response = await client.get(url, params=params, follow_redirects=True)
+            response.raise_for_status()
+            return response.content
+        except Exception as e:
+            print(f"Error fetching photo: {e}")
+            return None
 
 async def fetch_menu_from_search(restaurant_name: str) -> str:
     """

@@ -45,63 +45,7 @@ interface RecommendationData {
 }
 
 // Define interfaces for component props for type safety
-interface LoadingStateProps {
-    reviewCount: number;
-    restaurantName: string;
-    analysisSteps: { text: string; icon: string; }[];
-    analysisStep: number;
-}
-
-// Re-usable loading animation component
-function LoadingState({ reviewCount, restaurantName, analysisSteps, analysisStep }: LoadingStateProps) {
-    return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-8" role="status" aria-live="polite" aria-label="正在分析餐廳評論">
-            <div className="relative w-32 h-32 flex items-center justify-center" aria-hidden="true">
-                <motion.div
-                    className="absolute inset-0 border-4 border-muted rounded-full"
-                />
-                <div
-                    className="absolute inset-0 border-4 border-accent rounded-full border-t-transparent animate-spin"
-                />
-                <Utensils className="w-12 h-12 text-accent" />
-            </div>
-            <div className="space-y-2 max-w-sm mx-auto">
-                <h2 className="text-2xl font-bold text-foreground">
-                    正在爬梳 <motion.span
-                        key={reviewCount}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-accent"
-                        aria-live="polite"
-                    >
-                        {reviewCount}
-                    </motion.span> 則 Google 評論...
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                    AI 正在分析 <span className="font-semibold text-foreground">{restaurantName}</span> 的老饕推薦關鍵字
-                </p>
-            </div>
-            <div className="w-full max-w-md bg-secondary/50 rounded-xl p-4 space-y-3" role="progressbar" aria-label="分析進度">
-                {analysisSteps.map((step, index) => (
-                    <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: analysisStep > index ? 1 : 0.3, x: analysisStep > index ? 0 : -10 }}
-                        className="flex items-center gap-3"
-                    >
-                        <div className="w-6 h-6 flex items-center justify-center" aria-hidden="true">
-                            {analysisStep > index && <Check className="w-5 h-5 text-success" />}
-                            {analysisStep <= index && <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />}
-                        </div>
-                        <span className={`text-sm font-medium ${analysisStep > index ? "text-foreground" : "text-muted-foreground"}`}>
-                            {step.text}
-                        </span>
-                    </motion.div>
-                ))}
-            </div>
-        </div>
-    );
-}
+import { GamifiedLoadingState } from "@/components/gamified-loading-state";
 
 interface ErrorStateProps {
     error: string | null;
@@ -124,9 +68,9 @@ function ErrorState({ error }: ErrorStateProps) {
 // Helper for generating analysis steps
 const generateAnalysisSteps = (restaurantName: string) => {
     return [
-        { text: `分析 ${restaurantName} 的菜單結構與評論`, icon: "spinner" },
+        { text: `搜尋 ${restaurantName} 的最新評論`, icon: "spinner" },
+        { text: "AI 視覺分析菜單照片與價格", icon: "spinner" },
         { text: "根據您的偏好篩選候選菜品", icon: "spinner" },
-        { text: "設計菜色搭配以確保多樣性", icon: "spinner" },
         { text: "在預算內優化CP值最高的組合", icon: "spinner" }
     ];
 };
@@ -536,7 +480,7 @@ function RecommendationPageContent() {
         return getSortedCategories(categories, data.cuisine_type);
     }, [groupedByCategory, data]);
 
-    if (initialLoading) return <LoadingState reviewCount={reviewCount} restaurantName={searchParams.get("restaurant") || ""} analysisSteps={analysisSteps} analysisStep={analysisStep} />;
+    if (initialLoading) return <GamifiedLoadingState reviewCount={reviewCount} restaurantName={searchParams.get("restaurant") || ""} analysisSteps={analysisSteps} analysisStep={analysisStep} />;
     if (error) return <ErrorState error={error} />;
     if (!data) return null;
 

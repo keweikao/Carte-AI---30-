@@ -6,7 +6,7 @@ from collections import defaultdict
 import google.generativeai as genai
 from dotenv import load_dotenv
 from schemas.recommendation import UserInputV2, RecommendationResponseV2, MenuItemV2, DishSlotResponse, RecommendationRequest, FullRecommendationResponse
-from agent.data_fetcher import fetch_place_details, fetch_menu_from_search
+from agent.data_fetcher import fetch_place_details, fetch_menu_from_search, fetch_place_photo
 from agent.prompt_builder import create_prompt_for_gemini_v2
 from services.firestore_service import get_cached_data, save_restaurant_data, get_user_profile, save_recommendation_candidates, save_user_activity
 
@@ -78,14 +78,39 @@ class DiningAgent:
         prompt = create_prompt_for_gemini_v2(request, menu_json, reviews_json, user_profile)
         print(f"Generated V2 Prompt (First 200 chars): {prompt[:200]}...")
         
+        # --- Visual Menu Parsing: Fetch Photos ---
+        photos_data = reviews_data.get("photos", [])
+        image_parts = []
+        if photos_data:
+            print(f"Found {len(photos_data)} photos. Fetching top 3 for visual analysis...")
+            # Take top 3 photos
+            top_photos = photos_data[:3]
+            photo_tasks = [fetch_place_photo(photo["photo_reference"]) for photo in top_photos]
+            
+            # Fetch in parallel
+            photo_blobs = await asyncio.gather(*photo_tasks)
+            
+            # Convert to Gemini Image parts
+            for blob in photo_blobs:
+                if blob:
+                    image_parts.append({
+                        "mime_type": "image/jpeg", # Google Places Photos are usually JPEG
+                        "data": blob
+                    })
+            print(f"Successfully loaded {len(image_parts)} images for Gemini.")
+
         # 4. Call Gemini to get the candidate pool
         max_retries = 2
         for attempt in range(max_retries + 1):
             try:
                 print(f"Calling Gemini (Attempt {attempt + 1})...")
+                
+                # Combine prompt and images
+                content = [prompt] + image_parts
+                
                 response = await asyncio.to_thread(
                     self.model.generate_content,
-                    prompt,
+                    content,
                     generation_config={"response_mime_type": "application/json"}
                 )
                 
