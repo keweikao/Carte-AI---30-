@@ -1,0 +1,34 @@
+name: PR Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: write
+
+jobs:
+  pr_agent:
+    runs-on: ubuntu-latest
+    name: Run PR Agent
+    if: ${{ github.event.sender.type != 'Bot' }}
+    steps:
+      - id: pr-agent
+        uses: Codium-ai/pr-agent@main
+        env:
+          # 使用 GEMINI_API_KEY 作為 AI Key
+          OPENAI_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+          # 配置使用 Google Gemini
+          PR_AGENT.PROVIDER: "google"
+          PR_AGENT.MODEL: "gemini-1.5-pro"
+          
+          # 自訂指令與行為
+          PR_AGENT.PR_DESCRIPTION.PUBLISH_LABELS: "false"
+          PR_AGENT.PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false"
+          PR_AGENT.PR_CODE_SUGGESTIONS.NUM_CODE_SUGGESTIONS: 3
