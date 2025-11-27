@@ -142,7 +142,7 @@ function MenuPageContent() {
     }, [searchParams]);
 
     const handleBack = () => {
-        router.back();
+        router.push('/input');
     };
 
     const handlePrint = () => {
