@@ -70,7 +70,7 @@ export function PricingModal({ isOpen, onClose, currentCredits }: PricingModalPr
                                 ? 'border-primary bg-primary/5 shadow-md'
                                 : 'border-border hover:border-primary/50'
                                 }`}
-                            onClick={() => setSelectedPlan(plan.id as any)}
+                            onClick={() => setSelectedPlan(plan.id as 'single' | 'monthly' | 'yearly')}
                         >
                             {plan.highlight && (
                                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1">
