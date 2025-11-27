@@ -56,10 +56,8 @@ function LoadingState({ reviewCount, restaurantName, analysisSteps, analysisStep
                 <motion.div
                     className="absolute inset-0 border-4 border-muted rounded-full"
                 />
-                <motion.div
-                    className="absolute inset-0 border-4 border-accent rounded-full border-t-transparent"
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                <div
+                    className="absolute inset-0 border-4 border-accent rounded-full border-t-transparent animate-spin"
                 />
                 <Utensils className="w-12 h-12 text-accent" />
             </div>
@@ -222,10 +220,10 @@ function RecommendationPageContent() {
                 // --- Build V2 Request from URL Search Params ---
                 const restaurant_name = searchParams.get("restaurant") || "";
                 const party_size = parseInt(searchParams.get("people") || "2");
-                
+
                 const rawMode = searchParams.get("mode");
                 const dining_style = (rawMode === "Shared" || rawMode === "sharing") ? "Shared" : "Individual";
-                
+
                 const dish_count_str = searchParams.get("dish_count");
 
                 // Parse budget - now it's a number from the slider
@@ -278,21 +276,25 @@ function RecommendationPageContent() {
         fetchData();
     }, [searchParams, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    const perPerson = Math.round(totalPrice / (parseInt(searchParams.get("people") || "2")));
+    const budgetType = searchParams.get("budget_type") || "total"; // Default to total if not specified
+
+    // Determine the value to compare against the budget
+    const comparisonPrice = budgetType === "person" ? perPerson : totalPrice;
+    const budgetAmount = parseInt(searchParams.get("budget") || "0"); // Get raw budget amount
+
     // FE-040: Check budget and show warning if exceeded by 20%
     useEffect(() => {
-        if (!data || totalPrice === 0) return;
+        if (!data || comparisonPrice === 0 || budgetAmount === 0) return;
 
-        const budgetStr = searchParams.get("budget") || "";
-        const budgetAmount = parseInt(budgetStr) || 2000;
-
-        if (totalPrice > budgetAmount) {
-            const exceedPercentage = ((totalPrice - budgetAmount) / budgetAmount) * 100;
+        if (comparisonPrice > budgetAmount) {
+            const exceedPercentage = ((comparisonPrice - budgetAmount) / budgetAmount) * 100;
             if (exceedPercentage >= 20) {
                 setBudgetExceedPercentage(Math.round(exceedPercentage));
                 setShowBudgetWarning(true);
             }
         }
-    }, [totalPrice, data, searchParams]);
+    }, [comparisonPrice, budgetAmount, data, searchParams]);
 
     // Trigger confetti when all dishes are confirmed
     const prevAllDecidedRef = useRef(false);
@@ -513,7 +515,7 @@ function RecommendationPageContent() {
             <div className="absolute inset-0 w-full h-full overflow-y-auto">
                 <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur" role="banner">
                     <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
-                        <Button variant="ghost" onClick={handleBackToSettings} className="gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4" aria-label="返回設定頁"><ArrowLeft className="w-4 h-4" aria-hidden="true" />返回設定</Button>
+                        <Button variant="ghost" onClick={handleBackToSettings} className="gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4" aria-label="返回設定頁"><ArrowLeft className="w-4 h-4" aria-hidden="true" />返回修改偏好</Button>
                         <Button onClick={() => allDecided && alert("導航到最終菜單頁")} disabled={!allDecided} className="gap-1 sm:gap-2 bg-primary hover:bg-primary/90 text-sm sm:text-base px-2 sm:px-4" aria-label={allDecided ? "產出最終點餐菜單" : "請先確認所有菜品"} aria-disabled={!allDecided}>
                             <Check className="w-4 h-4" aria-hidden="true" />產出點餐菜單
                         </Button>
@@ -643,7 +645,7 @@ function RecommendationPageContent() {
                         </div>
                         <AlertDialogDescription className="text-muted-foreground space-y-3">
                             <p>
-                                目前菜單總價 <span className="font-bold text-orange-600">NT$ {totalPrice.toLocaleString()}</span> 已超出您的預算 <span className="font-semibold text-foreground">NT$ {parseInt(searchParams.get("budget") || "2000").toLocaleString()}</span>
+                                {budgetType === "person" ? "目前人均價格" : "目前菜單總價"} <span className="font-bold text-orange-600">NT$ {comparisonPrice.toLocaleString()}</span> 已超出您的{budgetType === "person" ? "每人預算" : "總預算"} <span className="font-semibold text-foreground">NT$ {budgetAmount.toLocaleString()}</span>
                             </p>
                             <p className="text-sm">
                                 超出預算約 <span className="font-bold text-orange-600">{budgetExceedPercentage}%</span>，建議您返回調整預算或重新選擇菜品。
@@ -652,7 +654,7 @@ function RecommendationPageContent() {
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                         <AlertDialogCancel onClick={handleAdjustBudget} className="w-full sm:w-auto">
-                            返回調整
+                            返回修改偏好
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleContinueOverBudget}

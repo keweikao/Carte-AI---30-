@@ -33,7 +33,7 @@ function InputPageContents() {
     }>({
         restaurant_name: "",
         people: 2,
-        budget: "",
+        budget: "200",
         dietary_restrictions: "",
         mode: "sharing",
         dish_count: null
@@ -88,6 +88,7 @@ function InputPageContents() {
                 budget: formData.budget,
                 dietary: formData.dietary_restrictions,
                 mode: formData.mode,
+                budget_type: budgetType, // Add budget_type here
                 ...(formData.dish_count && { dish_count: formData.dish_count.toString() })
             });
             router.push(`/recommendation?${params.toString()}`);
@@ -125,7 +126,7 @@ function InputPageContents() {
             if (restaurant) {
                 setTimeout(() => setStep(2), 0);
             }
-            
+
             // Update form data (wrapped in setTimeout to avoid synchronous state update warning)
             setTimeout(() => {
                 setFormData({
@@ -346,18 +347,29 @@ function InputPageContents() {
                                     </div>
                                     <div className="space-y-3 pt-2">
                                         <div className="px-1">
-                                          <Slider
-                                              id="budget"
-                                              value={[Number(formData.budget) || (budgetType === 'person' ? 500 : 2000)]}
-                                              onValueChange={(value) => updateData("budget", String(value[0]))}
-                                              max={budgetType === 'person' ? 3000 : 10000}
-                                              step={budgetType === 'person' ? 50 : 250}
-                                          />
+                                            <Slider
+                                                id="budget"
+                                                value={[Number(formData.budget) || (budgetType === 'person' ? 500 : 2000)]}
+                                                onValueChange={(value) => updateData("budget", String(value[0]))}
+                                                max={budgetType === 'person' ? 3000 : 10000}
+                                                step={budgetType === 'person' ? 50 : 250}
+                                            />
                                         </div>
-                                        <div className="flex justify-between text-xs text-muted-foreground px-1">
+                                        <div className="flex justify-between text-xs text-muted-foreground px-1 items-center">
                                             <span>NT$ 0</span>
-                                            <div className="font-mono text-sm font-semibold text-primary rounded-full bg-primary/10 px-3 py-1">
-                                                NT$ {Number(formData.budget).toLocaleString() || "0"}
+                                            <div className="flex items-center gap-1">
+                                                <span className="font-mono text-sm font-semibold text-primary">NT$</span>
+                                                <Input
+                                                    type="number"
+                                                    value={formData.budget}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        // Allow empty string for typing, otherwise parse
+                                                        updateData("budget", val);
+                                                    }}
+                                                    className="h-8 w-24 text-center font-mono font-semibold text-primary bg-primary/10 border-none focus:ring-1 focus:ring-primary"
+                                                    placeholder="200"
+                                                />
                                             </div>
                                             <span>NT$ {budgetType === 'person' ? "3,000+" : "10,000+"}</span>
                                         </div>
