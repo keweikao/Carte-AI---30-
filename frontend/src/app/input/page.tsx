@@ -470,17 +470,17 @@ function InputPageContents() {
 
                                 {/* Dietary */}
                                 <div className="space-y-3">
-                                    <Label className="text-base">飲食禁忌與偏好</Label>
+                                    <Label className="text-base">其他用餐需求</Label>
                                     <TagInput
                                         value={formData.dietary_restrictions.split(',').map(s => s.trim()).filter(Boolean)}
                                         onChange={(tags) => updateData("dietary_restrictions", tags.join(", "))}
                                         suggestions={[
-                                            { id: "no_beef", label: "不吃牛", icon: "🥩" },
-                                            { id: "no_pork", label: "不吃豬", icon: "🐷" },
-                                            { id: "no_seafood", label: "不吃海鮮", icon: "🦐" },
-                                            { id: "vegetarian", label: "素食", icon: "🥬" },
-                                            { id: "no_spicy", label: "不吃辣", icon: "🚫" },
-                                            { id: "no_cilantro", label: "不吃香菜", icon: "🌿" },
+                                            { id: "some_no_beef", label: "有人不吃牛", icon: "🥩" },
+                                            { id: "some_no_pork", label: "有人不吃豬", icon: "🐷" },
+                                            { id: "some_no_seafood", label: "有人不吃海鮮", icon: "🦐" },
+                                            { id: "some_vegetarian", label: "有素食需求", icon: "🥬" },
+                                            { id: "some_no_spicy", label: "不太能吃辣", icon: "🌶️" },
+                                            { id: "some_no_cilantro", label: "不要香菜", icon: "🌿" },
                                         ]}
                                         placeholder="例如：不吃花生、奶蛋素..."
                                     />
