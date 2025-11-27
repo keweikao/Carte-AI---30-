@@ -25,7 +25,7 @@ export function Header() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
             🍽️
           </div>
-          Carte AI
+          今天吃什麼 AI
         </Link>
 
         {/* Auth Section */}
