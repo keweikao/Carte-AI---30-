@@ -192,3 +192,34 @@ export async function finalizeOrder(
 
     return response.json();
 }
+
+/**
+ * Request additional dish recommendations for a specific category
+ */
+export async function requestAddOn(
+    recommendationId: string,
+    category: string,
+    count: number = 1,
+    token?: string
+) {
+    const authToken = token || DEV_TOKEN;
+
+    const response = await fetch(`${API_BASE_URL}/v2/recommendations/${recommendationId}/add-on`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+            category,
+            count
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Failed to request add-on for category: ${category}`);
+    }
+
+    return response.json();
+}

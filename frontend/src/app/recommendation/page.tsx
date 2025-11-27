@@ -8,10 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Check, Utensils, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getRecommendations, getAlternatives, finalizeOrder, UserInputV2 } from "@/lib/api";
+import { getRecommendations, getAlternatives, finalizeOrder, requestAddOn, UserInputV2 } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
 import { CategoryHeader } from "@/components/category-header";
 import { RecommendationSummary } from "@/components/recommendation-summary";
+import { AddOnSection } from "@/components/add-on-section";
 import { getSortedCategories } from "@/constants/categories";
 import type { MenuItem } from "@/types";
 import {
@@ -148,6 +149,9 @@ function RecommendationPageContent() {
 
     // Track swapped dishes for "view previously swapped" feature
     const [swappedDishes, setSwappedDishes] = useState<Map<string, MenuItem[]>>(new Map());
+
+    // Track add-on operation
+    const [isAddingDish, setIsAddingDish] = useState(false);
 
     // Fetch V3 Data
     useEffect(() => {
@@ -448,6 +452,53 @@ function RecommendationPageContent() {
         }
     };
 
+    // Handle add-on request
+    const handleAddOn = async (category: string) => {
+        if (!data) return;
+
+        setIsAddingDish(true);
+        try {
+            // @ts-expect-error - id_token exists on session but not in type definition
+            const token = session?.id_token;
+
+            const response = await requestAddOn(data.recommendation_id, category, 1, token);
+
+            if (response.new_dishes && response.new_dishes.length > 0) {
+                const newDish = response.new_dishes[0];
+
+                // Create a new dish slot for the added dish
+                const newSlot: DishSlot = {
+                    category: category,
+                    display: newDish,
+                    alternatives: []
+                };
+
+                const newSlotIndex = dishSlots.length;
+
+                // Add to dish slots
+                setDishSlots(prev => [...prev, newSlot]);
+
+                // Add to slot status
+                setSlotStatus(prev => {
+                    const newMap = new Map(prev);
+                    newMap.set(newDish.dish_name, 'pending');
+                    return newMap;
+                });
+
+                // Update total price
+                setTotalPrice(prev => prev + (newDish.price * newDish.quantity));
+
+                // Show success message (you can add a toast here)
+                console.log(`成功加點：${newDish.dish_name}`);
+            }
+        } catch (error) {
+            console.error('Failed to add on:', error);
+            alert(`加點失敗：${error instanceof Error ? error.message : '未知錯誤'}`);
+        } finally {
+            setIsAddingDish(false);
+        }
+    };
+
     // FE-040: Handle budget warning actions
     const handleContinueOverBudget = () => {
         setShowBudgetWarning(false);
@@ -608,6 +659,11 @@ function RecommendationPageContent() {
                         );
                     })}
                 </div>
+            </div>
+
+            {/* Add-On Section */}
+            <div className="container max-w-4xl mx-auto px-4 pb-24">
+                <AddOnSection onAddOn={handleAddOn} isLoading={isAddingDish} />
             </div>
 
             {/* Fixed Bottom Bar for Generate Menu */}
