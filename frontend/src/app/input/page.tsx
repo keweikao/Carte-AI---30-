@@ -210,7 +210,7 @@ function InputPageContents() {
                             <div className="space-y-2 text-center">
                                 <div className="w-24 h-24 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                                     <Image
-                                        src="/logo-cloche.svg"
+                                        src="/icon_small.png"
                                         alt="Carte AI Smart Cloche"
                                         width={96}
                                         height={96}
