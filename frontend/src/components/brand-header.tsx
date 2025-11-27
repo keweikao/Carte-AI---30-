@@ -9,7 +9,7 @@ export function BrandHeader() {
           <Utensils className="w-8 h-8" />
         </div>
         <div>
-          <h1 className="text-4xl font-bold text-foreground">今天吃什麼 AI</h1>
+          <h1 className="text-4xl font-bold text-foreground">Carte AI 點餐助手</h1>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span>AI 驅動的用餐助手</span>
@@ -26,7 +26,7 @@ export function BrandHeader() {
         <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
           結合 Google Maps 真實評論與 AI 智慧分析。<br className="hidden sm:inline" /><span className="sm:hidden"> </span>
           無論是想獨自嚐鮮，還是聚餐不知道怎麼點，<br className="hidden sm:inline" /><span className="sm:hidden"> </span>
-          今天吃什麼 AI 都能為你量身打造最佳菜單。
+          Carte AI 點餐助手 都能為你量身打造最佳菜單。
         </p>
       </div>
     </div>

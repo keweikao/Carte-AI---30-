@@ -68,7 +68,7 @@ export default function LandingPage() {
                             <div className="p-6 sm:p-8">
                                 {/* Card Header */}
                                 <div className="mb-6 sm:mb-8 space-y-2 text-center">
-                                    <h2 className="text-xl sm:text-2xl font-bold text-foreground">開始使用 今天吃什麼 AI</h2>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-foreground">開始使用 Carte AI 點餐助手</h2>
                                     <p className="text-sm text-muted-foreground">
                                         30 秒快速決定吃什麼
                                     </p>
