@@ -191,7 +191,7 @@ function RecommendationPageContent() {
                     },
                     dish_count_target: dish_count_str ? parseInt(dish_count_str) : null,
                     preferences: searchParams.get("dietary")?.split(",").filter(p => p) || [],
-                    language: navigator.language || "zh-TW",
+                    language: "繁體中文",
                 };
 
                 if (!requestData.restaurant_name) {

@@ -158,7 +158,7 @@ function MenuPageContent() {
 
         // Set canvas size
         canvas.width = 800;
-        canvas.height = 600 + (menu.dishes.length * 60);
+        canvas.height = 650 + (menu.dishes.length * 65);
 
         // Background
         ctx.fillStyle = '#FFF8F0';
@@ -166,65 +166,82 @@ function MenuPageContent() {
 
         // Header
         ctx.fillStyle = '#D4A574';
-        ctx.fillRect(0, 0, canvas.width, 120);
+        ctx.fillRect(0, 0, canvas.width, 140);
 
         // Logo/Title
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 36px sans-serif';
+        ctx.font = 'bold 40px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Carte AI 推薦菜單', canvas.width / 2, 50);
+        ctx.fillText('🍽️ Carte AI 推薦菜單', canvas.width / 2, 60);
 
-        // Carte AI Logo (Placeholder or actual logo if available in public folder)
-        const logoText = "Carte AI";
-        ctx.font = 'italic 16px sans-serif';
+        // Subtitle
+        ctx.font = '18px sans-serif';
         ctx.fillStyle = '#FFFFFF';
-        ctx.textAlign = 'right';
-        ctx.fillText(logoText, canvas.width - 60, 80); // Positioned top-right
+        ctx.fillText('AI 智慧點餐助手', canvas.width / 2, 95);
 
         // Restaurant Name
         ctx.fillStyle = '#2D2D2D';
-        ctx.font = 'bold 36px sans-serif'; // Slightly larger for emphasis
+        ctx.font = 'bold 38px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(menu.restaurant_name, canvas.width / 2, 180); // Adjusted Y position
+        ctx.fillText(menu.restaurant_name, canvas.width / 2, 200);
 
-        // Cuisine Type
-        ctx.font = '22px sans-serif'; // Slightly larger
+        // Cuisine Type & Party Size
+        ctx.font = '22px sans-serif';
         ctx.fillStyle = '#666';
-        ctx.fillText(menu.cuisine_type, canvas.width / 2, 215); // Adjusted Y position
+        ctx.fillText(`${menu.cuisine_type} • ${menu.party_size} 人用餐 • ${menu.dishes.length} 道菜`, canvas.width / 2, 235);
 
         // Price Summary
         ctx.fillStyle = '#D4A574';
-        ctx.fillRect(50, 260, canvas.width - 100, 110); // Adjusted Y and height
+        ctx.fillRect(50, 280, canvas.width - 100, 120);
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 26px sans-serif'; // Larger font
+        ctx.font = 'bold 28px sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(`總價: ${menu.currency || 'NT$'} ${menu.total_price.toLocaleString()}`, 80, 300); // Adjusted Y
-        ctx.fillText(`人均: ${menu.currency || 'NT$'} ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 335); // Adjusted Y
+        ctx.fillText(`總價: ${menu.currency || 'NT$'} ${menu.total_price.toLocaleString()}`, 80, 325);
+        ctx.fillText(`人均: ${menu.currency || 'NT$'} ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 365);
 
         // Dishes
-        let y = 410; // Adjusted starting Y
+        let y = 450;
         ctx.fillStyle = '#2D2D2D';
-        ctx.font = 'bold 24px sans-serif'; // Larger font
+        ctx.font = 'bold 26px sans-serif';
+        ctx.textAlign = 'left';
         ctx.fillText('推薦菜色', 50, y);
-        y += 45; // Adjusted line height
+        y += 50;
 
         menu.dishes.forEach((dish, index) => {
-            ctx.font = '20px sans-serif'; // Larger font
+            ctx.font = '22px sans-serif';
             ctx.fillStyle = '#2D2D2D';
-            const dishName = dish.quantity > 1 ? `${dish.dish_name} x${dish.quantity}` : dish.dish_name;
+            ctx.textAlign = 'left';
+
+            // Truncate dish name if too long
+            const maxWidth = 550;
+            let dishName = dish.quantity > 1 ? `${dish.dish_name} ×${dish.quantity}` : dish.dish_name;
+            const metrics = ctx.measureText(`${index + 1}. ${dishName}`);
+
+            if (metrics.width > maxWidth) {
+                while (ctx.measureText(`${index + 1}. ${dishName}...`).width > maxWidth && dishName.length > 10) {
+                    dishName = dishName.slice(0, -1);
+                }
+                dishName += '...';
+            }
+
             ctx.fillText(`${index + 1}. ${dishName}`, 50, y);
+
+            // Price on the right
             ctx.textAlign = 'right';
-            ctx.fillText(`${menu.currency || 'NT$'} ${(dish.price * dish.quantity).toLocaleString()}`, canvas.width - 50, y); // Adjusted X position
-            ctx.textAlign = 'center'; // Reset for next line
-            y += 55; // Adjusted line height
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillText(`${menu.currency || 'NT$'} ${(dish.price * dish.quantity).toLocaleString()}`, canvas.width - 50, y);
+
+            y += 65;
         });
 
         // Footer
-        ctx.font = '18px sans-serif'; // Larger font
+        ctx.font = '20px sans-serif';
         ctx.fillStyle = '#999';
         ctx.textAlign = 'center';
-        ctx.fillText('由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️', canvas.width / 2, y + 40); // Adjusted Y
-        ctx.fillText('我透過 carte.ai 點了這些菜！', canvas.width / 2, y + 70); // Added promotion text
+        ctx.fillText('由 Carte AI 智慧推薦 • 祝您用餐愉快', canvas.width / 2, y + 40);
+        ctx.font = 'bold 18px sans-serif';
+        ctx.fillStyle = '#D4A574';
+        ctx.fillText('立即體驗 → carte.ai', canvas.width / 2, y + 75);
 
         // Return a Promise that resolves with a Blob
         return new Promise<Blob | null>((resolve) => {
@@ -236,7 +253,7 @@ function MenuPageContent() {
 
     const handleShare = async () => {
         const imageBlob = await generateShareImage();
-        const shareText = `我透過 carte.ai 點了這些菜！\n餐廳：${menu?.restaurant_name}\n總價：${menu?.currency || 'NT$'} ${menu?.total_price.toLocaleString()}\n快來試試看 AI 點餐！`;
+        const shareText = `🍽️ Carte AI 智慧推薦菜單\n\n我用 AI 點餐助手在「${menu?.restaurant_name}」找到了完美組合！\n\n💰 總價：${menu?.currency || 'NT$'} ${menu?.total_price.toLocaleString()}\n👥 ${menu?.party_size} 人份 · ${menu?.dishes.length} 道菜\n\n✨ 30 秒解決選擇困難，每一道都是精選！\n立即體驗 → carte.ai`;
 
         if (imageBlob && navigator.share) {
             try {
@@ -356,10 +373,6 @@ function MenuPageContent() {
                             <Share2 className="w-4 h-4" aria-hidden="true" />
                             分享
                         </Button>
-                        <Button onClick={handleRating} className="gap-1 sm:gap-2 px-2 sm:px-4 bg-primary" aria-label="為這次推薦評分">
-                            <Star className="w-4 h-4" aria-hidden="true" />
-                            評分
-                        </Button>
                     </div>
                 </div>
             </div>
@@ -474,11 +487,30 @@ function MenuPageContent() {
                     </ul>
                 </div>
 
-                {/* Footer Note */}
+                {/* Rating Section */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
+                    className="mt-12"
+                >
+                    <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                        <div className="text-center space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">請為本次推薦菜色評分</h3>
+                            <p className="text-sm text-muted-foreground">您的回饋能幫助我們提供更精準的推薦</p>
+                            <Button onClick={handleRating} size="lg" className="gap-2">
+                                <Star className="w-5 h-5" />
+                                立即評分
+                            </Button>
+                        </div>
+                    </Card>
+                </motion.div>
+
+                {/* Footer Note */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
                     className="mt-8 text-center text-sm text-muted-foreground"
                 >
                     <p>由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️</p>
