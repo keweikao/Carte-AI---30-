@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from schemas.recommendation import UserInputV2, RecommendationResponseV2, RecommendationRequest, FullRecommendationResponse, MenuItemV2
+from schemas.recommendation import UserInputV2, RecommendationResponseV2, RecommendationRequest, FullRecommendationResponse, MenuItemV2, AddOnRequest, AddOnResponse
 from schemas.feedback import FeedbackRequest
 from schemas.tracking import SwapRequest, SwapResponse, FinalizeRequest, FinalizeResponse
 from agent.dining_agent import DiningAgent
@@ -223,6 +223,78 @@ async def record_swap(
         message=f"Swap recorded: {swap.original_dish.dish_name} → {swap.new_dish.dish_name}",
         swap_count=swap_count
     )
+
+@app.post("/v2/recommendations/{recommendation_id}/add-on", response_model=AddOnResponse)
+async def request_add_on(
+    recommendation_id: str,
+    request: AddOnRequest,
+    user_info: dict = Depends(get_current_user)
+):
+    """
+    請求加點推薦
+    從候選菜品池中尋找符合類別的額外菜品。
+    """
+    user_id = user_info.get("sub")
+    
+    # 1. 驗證 Session
+    session = get_recommendation_session(user_id, recommendation_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    # 2. 取得候選菜品池
+    candidates_data = get_recommendation_candidates(recommendation_id)
+    if not candidates_data or "candidates" not in candidates_data:
+        # 如果沒有候選池，回傳空列表（前端會顯示提示）
+        return AddOnResponse(new_dishes=[])
+        
+    all_candidates = candidates_data["candidates"]
+    
+    # 3. 找出已推薦的菜品（避免重複）
+    recommended_names = set()
+    
+    # 包含初始推薦
+    if "initial_recommendations" in session:
+        for item in session["initial_recommendations"]:
+            recommended_names.add(item.get("dish_name"))
+            
+    # 包含換過的菜
+    if "swap_history" in session:
+        for swap in session["swap_history"]:
+            if "new_dish" in swap:
+                recommended_names.add(swap["new_dish"].get("dish_name"))
+                
+    # 4. 篩選符合類別且未重複的菜品
+    available_dishes = []
+    target_category = request.category
+    
+    for dish in all_candidates:
+        # 檢查是否已推薦
+        if dish.get("dish_name") in recommended_names:
+            continue
+            
+        # 檢查類別 (模糊匹配)
+        dish_category = dish.get("category", "")
+        if target_category in dish_category or dish_category in target_category:
+            available_dishes.append(dish)
+            
+    # 5. 選擇前 N 個
+    selected_dishes = available_dishes[:request.count]
+    
+    # 6. 轉換格式並回傳
+    result_dishes = []
+    for dish in selected_dishes:
+        # 確保 quantity 存在，預設為 1
+        if "quantity" not in dish:
+            dish["quantity"] = 1
+            
+        try:
+            menu_item = MenuItemV2(**dish)
+            result_dishes.append(menu_item)
+        except Exception as e:
+            print(f"Error converting dish to MenuItemV2: {e}")
+            continue
+        
+    return AddOnResponse(new_dishes=result_dishes)
 
 @app.post("/v2/recommendations/{recommendation_id}/finalize", response_model=FinalizeResponse)
 async def finalize_order(
