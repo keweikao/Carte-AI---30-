@@ -16,76 +16,93 @@ except Exception as e:
     db = None
 
 COLLECTION_NAME = "restaurants"
-CACHE_DURATION_DAYS = 30
+CACHE_DURATION_DAYS = 180  # Changed from 30 to 180 days (6 months)
 
-def _get_doc_id(restaurant_name: str) -> str:
-    """Generates a consistent document ID based on the restaurant name."""
-    return hashlib.md5(restaurant_name.lower().strip().encode()).hexdigest()
+def _get_doc_id(place_id: str = None, restaurant_name: str = None) -> str:
+    """
+    Generates a consistent document ID.
+    Prioritizes place_id if available, falls back to restaurant_name for backward compatibility.
+    """
+    if place_id:
+        # Use place_id directly as the document ID (cleaner and guaranteed unique by Google)
+        return place_id.replace("/", "_")  # Replace any slashes to make it Firestore-safe
+    elif restaurant_name:
+        # Fallback to old MD5 hash method for backward compatibility
+        return hashlib.md5(restaurant_name.lower().strip().encode()).hexdigest()
+    else:
+        raise ValueError("Either place_id or restaurant_name must be provided")
 
-def get_cached_data(restaurant_name: str) -> dict:
+def get_cached_data(place_id: str = None, restaurant_name: str = None) -> dict:
     """
     Retrieves cached data for a restaurant if it exists and is fresh.
+    Prioritizes place_id for lookup, falls back to restaurant_name.
     Returns None if cache miss or expired.
     """
     if not db:
         return None
 
-    doc_id = _get_doc_id(restaurant_name)
+    doc_id = _get_doc_id(place_id=place_id, restaurant_name=restaurant_name)
     doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-    
+
+    identifier = place_id or restaurant_name
+
     try:
         doc = doc_ref.get()
         if doc.exists:
             data = doc.to_dict()
             updated_at = data.get("updated_at")
-            
+
             # Check expiration
             if updated_at:
                 # Handle both datetime object and string (if serialized)
                 if isinstance(updated_at, str):
                     updated_at = datetime.datetime.fromisoformat(updated_at)
-                
+
                 # Ensure timezone awareness compatibility (naive vs aware)
                 if updated_at.tzinfo is None:
                     updated_at = updated_at.replace(tzinfo=datetime.timezone.utc)
-                
+
                 now = datetime.datetime.now(datetime.timezone.utc)
-                
+
                 if (now - updated_at).days < CACHE_DURATION_DAYS:
-                    print(f"Cache HIT for {restaurant_name}")
+                    print(f"Cache HIT for {identifier} (age: {(now - updated_at).days} days)")
                     return data
                 else:
-                    print(f"Cache EXPIRED for {restaurant_name}")
+                    print(f"Cache EXPIRED for {identifier} (age: {(now - updated_at).days} days, TTL: {CACHE_DURATION_DAYS} days)")
             else:
-                 print(f"Cache INVALID (no timestamp) for {restaurant_name}")
+                 print(f"Cache INVALID (no timestamp) for {identifier}")
         else:
-            print(f"Cache MISS for {restaurant_name}")
-            
+            print(f"Cache MISS for {identifier}")
+
     except Exception as e:
         print(f"Error reading from Firestore: {e}")
-        
+
     return None
 
-def save_restaurant_data(restaurant_name: str, reviews_data: dict, menu_text: str):
+def save_restaurant_data(place_id: str = None, restaurant_name: str = None, reviews_data: dict = None, menu_text: str = None):
     """
     Saves restaurant data to Firestore.
+    Prioritizes place_id as the key, falls back to restaurant_name for backward compatibility.
     """
     if not db:
         return
 
-    doc_id = _get_doc_id(restaurant_name)
+    doc_id = _get_doc_id(place_id=place_id, restaurant_name=restaurant_name)
     doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
-    
+
+    identifier = place_id or restaurant_name
+
     data = {
         "name": restaurant_name,
-        "reviews_data": reviews_data, # Store raw reviews data structure
+        "place_id": place_id,  # Store place_id for reference
+        "reviews_data": reviews_data,  # Store raw reviews data structure
         "menu_text": menu_text,
         "updated_at": datetime.datetime.now(datetime.timezone.utc)
     }
-    
+
     try:
         doc_ref.set(data)
-        print(f"Saved data for {restaurant_name} to Firestore.")
+        print(f"Saved data for {identifier} to Firestore (using {'place_id' if place_id else 'restaurant_name'} as key).")
     except Exception as e:
         print(f"Error writing to Firestore: {e}")
 

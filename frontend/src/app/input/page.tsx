@@ -25,6 +25,7 @@ function InputPageContents() {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<{
         restaurant_name: string;
+        place_id?: string;
         people: number;
         budget: string;
         dietary_restrictions: string;
@@ -32,6 +33,7 @@ function InputPageContents() {
         dish_count: number | null;
     }>({
         restaurant_name: "",
+        place_id: undefined,
         people: 2,
         budget: "200",
         dietary_restrictions: "",
@@ -89,7 +91,8 @@ function InputPageContents() {
                 dietary: formData.dietary_restrictions,
                 mode: formData.mode,
                 budget_type: budgetType, // Add budget_type here
-                ...(formData.dish_count && { dish_count: formData.dish_count.toString() })
+                ...(formData.dish_count && { dish_count: formData.dish_count.toString() }),
+                ...(formData.place_id && { place_id: formData.place_id })
             });
             router.push(`/recommendation?${params.toString()}`);
         }
@@ -215,8 +218,11 @@ function InputPageContents() {
                                 <div role="group" aria-labelledby="restaurant-input-label">
                                     <label id="restaurant-input-label" className="sr-only">餐廳名稱</label>
                                     <RestaurantSearch
-                                        onSelect={({ name }) => {
+                                        onSelect={({ name, place_id }) => {
                                             updateData("restaurant_name", name);
+                                            if (place_id) {
+                                                setFormData(prev => ({ ...prev, place_id }));
+                                            }
                                             if (name) {
                                                 setStep(2);
                                             }

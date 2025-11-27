@@ -8,7 +8,7 @@ import { MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RestaurantSearchProps {
-  onSelect: (details: { name: string }) => void;
+  onSelect: (details: { name: string; place_id?: string }) => void;
   onChange?: (value: string) => void;
   defaultValue?: string;
 }
@@ -110,7 +110,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue }: Restauran
     const name = suggestion.main_text;
     setValue(name);
     if (onChange) onChange(name);
-    onSelect({ name });
+    onSelect({ name, place_id: suggestion.place_id });
     setIsOpen(false);
   };
 

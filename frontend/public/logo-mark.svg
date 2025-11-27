@@ -1,0 +1,16 @@
+<svg width="80" height="80" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 碗的主體 - 鼠尾草綠 -->
+  <path d="M120 350 C120 200 200 120 256 120 C312 120 392 200 392 320" stroke="#8B9D83" stroke-width="40" stroke-linecap="round"/>
+
+  <!-- 頂部圓點（代表蒸氣/AI智慧） -->
+  <circle cx="256" cy="100" r="25" fill="#8B9D83"/>
+
+  <!-- 底部線條 -->
+  <path d="M100 360 H412" stroke="#8B9D83" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- 焦糖色點綴（食材） -->
+  <circle cx="320" cy="360" r="18" fill="#D4A574"/>
+
+  <!-- 紅色星星（推薦/精選） -->
+  <path d="M390 280 L400 300 L420 310 L400 320 L390 340 L380 320 L360 310 L380 300 Z" fill="#C85A54"/>
+</svg>

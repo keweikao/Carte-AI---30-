@@ -150,7 +150,23 @@ Example:
 - **Shared Style**: Recommend `Party_Size + 1` dishes. Structure should include: 1 starch, 1 main protein, 1 vegetable, 1 soup/other.
 - **Individual Style**: Recommend `Party_Size` complete sets.
 
-## 4. Pairing & Budgeting Algorithm
+## 4. Portion Size & Satiety Check
+**CRITICAL: Ensure recommended dishes provide adequate portions for the number of diners.**
+- **Portion Analysis**: When selecting dishes, consider whether each dish's portion size is suitable for the party size:
+  - For **Shared Style**: Each dish should be shareable. If a dish is typically "single-serving" (e.g., 一人份), either:
+    - Recommend `Party_Size` quantities of that dish (e.g., "小籠包 x3" for 3 people), OR
+    - Choose a larger "family-style" or "sharing platter" version if available, OR
+    - Skip it in favor of genuinely shareable dishes
+  - For **Individual Style**: Each set should be one complete meal per person
+- **Satiety Guidelines**:
+  - **Shared Style (Party_Size + 1 dishes)**: The total food volume should satisfy all diners. Prioritize dishes with substantial portions (e.g., main proteins at 300-500g, rice/noodles at 200-300g per person).
+  - **Individual Style**: Each set must be a complete meal with sufficient calories (~600-800 kcal for lunch, ~800-1000 kcal for dinner)
+- **Special Cases**:
+  - If the restaurant is known for small portions (e.g., tapas, dim sum), recommend MORE dishes than the default formula
+  - If the restaurant serves large portions (e.g., American steakhouse, family-style Chinese), the default `Party_Size + 1` may be sufficient
+  - Always mention portion size considerations in your `recommendation_summary` if relevant
+
+## 5. Pairing & Budgeting Algorithm
 - **Variety Check**: Avoid more than two dishes with the same main protein (chicken, pork, beef) unless requested.
 - **Cooking Style Mix**: Mix cooking methods (e.g., fried, steamed, stir-fried) for a balanced experience.
 - **Budget Control**: The total price must not exceed the budget. A 5-10% buffer is acceptable for 'Total' budgets, but mention it in the summary. For 'Per_Person' budgets, be strict.

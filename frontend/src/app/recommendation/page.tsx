@@ -219,6 +219,7 @@ function RecommendationPageContent() {
                 }, 800);
                 // --- Build V2 Request from URL Search Params ---
                 const restaurant_name = searchParams.get("restaurant") || "";
+                const place_id = searchParams.get("place_id") || undefined;
                 const party_size = parseInt(searchParams.get("people") || "2");
 
                 const rawMode = searchParams.get("mode");
@@ -232,6 +233,7 @@ function RecommendationPageContent() {
 
                 const requestData: UserInputV2 = {
                     restaurant_name,
+                    place_id,
                     party_size,
                     dining_style,
                     budget: {

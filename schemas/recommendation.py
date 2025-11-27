@@ -47,6 +47,7 @@ class BudgetV2(BaseModel):
 
 class UserInputV2(BaseModel):
     restaurant_name: str = Field(..., description="Name of the restaurant")
+    place_id: Optional[str] = Field(None, description="Google Maps Place ID for precise restaurant identification")
     dining_style: Literal["Shared", "Individual"] = Field(..., description="Dining style")
     party_size: int = Field(..., gt=0, description="Number of people")
     budget: BudgetV2

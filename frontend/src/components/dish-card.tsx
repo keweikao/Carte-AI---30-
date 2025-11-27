@@ -67,6 +67,16 @@ export function DishCard({ item, status, onSelect, onSwap, isSwapping }: DishCar
             {/* Row 3: Actions */}
             <div className="flex items-center gap-2 mt-4">
               <Button
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-full px-4 border-charcoal/20 text-charcoal hover:bg-cream-200"
+                onClick={onSwap}
+                disabled={isSwapping}
+              >
+                <RotateCw className={cn("w-4 h-4 mr-1.5", isSwapping ? 'animate-spin' : '')} />
+                換一道
+              </Button>
+              <Button
                 size="sm"
                 className={cn(
                   "flex-1 h-9 rounded-full",
@@ -76,16 +86,6 @@ export function DishCard({ item, status, onSelect, onSwap, isSwapping }: DishCar
               >
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
                 {isSelected ? '已選擇' : '我要點'}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 rounded-full px-4 border-charcoal/20 text-charcoal hover:bg-cream-200"
-                onClick={onSwap}
-                disabled={isSwapping}
-              >
-                <RotateCw className={cn("w-4 h-4 mr-1.5", isSwapping ? 'animate-spin' : '')} />
-                換一道
               </Button>
             </div>
           </div>

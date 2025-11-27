@@ -11,6 +11,7 @@ interface BudgetV2 {
 
 export interface UserInputV2 {
     restaurant_name: string;
+    place_id?: string;
     dining_style: "Shared" | "Individual";
     party_size: number;
     budget: BudgetV2;

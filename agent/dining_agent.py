@@ -29,20 +29,27 @@ class DiningAgent:
         # 1. Fetch Data (Cache or Live)
         cached_data = None
         try:
-            cached_data = get_cached_data(request.restaurant_name)
+            # Prioritize place_id for cache lookup, fallback to restaurant_name
+            cached_data = get_cached_data(place_id=request.place_id, restaurant_name=request.restaurant_name)
         except Exception as e:
             print(f"Warning: Firestore cache read failed. Proceeding without cache. Error: {e}")
 
         if cached_data:
             reviews_data, menu_text = cached_data.get("reviews_data", {}), cached_data.get("menu_text", "")
-            print("Using cached data.")
+            print(f"Using cached data for {request.place_id or request.restaurant_name}.")
         else:
-            print("Fetching live data...")
+            print(f"Fetching live data for {request.place_id or request.restaurant_name}...")
             reviews_task = fetch_place_details(request.restaurant_name)
             menu_task = fetch_menu_from_search(request.restaurant_name)
             reviews_data, menu_text = await asyncio.gather(reviews_task, menu_task)
             try:
-                save_restaurant_data(request.restaurant_name, reviews_data, menu_text)
+                # Save with place_id if available
+                save_restaurant_data(
+                    place_id=request.place_id,
+                    restaurant_name=request.restaurant_name,
+                    reviews_data=reviews_data,
+                    menu_text=menu_text
+                )
             except Exception as e:
                 print(f"Warning: Firestore cache write failed. Error: {e}")
         

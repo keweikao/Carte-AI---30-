@@ -1,12 +1,20 @@
-import { Utensils, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export function BrandHeader() {
   return (
     <div className="space-y-6">
       {/* Brand Icon + Name */}
       <div className="flex items-center gap-3">
-        <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
-          <Utensils className="w-8 h-8" />
+        <div className="w-14 h-14 flex items-center justify-center">
+          <Image
+            src="/logo-mark.svg"
+            alt="Carte AI Logo"
+            width={56}
+            height={56}
+            className="w-14 h-14"
+            priority
+          />
         </div>
         <div>
           <h1 className="text-4xl font-bold text-foreground">Carte AI 點餐助手</h1>
