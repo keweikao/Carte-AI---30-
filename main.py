@@ -106,7 +106,8 @@ async def get_recommendations_v2(
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         print(f"Unexpected error in /v2/recommendations: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error.")
+        # Enhanced error reporting for debugging
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/recommendations", response_model=FullRecommendationResponse, deprecated=True)
 async def get_recommendations_v1(

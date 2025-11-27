@@ -23,6 +23,7 @@ class DiningAgent:
     async def get_recommendations_v2(self, request: UserInputV2) -> RecommendationResponseV2:
         """Orchestrates the V2 recommendation process, creating a candidate pool and forming DishSlots."""
         if not GEMINI_API_KEY or "your_gemini_api_key" in GEMINI_API_KEY:
+            print(f"CRITICAL ERROR: GEMINI_API_KEY is missing or invalid. Current value: {GEMINI_API_KEY[:5]}..." if GEMINI_API_KEY else "None")
             raise ValueError("Gemini API Key is not configured.")
 
         # 1. Fetch Data (Cache or Live)
@@ -112,7 +113,15 @@ class DiningAgent:
                 return RecommendationResponseV2.model_validate(response_data)
                 
             except Exception as e:
-                print(f"Error generating V2 recommendation: {e}")
+                print(f"Error generating V2 recommendation (Attempt {attempt + 1}): {e}")
+                import traceback
+                traceback.print_exc()
+                if 'response' in locals():
+                    try:
+                        print(f"Response Text (if any): {response.text}")
+                    except:
+                        pass
+                
                 if attempt == max_retries:
                     raise RuntimeError(f"Failed after {max_retries} retries: {e}")
                 await asyncio.sleep(1)
