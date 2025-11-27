@@ -112,8 +112,6 @@ function MenuPageContent() {
     const { data: session } = useSession();
     const [menu, setMenu] = useState<FinalMenu | null>(null);
     const [showRatingModal, setShowRatingModal] = useState(false);
-    const [showShareMenu, setShowShareMenu] = useState(false);
-    const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -171,64 +169,111 @@ function MenuPageContent() {
         ctx.textAlign = 'center';
         ctx.fillText('Carte AI 推薦菜單', canvas.width / 2, 50);
 
+        // Carte AI Logo (Placeholder or actual logo if available in public folder)
+        const logoText = "Carte AI";
+        ctx.font = 'italic 16px sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'right';
+        ctx.fillText(logoText, canvas.width - 60, 80); // Positioned top-right
+
         // Restaurant Name
         ctx.fillStyle = '#2D2D2D';
-        ctx.font = 'bold 32px sans-serif';
-        ctx.fillText(menu.restaurant_name, canvas.width / 2, 160);
+        ctx.font = 'bold 36px sans-serif'; // Slightly larger for emphasis
+        ctx.textAlign = 'center';
+        ctx.fillText(menu.restaurant_name, canvas.width / 2, 180); // Adjusted Y position
 
         // Cuisine Type
-        ctx.font = '20px sans-serif';
+        ctx.font = '22px sans-serif'; // Slightly larger
         ctx.fillStyle = '#666';
-        ctx.fillText(menu.cuisine_type, canvas.width / 2, 190);
+        ctx.fillText(menu.cuisine_type, canvas.width / 2, 215); // Adjusted Y position
 
         // Price Summary
         ctx.fillStyle = '#D4A574';
-        ctx.fillRect(50, 220, canvas.width - 100, 100);
+        ctx.fillRect(50, 260, canvas.width - 100, 110); // Adjusted Y and height
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 24px sans-serif';
+        ctx.font = 'bold 26px sans-serif'; // Larger font
         ctx.textAlign = 'left';
-        ctx.fillText(`總價: NT$ ${menu.total_price.toLocaleString()}`, 80, 260);
-        ctx.fillText(`人均: NT$ ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 295);
+        ctx.fillText(`總價: NT$ ${menu.total_price.toLocaleString()}`, 80, 300); // Adjusted Y
+        ctx.fillText(`人均: NT$ ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 335); // Adjusted Y
 
         // Dishes
-        let y = 360;
+        let y = 410; // Adjusted starting Y
         ctx.fillStyle = '#2D2D2D';
-        ctx.font = 'bold 22px sans-serif';
+        ctx.font = 'bold 24px sans-serif'; // Larger font
         ctx.fillText('推薦菜色', 50, y);
-        y += 40;
+        y += 45; // Adjusted line height
 
         menu.dishes.forEach((dish, index) => {
-            ctx.font = '18px sans-serif';
+            ctx.font = '20px sans-serif'; // Larger font
             ctx.fillStyle = '#2D2D2D';
             ctx.fillText(`${index + 1}. ${dish.dish_name}`, 50, y);
-            ctx.fillText(`NT$ ${dish.price}`, canvas.width - 150, y);
-            y += 50;
+            ctx.textAlign = 'right';
+            ctx.fillText(`NT$ ${dish.price}`, canvas.width - 50, y); // Adjusted X position
+            ctx.textAlign = 'center'; // Reset for next line
+            y += 55; // Adjusted line height
         });
 
         // Footer
-        ctx.font = '16px sans-serif';
+        ctx.font = '18px sans-serif'; // Larger font
         ctx.fillStyle = '#999';
         ctx.textAlign = 'center';
-        ctx.fillText('由 Carte AI 智慧推薦 • 祝您用餐愉快', canvas.width / 2, y + 30);
+        ctx.fillText('由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️', canvas.width / 2, y + 40); // Adjusted Y
+        ctx.fillText('我透過 carte.ai 點了這些菜！', canvas.width / 2, y + 70); // Added promotion text
 
-        return canvas.toDataURL('image/png');
+        // Return a Promise that resolves with a Blob
+        return new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/png');
+        });
     };
 
     const handleShare = async () => {
-        const imageUrl = await generateShareImage();
-        if (imageUrl) {
-            setShareImageUrl(imageUrl);
+        const imageBlob = await generateShareImage();
+        const shareText = `我透過 carte.ai 點了這些菜！\n餐廳：${menu?.restaurant_name}\n總價：NT$ ${menu?.total_price.toLocaleString()}\n快來試試看 AI 點餐！`;
+
+        if (imageBlob && navigator.share) {
+            try {
+                const shareData: ShareData = {
+                    files: [new File([imageBlob], 'carte_menu.png', { type: 'image/png' })],
+                    title: 'Carte AI 智慧推薦菜單',
+                    text: shareText,
+                };
+                if (navigator.canShare && navigator.canShare(shareData)) {
+                    await navigator.share(shareData);
+                } else {
+                    alert('您的瀏覽器不支援直接分享圖片，將提供下載選項。');
+                    // Fallback to existing download/copy if native share is not fully supported for images
+                    setShareImageUrl(URL.createObjectURL(imageBlob));
+                    setShowShareMenu(true);
+                }
+            } catch (error) {
+                console.error('Error sharing:', error);
+                // Fallback to existing download/copy if share fails
+                alert('分享失敗，將提供下載選項。');
+                setShareImageUrl(URL.createObjectURL(imageBlob));
+                setShowShareMenu(true);
+            }
+        } else if (imageBlob) {
+            // Fallback for browsers not supporting navigator.share
+            alert('您的瀏覽器不支援直接分享，請下載圖片後手動分享。');
+            setShareImageUrl(URL.createObjectURL(imageBlob));
             setShowShareMenu(true);
         }
     };
 
     const handleDownloadImage = () => {
-        if (!shareImageUrl) return;
+        if (!shareImageUrl || !menu) return;
 
         const link = document.createElement('a');
         link.download = `${menu?.restaurant_name || 'menu'}_carte.png`;
         link.href = shareImageUrl;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+        // Revoke the object URL after download
+        URL.revokeObjectURL(shareImageUrl);
+        setShareImageUrl(null);
     };
 
     const handleCopyImage = async () => {
@@ -237,11 +282,13 @@ function MenuPageContent() {
         try {
             const response = await fetch(shareImageUrl);
             const blob = await response.blob();
+            // @ts-expect-error - ClipboardItem is a standard API but may not be in all TS types
             await navigator.clipboard.write([
                 new ClipboardItem({ 'image/png': blob })
             ]);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
+            alert('圖片已複製到剪貼簿！');
         } catch (err) {
             console.error('Failed to copy image:', err);
             alert('複製失敗，請使用下載功能');
@@ -422,48 +469,6 @@ function MenuPageContent() {
                 onClose={() => setShowRatingModal(false)}
                 onSubmit={handleRatingSubmit}
             />
-
-            {/* Share Menu */}
-            {showShareMenu && shareImageUrl && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 print:hidden" onClick={() => setShowShareMenu(false)}>
-                    <Card className="p-6 max-w-md mx-4 w-full" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold mb-4">分享菜單</h3>
-
-                        {/* Preview Image */}
-                        <div className="mb-4 rounded-lg overflow-hidden border border-border">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={shareImageUrl} alt="Menu preview" className="w-full" />
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="space-y-2">
-                            <Button
-                                onClick={handleDownloadImage}
-                                className="w-full gap-2"
-                                variant="outline"
-                            >
-                                <Download className="w-4 h-4" />
-                                下載圖片
-                            </Button>
-                            <Button
-                                onClick={handleCopyImage}
-                                className="w-full gap-2"
-                                variant="outline"
-                            >
-                                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                {copied ? '已複製！' : '複製圖片'}
-                            </Button>
-                            <Button
-                                onClick={() => setShowShareMenu(false)}
-                                className="w-full"
-                                variant="ghost"
-                            >
-                                關閉
-                            </Button>
-                        </div>
-                    </Card>
-                </div>
-            )}
 
             {/* Hidden Canvas for generating share image */}
             <canvas ref={canvasRef} className="hidden" />
