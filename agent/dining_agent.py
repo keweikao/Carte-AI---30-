@@ -93,6 +93,7 @@ class DiningAgent:
                 llm_output = json.loads(response_text)
                 raw_menu_items = llm_output.get("menu_items", [])
                 cuisine_type = llm_output.get("cuisine_type", "中式餐館")
+                currency = llm_output.get("currency", "TWD")
 
                 # --- New Logic: Process raw items into DishSlots ---
                 dish_slots, final_menu_items = self._process_llm_candidates(raw_menu_items, request)
@@ -116,7 +117,9 @@ class DiningAgent:
                     "user_info": user_info,
                     "cuisine_type": cuisine_type,
                     "category_summary": dict(category_summary),
+                    "currency": currency,
                 }
+
                 
                 # --- New: Save the full candidate pool for future 'alternatives' requests ---
                 try:

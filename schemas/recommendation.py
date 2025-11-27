@@ -84,3 +84,4 @@ class RecommendationResponseV2(BaseModel):
     # NEW: Dynamic category system
     cuisine_type: str = Field(..., description="Restaurant cuisine type (中式餐館, 日本料理, 美式餐廳, 義式料理, 泰式料理)")
     category_summary: Dict[str, int] = Field(..., description="Count of dishes per category (e.g., {'冷菜': 1, '熱菜': 2})")
+    currency: str = Field("TWD", description="Currency code (e.g., TWD, JPY, USD)")

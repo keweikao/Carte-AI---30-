@@ -21,6 +21,7 @@ interface FinalMenu {
     dishes: MenuItem[];
     total_price: number;
     party_size: number;
+    currency?: string;
 }
 
 // Skeleton loading state for Menu Page
@@ -196,8 +197,8 @@ function MenuPageContent() {
         ctx.fillStyle = '#FFFFFF';
         ctx.font = 'bold 26px sans-serif'; // Larger font
         ctx.textAlign = 'left';
-        ctx.fillText(`總價: NT$ ${menu.total_price.toLocaleString()}`, 80, 300); // Adjusted Y
-        ctx.fillText(`人均: NT$ ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 335); // Adjusted Y
+        ctx.fillText(`總價: ${menu.currency || 'NT$'} ${menu.total_price.toLocaleString()}`, 80, 300); // Adjusted Y
+        ctx.fillText(`人均: ${menu.currency || 'NT$'} ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 335); // Adjusted Y
 
         // Dishes
         let y = 410; // Adjusted starting Y
@@ -212,7 +213,7 @@ function MenuPageContent() {
             const dishName = dish.quantity > 1 ? `${dish.dish_name} x${dish.quantity}` : dish.dish_name;
             ctx.fillText(`${index + 1}. ${dishName}`, 50, y);
             ctx.textAlign = 'right';
-            ctx.fillText(`NT$ ${(dish.price * dish.quantity).toLocaleString()}`, canvas.width - 50, y); // Adjusted X position
+            ctx.fillText(`${menu.currency || 'NT$'} ${(dish.price * dish.quantity).toLocaleString()}`, canvas.width - 50, y); // Adjusted X position
             ctx.textAlign = 'center'; // Reset for next line
             y += 55; // Adjusted line height
         });
@@ -234,7 +235,7 @@ function MenuPageContent() {
 
     const handleShare = async () => {
         const imageBlob = await generateShareImage();
-        const shareText = `我透過 carte.ai 點了這些菜！\n餐廳：${menu?.restaurant_name}\n總價：NT$ ${menu?.total_price.toLocaleString()}\n快來試試看 AI 點餐！`;
+        const shareText = `我透過 carte.ai 點了這些菜！\n餐廳：${menu?.restaurant_name}\n總價：${menu?.currency || 'NT$'} ${menu?.total_price.toLocaleString()}\n快來試試看 AI 點餐！`;
 
         if (imageBlob && navigator.share) {
             try {
@@ -392,13 +393,13 @@ function MenuPageContent() {
                             <div>
                                 <p className="text-sm text-muted-foreground mb-1">菜單總價</p>
                                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground font-mono">
-                                    NT$ {menu.total_price.toLocaleString()}
+                                    {menu.currency || 'NT$'} {menu.total_price.toLocaleString()}
                                 </h2>
                             </div>
                             <div className="text-right">
                                 <p className="text-sm text-muted-foreground mb-1">人均約</p>
                                 <p className="text-xl sm:text-2xl font-bold text-primary font-mono">
-                                    NT$ {perPerson.toLocaleString()}
+                                    {menu.currency || 'NT$'} {perPerson.toLocaleString()}
                                 </p>
                             </div>
                         </div>
@@ -443,11 +444,11 @@ function MenuPageContent() {
                                         </div>
                                         <div className="text-right flex-shrink-0">
                                             <p className="text-lg font-bold font-mono text-foreground" aria-label={`價格 ${dish.price * dish.quantity} 元`}>
-                                                NT$ {(dish.price * dish.quantity).toLocaleString()}
+                                                {menu.currency || 'NT$'} {(dish.price * dish.quantity).toLocaleString()}
                                             </p>
                                             {dish.quantity > 1 && (
                                                 <p className="text-xs text-muted-foreground">
-                                                    {dish.quantity} × NT$ {dish.price}
+                                                    {dish.quantity} × {menu.currency || 'NT$'} {dish.price}
                                                 </p>
                                             )}
                                             {dish.price_estimated && (

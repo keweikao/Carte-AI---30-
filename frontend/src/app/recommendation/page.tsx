@@ -41,6 +41,7 @@ interface RecommendationData {
     restaurant_name: string;
     cuisine_type: string;
     category_summary: Record<string, number>;
+    currency?: string;
 }
 
 // Define interfaces for component props for type safety
@@ -555,11 +556,11 @@ function RecommendationPageContent() {
                     <div className="flex justify-between items-end mb-2">
                         <div>
                             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">菜單總價</p>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-mono transition-colors duration-300" aria-live="polite">NT$ {totalPrice.toLocaleString()}</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-mono transition-colors duration-300" aria-live="polite">{data.currency || 'NT$'} {totalPrice.toLocaleString()}</h1>
                         </div>
                         <div className="text-right">
                             <p className="text-xs text-muted-foreground mb-1">人均約</p>
-                            <p className="text-lg sm:text-xl font-bold text-orange-600 font-mono" aria-live="polite">NT$ {perPerson.toLocaleString()}</p>
+                            <p className="text-lg sm:text-xl font-bold text-orange-600 font-mono" aria-live="polite">{data.currency || 'NT$'} {perPerson.toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
@@ -617,7 +618,7 @@ function RecommendationPageContent() {
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                <span className="text-lg font-mono font-semibold text-foreground" aria-label={`價格 ${slot.display.price} 元`}>NT$ {slot.display.price}</span>
+                                                                <span className="text-lg font-mono font-semibold text-foreground" aria-label={`價格 ${slot.display.price} 元`}>{data.currency || 'NT$'} {slot.display.price}</span>
                                                             </div>
                                                             <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">&ldquo;{slot.display.reason}&rdquo;</p>
 
@@ -759,7 +760,7 @@ function RecommendationPageContent() {
                         </div>
                         <AlertDialogDescription className="text-muted-foreground space-y-3">
                             <p>
-                                {budgetType === "person" ? "目前人均價格" : "目前菜單總價"} <span className="font-bold text-orange-600">NT$ {comparisonPrice.toLocaleString()}</span> 已超出您的{budgetType === "person" ? "每人預算" : "總預算"} <span className="font-semibold text-foreground">NT$ {budgetAmount.toLocaleString()}</span>
+                                {budgetType === "person" ? "目前人均價格" : "目前菜單總價"} <span className="font-bold text-orange-600">{data?.currency || 'NT$'} {comparisonPrice.toLocaleString()}</span> 已超出您的{budgetType === "person" ? "每人預算" : "總預算"} <span className="font-semibold text-foreground">{data?.currency || 'NT$'} {budgetAmount.toLocaleString()}</span>
                             </p>
                             <p className="text-sm">
                                 超出預算約 <span className="font-bold text-orange-600">{budgetExceedPercentage}%</span>，建議您返回調整預算或重新選擇菜品。

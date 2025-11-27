@@ -16,13 +16,18 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
                 "description": "The detected cuisine type of the restaurant.",
                 "enum": ["中式餐館", "日本料理", "美式餐廳", "義式料理", "泰式料理"]
             },
+            "currency": {
+                "type": "string",
+                "description": "The currency code detected from the menu or location (e.g., TWD, JPY, USD, EUR). Default to TWD if uncertain.",
+                "default": "TWD"
+            },
             "menu_items": {
                 "type": "array",
                 "description": "A list of 20-25 diverse and high-quality dish recommendations.",
                 "items": MenuItemV2.model_json_schema()
             }
         },
-        "required": ["cuisine_type", "menu_items"]
+        "required": ["cuisine_type", "currency", "menu_items"]
     }
     output_schema = json.dumps(simplified_schema, indent=2, ensure_ascii=False)
     
@@ -30,7 +35,7 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
     past_preferences = ""
     if user_profile and user_profile.get("feedback_history"):
         history = user_profile.get("feedback_history", [])
-        past_preferences = f"\n- User's Past Feedback History: {json.dumps(history[:3], ensure_ascii=False)}"
+        past_preferences = f"\\n- User's Past Feedback History: {json.dumps(history[:3], ensure_ascii=False)}"
 
     # Construct the user input section for the prompt
     user_input_str = f"""
@@ -95,7 +100,57 @@ You will receive the following data:
 # Core Logic & Constraints
 
 ## 0. Cuisine Type Detection & Categorization (MANDATORY FIRST STEP)
-... (omitted for brevity, keep existing logic) ...
+
+### Step 1: Determine Cuisine Type
+Analyze the restaurant name and menu to determine which cuisine type. Choose from:
+- **"中式餐館"** (Chinese): Look for dishes like 小籠包, 炒飯, 紅燒肉, 涼拌, 川菜, 粵菜, etc.
+- **"日本料理"** (Japanese): Look for 壽司, 刺身, 拉麵, 丼飯, 居酒屋, 天婦羅, etc.
+- **"美式餐廳"** (American): Look for Burger, Steak, BBQ, Wings, Fries, etc.
+- **"義式料理"** (Italian): Look for Pasta, Pizza, Risotto, Carbonara, etc.
+- **"泰式料理"** (Thai): Look for 打拋, 冬蔭功, 咖哩, 椰奶, 月亮蝦餅, etc.
+
+**Default**: If uncertain, default to "中式餐館".
+
+### Step 2: Categorize Each Dish
+Based on the detected cuisine type, assign each recommended dish to the appropriate category:
+
+**中式餐館 Categories:**
+- 冷菜 (Cold Dishes): 涼拌, 泡菜, 皮蛋豆腐
+- 熱菜 (Hot Dishes): 炒菜, 燉菜, 煎炸類
+- 主食 (Staples): 飯, 麵, 餃子
+- 湯品 (Soups): 湯, 羹
+- 點心 (Dim Sum): 小籠包, 包子, 燒賣
+
+**日本料理 Categories:**
+- 刺身 (Sashimi): 生魚片
+- 壽司 (Sushi): 握壽司, 卷壽司
+- 燒烤 (Grilled): 燒烤, 串燒
+- 麵類 (Noodles): 拉麵, 烏龍麵, 蕎麥麵
+- 湯物 (Soup): 味噌湯, 豚骨湯
+
+**美式餐廳 Categories:**
+- 前菜 (Appetizers): Wings, Fries, Salad
+- 主餐 (Main): Burger, Steak, BBQ
+- 配菜 (Sides): Mashed Potato, Coleslaw
+- 甜點 (Desserts): Cake, Ice Cream
+- 飲料 (Beverages): Soda, Milkshake
+
+**義式料理 Categories:**
+- 前菜 (Antipasti): Bruschetta, Caprese
+- 義大利麵 (Pasta): Spaghetti, Carbonara, Penne
+- 披薩 (Pizza): Margherita, Quattro Formaggi
+- 主菜 (Main): Osso Buco, Saltimbocca
+- 甜點 (Dolci): Tiramisu, Panna Cotta
+
+**泰式料理 Categories:**
+- 開胃菜 (Appetizers): 月亮蝦餅, 春捲
+- 咖哩 (Curry): 綠咖哩, 紅咖哩, 黃咖哩
+- 炒飯麵 (Rice/Noodles): 泰式炒河粉, 打拋豬飯
+- 湯類 (Soups): 冬蔭功湯
+- 甜品 (Desserts): 芒果糯米飯
+
+### Step 3: Generate Category Summary
+After categorizing all recommended dishes, count how many dishes fall into each category. This will be returned as `category_summary` in the JSON output.
 
 ## 1. Pre-processing and Filtering (Hard Bans)
 - **Exclude Plain Staples**: Do NOT recommend plain white rice (白飯/米飯), plain noodles (白麵), or water as a standalone "dish" unless it is a specialty (e.g., "Truffle Risotto" or "Signature Fried Rice" is OK). Plain rice is assumed to be ordered separately or included.
@@ -110,7 +165,6 @@ You will receive the following data:
 ## 2. Contextual Boosting (Soft Preferences)
 {occasion_instructions}
 - **For Kids ("Kids" tag)**:
-...
   - **Exclude**: Dishes with many bones/spikes, very spicy, caffeine, raw food.
   - **Prioritize**: Fried items, sweet flavors, soft textures.
 - **For Elderly ("Elderly" tag)**:
@@ -174,12 +228,14 @@ You MUST return a valid JSON object that strictly follows the schema below. Your
 1.  **Generate a large candidate pool**: The `menu_items` array should contain approximately 20-25 diverse, high-quality dish recommendations that fit the user's request.
 2.  **Categorize every dish**: Every dish in `menu_items` MUST include a `category` field that correctly matches one of the categories for the detected `cuisine_type`.
 3.  **Detect cuisine type**: The `cuisine_type` MUST be one of: "中式餐館", "日本料理", "美式餐廳", "義式料理", "泰式料理".
-4.  **Ensure variety**: The list should cover different categories and price points suitable for the user. Do not just recommend all expensive items.
+4.  **Detect Currency**: Analyze the menu prices and restaurant location (if implied) to determine the currency (e.g., "JPY" for Japan, "TWD" for Taiwan).
+5.  **Ensure variety**: The list should cover different categories and price points suitable for the user. Do not just recommend all expensive items.
 
 **Example Output Structure:**
 ```json
 {{
   "cuisine_type": "中式餐館",
+  "currency": "TWD",
   "menu_items": [
     {{
       "dish_id": null,
