@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const runUI = !!process.env.E2E_RUN_UI;
 const baseDir = path.dirname(new URL(import.meta.url).pathname);
