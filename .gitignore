@@ -91,3 +91,4 @@ setup_local_env.sh
 fix_*.sh
 debug_*.py
 test_backend_api.py
+temp/

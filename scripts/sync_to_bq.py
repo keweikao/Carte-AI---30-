@@ -179,6 +179,59 @@ def create_views():
         `{DATASET_ID}.sessions_raw`
     """
     bq_client.query(view_sessions_query).result()
+
+    # View: Dashboard Funnel (Daily Stats)
+    view_funnel_query = f"""
+    CREATE OR REPLACE VIEW `{DATASET_ID}.view_dashboard_funnel` AS
+    WITH daily_searches AS (
+        SELECT DATE(created_at) as date, COUNT(*) as search_count 
+        FROM `{DATASET_ID}.view_searches` 
+        GROUP BY 1
+    ),
+    daily_orders AS (
+        SELECT DATE(created_at) as date, COUNT(*) as recommendation_count, COUNTIF(is_converted) as order_count 
+        FROM `{DATASET_ID}.view_sessions` 
+        GROUP BY 1
+    ),
+    daily_new_users AS (
+        SELECT DATE(first_seen) as date, COUNT(*) as new_user_count
+        FROM (
+            SELECT user_id, MIN(created_at) as first_seen
+            FROM `{DATASET_ID}.view_sessions`
+            GROUP BY user_id
+        )
+        GROUP BY 1
+    )
+    SELECT
+      COALESCE(s.date, r.date, u.date) as date,
+      IFNULL(u.new_user_count, 0) as new_user_count,
+      IFNULL(s.search_count, 0) as search_count,
+      IFNULL(r.recommendation_count, 0) as recommendation_count,
+      IFNULL(r.order_count, 0) as order_count,
+      IFNULL(r.recommendation_count, 0) / NULLIF(s.search_count, 0) as conversion_search_to_rec,
+      IFNULL(r.order_count, 0) / NULLIF(r.recommendation_count, 0) as conversion_rec_to_order
+    FROM daily_searches s
+    FULL OUTER JOIN daily_orders r ON s.date = r.date
+    FULL OUTER JOIN daily_new_users u ON COALESCE(s.date, r.date) = u.date
+    ORDER BY 1 DESC
+    """
+    bq_client.query(view_funnel_query).result()
+
+    # View: Dashboard Feedback (Enriched)
+    view_feedback_enriched_query = f"""
+    CREATE OR REPLACE VIEW `{DATASET_ID}.view_dashboard_feedback` AS
+    SELECT
+      f.*,
+      s.restaurant_name,
+      s.cuisine_type,
+      s.final_total_price,
+      s.created_at as session_time
+    FROM `{DATASET_ID}.view_feedback` f
+    LEFT JOIN `{DATASET_ID}.view_sessions` s
+    ON f.recommendation_id = s.recommendation_id
+    """
+    bq_client.query(view_feedback_enriched_query).result()
+    print("Dashboard Views created successfully.")
     
     # View: Feedback
     # Note: feedback_history is a JSON string in our raw table because of pandas export
