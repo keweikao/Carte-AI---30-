@@ -10,6 +10,7 @@ export interface MenuItem {
   reason: string;
   review_count?: number;
   price_estimated?: boolean;
+  tag?: string | null;
 }
 
 export interface DishSlotResponse {

@@ -67,8 +67,20 @@ export function DishCard({ item, status, onSelect, onSwap, isSwapping }: DishCar
                   <Star className="w-3 h-3 fill-current text-caramel" /> {item.review_count} 則好評
                 </span>
               )}
-              {/* Optional: if you have cuisine type for badges */}
-              {/* <Badge variant="secondary">{item.category}</Badge> */}
+              {item.tag && (
+                <Badge
+                  variant="neutral"
+                  className={cn(
+                    "text-xs border-0",
+                    item.tag === "必點" && "bg-red-100 text-red-700",
+                    item.tag === "隱藏版" && "bg-purple-100 text-purple-700",
+                    item.tag === "人氣" && "bg-orange-100 text-orange-700",
+                    item.tag === "招牌" && "bg-blue-100 text-blue-700"
+                  )}
+                >
+                  {item.tag}
+                </Badge>
+              )}
             </div>
 
             {/* Row 3: Actions */}

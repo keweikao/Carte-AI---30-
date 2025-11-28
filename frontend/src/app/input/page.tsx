@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { MultiAgentLoader } from "@/components/multi-agent-loader";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,6 @@ import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, U
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
-import { PricingModal } from "@/components/pricing-modal";
 import { TagInput } from "@/components/tag-input"; // New import
 
 function InputPageContents() {
@@ -25,7 +25,6 @@ function InputPageContents() {
     const error = searchParams.get('error');
 
     const [step, setStep] = useState(1);
-    const [showPricingModal, setShowPricingModal] = useState(false); // New state
     const [formData, setFormData] = useState<{
         restaurant_name: string;
         place_id?: string;
@@ -100,7 +99,7 @@ function InputPageContents() {
                 ...(formData.dish_count && { dish_count: formData.dish_count.toString() }),
                 ...(formData.place_id && { place_id: formData.place_id })
             });
-            router.push(`/recommendation?${params.toString()}`);
+            router.push(`/ recommendation ? ${params.toString()} `);
         }
     }, [step, formData, router, budgetType]);
 
@@ -179,10 +178,8 @@ function InputPageContents() {
 
     if (status === "loading") {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-background">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" role="status" aria-label="載入中">
-                    <span className="sr-only">載入中...</span>
-                </div>
+            <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background">
+                <MultiAgentLoader />
             </div>
         );
     }
@@ -200,19 +197,6 @@ function InputPageContents() {
     // --- FULL COMPONENT RENDER ---
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
-            <PricingModal
-                isOpen={showPricingModal}
-                onClose={() => setShowPricingModal(false)}
-                currentCredits={0}
-            />
-
-            {/* Temporary Demo Button */}
-            <div className="absolute top-4 right-4 z-50">
-                <Button variant="outline" size="sm" onClick={() => setShowPricingModal(true)}>
-                    💎 升級方案
-                </Button>
-            </div>
-
             {/* Background Decoration */}
             <div className="w-full max-w-md">
                 <AnimatePresence mode="wait">

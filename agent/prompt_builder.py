@@ -26,11 +26,16 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
                         "dish_name_local": {"type": "string", "description": "Name of the dish in the restaurant's local language"},
                         "price": {"type": "integer"},
                         "quantity": {"type": "integer"},
+                        "tag": {
+                            "type": ["string", "null"],
+                            "description": "One of ['必點', '隱藏版', '人氣', '招牌'] or null. '必點' (Must Order): For the absolute most famous signature dish. '隱藏版' (Hidden Gem): For highly rated but less known items (e.g. from reviews). '人氣' (Popular): For dishes with high popularity scores. '招牌' (Signature): For store signatures.",
+                            "enum": ["必點", "隱藏版", "人氣", "招牌", None]
+                        },
                         "reason": {"type": "string", "description": "Why recommended? Mention if it is a signature dish (招牌/必點)."},
                         "category": {"type": "string", "description": "A logical category for the dish (e.g., Main, Side, Drink, Dessert, or specific like 'Beef', 'Seafood'). Do NOT force strict cuisine types."},
                         "review_count": {"type": "integer"}
                     },
-                    "required": ["dish_name", "price", "quantity", "reason", "category"]
+                    "required": ["dish_name", "price", "quantity", "tag", "reason", "category"]
                 }
             }
         },

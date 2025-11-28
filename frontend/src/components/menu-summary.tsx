@@ -35,14 +35,7 @@ export function MenuSummary({
 
   return (
     <div className={cn("bg-cream-100 p-4 rounded-xl shadow-card space-y-4", className)}>
-      {/* Category Summary Grid */}
-      <div className="flex flex-wrap gap-2 text-charcoal">
-        {categories.length > 0 ? (
-          categories
-        ) : (
-          <Badge variant="neutral">無分類資料</Badge>
-        )}
-      </div>
+      {/* Category Summary Grid Removed */}
 
       {/* Price Summary */}
       <div className="flex justify-between items-end">

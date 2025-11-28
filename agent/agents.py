@@ -76,7 +76,7 @@ class ReviewAgent(BaseAgent):
         
         Return a JSON list:
         [
-            {"dish_name": "Name", "popularity_score": 1-10, "reason": "Mentioned by 5 users as must-try"}
+            {{"dish_name": "Name", "popularity_score": 1-10, "reason": "Mentioned by 5 users as must-try"}}
         ]
         """
         
