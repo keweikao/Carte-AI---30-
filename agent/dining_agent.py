@@ -174,7 +174,7 @@ class DiningAgent:
                 dish_slots, final_menu_items = self._process_llm_candidates(raw_menu_items, request, currency)
 
                 # 4. Calculate final summary and price
-                total_price = sum(item.price for item in final_menu_items)
+                total_price = sum((item.price or 0) * item.quantity for item in final_menu_items)
                 category_summary = defaultdict(int)
                 for item in final_menu_items:
                     category_summary[item.category] += 1
@@ -255,6 +255,11 @@ class DiningAgent:
             except Exception as e:
                 print(f"Skipping invalid item data: {item_data}. Error: {e}")
 
+        # Sort items within each category: Signatures first!
+        priority_tags = ["必點", "招牌", "人氣", "Must Order", "Signature", "Best Seller"]
+        for cat in items_by_category:
+            items_by_category[cat].sort(key=lambda x: 0 if x.tag and any(t in x.tag for t in priority_tags) else 1)
+
         # 2. Determine target dish count & Budget
         if request.dish_count_target:
             target_count = request.dish_count_target
@@ -313,7 +318,7 @@ class DiningAgent:
         
         # Phase 2: Budget Expansion (Add more dishes if under budget)
         # Only for Shared style or if explicit budget is high
-        current_total = sum(item.price or 0 for item in final_menu_items)
+        current_total = sum((item.price or 0) * item.quantity for item in final_menu_items)
         max_dishes = request.party_size * 2 # Cap to avoid over-ordering
         
         if request.dining_style == "Shared":
@@ -321,7 +326,7 @@ class DiningAgent:
                 print(f"  Under budget ({current_total} < {target_budget}). Adding more dishes...")
                 if not pick_dish():
                     break
-                current_total = sum(item.price or 0 for item in final_menu_items)
+                current_total = sum((item.price or 0) * item.quantity for item in final_menu_items)
         
         return dish_slots, final_menu_items
 

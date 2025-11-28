@@ -24,7 +24,7 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
                     "properties": {
                         "dish_name": {"type": "string", "description": "Name of the dish (User's preferred language)"},
                         "dish_name_local": {"type": "string", "description": "Name of the dish in the restaurant's local language"},
-                        "price": {"type": "integer"},
+                        "price": {"type": "integer", "description": "Unit price of the dish (per portion)"},
                         "quantity": {"type": "integer"},
                         "tag": {
                             "type": ["string", "null"],
@@ -211,7 +211,7 @@ You will receive the following data:
 
 ## 2. Signature Dish Detection (PRIORITY)
 - **Identify Signatures**: Scan reviews and menu for terms like "Must-try", "Signature", "Best-seller", "招牌", "必點", "推薦".
-- **Prioritize**: Ensure these items are included in the `menu_items` list if they fit the user's dietary restrictions.
+- **Prioritize**: Ensure **at least 2-3** of these signature items are included in the `menu_items` list if they fit the user's dietary restrictions.
 - **Highlight**: In the `reason` field, explicitly mention if it is a signature dish.
 
 ## 3. Flexible Categorization
@@ -332,7 +332,7 @@ Every dish MUST include a `quantity` field indicating how many portions to order
    - Each person gets a COMPLETE meal (main + staple + optional sides)
 
 ## ✅ Dish Quality Check
-1. Is there at least ONE signature/must-order dish? (必點/招牌)
+1. Are there at least **2-3** signature/must-order dishes? (必點/招牌)
 2. Are plain rice/noodles excluded from main recommendations?
 3. For business occasions: Are dishes easy to eat (no messy shells/bones)?
 
