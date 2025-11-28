@@ -22,6 +22,8 @@ import os
 import uuid
 from datetime import datetime
 
+USE_MOCK_EXTERNAL = os.getenv("USE_MOCK_EXTERNAL", "").lower() in ("1", "true", "yes")
+
 app = FastAPI(title="AI Dining Agent API", version="2.0")
 
 # CORS Configuration
@@ -39,13 +41,143 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=not USE_MOCK_EXTERNAL)
+
+
+def _mock_user():
+    return {"sub": "mock-user", "email": "mock@example.com", "name": "Mock User"}
+
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if USE_MOCK_EXTERNAL:
+        return _mock_user()
+
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+
     token = credentials.credentials
     return verify_google_token(token)
 
-agent = DiningAgent()
+
+# --- Mock plumbing (in-memory) ---
+_mock_sessions = {}
+_mock_candidates = {}
+
+
+async def mock_fetch_place_autocomplete(input: str):
+    return [
+        {"description": f"{input} Mock 餐廳", "place_id": "mock-place-1", "main_text": f"{input} Mock", "secondary_text": "台北市"},
+        {"description": f"{input} Mock Bistro", "place_id": "mock-place-2", "main_text": f"{input} Bistro", "secondary_text": "新北市"},
+    ]
+
+
+class MockDiningAgent:
+    async def get_recommendations_v2(self, request: UserInputV2) -> RecommendationResponseV2:
+        rid = f"mock-{uuid.uuid4().hex[:8]}"
+        items = [
+            DishSlotResponse(
+                category="熱菜",
+                display=MenuItemV2(dish_name="宮保雞丁", price=250, quantity=1, reason="人氣招牌", category="熱菜", review_count=120),
+                alternatives=[
+                    MenuItemV2(dish_name="左宗棠雞", price=260, quantity=1, reason="口味相似", category="熱菜", review_count=80)
+                ],
+            ),
+            DishSlotResponse(
+                category="主食",
+                display=MenuItemV2(dish_name="蛋炒飯", price=120, quantity=request.party_size, reason="填飽肚子", category="主食", review_count=60),
+                alternatives=[],
+            ),
+        ]
+        category_summary = {"熱菜": 1, "主食": 1}
+        total_price = sum(slot.display.price for slot in items)
+        resp = RecommendationResponseV2(
+            recommendation_summary="為您準備了招牌熱菜與主食的組合。",
+            items=items,
+            total_price=total_price,
+            nutritional_balance_note="葷素搭配，適合分享。",
+            recommendation_id=rid,
+            restaurant_name=request.restaurant_name,
+            user_info=_mock_user(),
+            cuisine_type="中式餐館",
+            category_summary=category_summary,
+            currency="TWD",
+        )
+        # 保存候選池（簡化）
+        _mock_candidates[rid] = {
+            "candidates": [slot.display.model_dump() for slot in items] + [alt.model_dump() for slot in items for alt in slot.alternatives],
+            "cuisine_type": "中式餐館",
+        }
+        _mock_sessions[rid] = {
+            "restaurant_name": request.restaurant_name,
+            "restaurant_cuisine_type": "中式餐館",
+            "initial_recommendations": [slot.display.model_dump() for slot in items],
+            "initial_total_price": total_price,
+            "swap_history": [],
+            "total_swap_count": 0,
+        }
+        return resp
+
+
+def mock_save_user_activity(*args, **kwargs):
+    return True
+
+
+def mock_create_recommendation_session(session_data):
+    rid = session_data.get("recommendation_id") or f"mock-{uuid.uuid4().hex[:8]}"
+    _mock_sessions[rid] = session_data
+    return True
+
+
+def mock_get_recommendation_session(user_id, recommendation_id):
+    return _mock_sessions.get(recommendation_id)
+
+
+def mock_add_swap_to_session(user_id, recommendation_id, swap_data):
+    session = _mock_sessions.get(recommendation_id)
+    if not session:
+        return False
+    session.setdefault("swap_history", []).append(swap_data)
+    session["total_swap_count"] = len(session["swap_history"])
+    return True
+
+
+def mock_finalize_recommendation_session(user_id, recommendation_id, finalize_data):
+    session = _mock_sessions.get(recommendation_id)
+    if not session:
+        return False
+    session.update(finalize_data)
+    return True
+
+
+def mock_get_recommendation_candidates(recommendation_id):
+    return _mock_candidates.get(recommendation_id)
+
+
+def mock_save_recommendation_candidates(recommendation_id, candidates_data, cuisine_type):
+    _mock_candidates[recommendation_id] = {
+        "candidates": candidates_data,
+        "cuisine_type": cuisine_type,
+    }
+    return True
+
+
+def mock_update_user_profile(user_id, data):
+    return True
+
+
+if USE_MOCK_EXTERNAL:
+    fetch_place_autocomplete = mock_fetch_place_autocomplete  # type: ignore
+    save_user_activity = mock_save_user_activity  # type: ignore
+    create_recommendation_session = mock_create_recommendation_session  # type: ignore
+    get_recommendation_session = mock_get_recommendation_session  # type: ignore
+    add_swap_to_session = mock_add_swap_to_session  # type: ignore
+    finalize_recommendation_session = mock_finalize_recommendation_session  # type: ignore
+    get_recommendation_candidates = mock_get_recommendation_candidates  # type: ignore
+    save_recommendation_candidates = mock_save_recommendation_candidates  # type: ignore
+    update_user_profile = mock_update_user_profile  # type: ignore
+    agent = MockDiningAgent()
+else:
+    agent = DiningAgent()
 
 @app.get("/places/autocomplete")
 async def get_place_autocomplete(
@@ -383,6 +515,3 @@ def health_check():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-
-
-
