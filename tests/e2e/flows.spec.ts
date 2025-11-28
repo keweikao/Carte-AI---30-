@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const runUI = !!process.env.E2E_RUN_UI;
-const baseDir = path.dirname(new URL(import.meta.url).pathname);
+const baseDir = __dirname;
 const locators = JSON.parse(fs.readFileSync(path.join(baseDir, '__fixtures__', 'locators.json'), 'utf-8'));
 
 test.describe('UI flow (mock login + recommendation)', () => {
