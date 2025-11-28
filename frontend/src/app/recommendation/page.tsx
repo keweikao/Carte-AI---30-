@@ -183,6 +183,7 @@ function RecommendationPageContent() {
                 // Parse budget - now it's a number from the slider
                 const budgetStr = searchParams.get("budget") || "";
                 const budgetAmount = parseInt(budgetStr) || (dining_style === "Shared" ? 2000 : 500);
+                const occasion = searchParams.get("occasion") || undefined;
 
                 const requestData: UserInputV2 = {
                     restaurant_name,
@@ -195,6 +196,7 @@ function RecommendationPageContent() {
                     },
                     dish_count_target: dish_count_str ? parseInt(dish_count_str) : null,
                     preferences: searchParams.get("dietary")?.split(",").filter(p => p) || [],
+                    occasion,
                     language: "繁體中文",
                 };
 

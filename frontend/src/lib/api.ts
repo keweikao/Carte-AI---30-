@@ -17,6 +17,7 @@ export interface UserInputV2 {
     budget: BudgetV2;
     dish_count_target?: number | null;
     preferences?: string[];
+    occasion?: string;
     natural_input?: string;
     language?: string;
 }
