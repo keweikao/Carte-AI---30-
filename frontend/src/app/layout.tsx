@@ -90,7 +90,7 @@ import AuthProvider from "@/components/AuthProvider";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
 import { NetworkStatus } from "@/components/network-status";
-import { Analytics, GA_MEASUREMENT_ID } from "@/lib/analytics";
+import { Analytics } from "@/lib/analytics";
 import Script from "next/script";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 
@@ -99,6 +99,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read directly from process.env to ensure we get the runtime value from Cloud Run
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
   return (
     <html lang="zh-Hant" className="light">
       <head>
@@ -142,7 +145,7 @@ export default function RootLayout({
           {children}
           <Toaster />
           <NetworkStatus />
-          <Analytics />
+          <Analytics gaId={GA_MEASUREMENT_ID} />
           <WebVitalsReporter />
         </AuthProvider>
       </body>

@@ -93,28 +93,42 @@ export const trackRatingSubmit = (rating: 'up' | 'down') => {
   });
 };
 
-// Analytics component to track page views
-function AnalyticsInner() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (GA_MEASUREMENT_ID) {
-      const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
-      pageview(url);
-    }
-  }, [pathname, searchParams]);
-
-  return null;
-}
-
 // Export wrapped in Suspense to avoid SSR issues
-export function Analytics() {
+export function Analytics({ gaId }: { gaId?: string }) {
   return (
     <Suspense fallback={null}>
-      <AnalyticsInner />
+      <AnalyticsInner gaId={gaId} />
     </Suspense>
   );
+}
+
+// Analytics component to track page views
+function AnalyticsInner({ gaId }: { gaId?: string }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const measurementId = gaId || GA_MEASUREMENT_ID;
+
+  useEffect(() => {
+    if (measurementId) {
+      const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+      // We need to pass the ID to pageview if we want to support dynamic ID, 
+      // but pageview function is exported separately. 
+      // For now, let's just assume pageview uses the global constant or we update it too.
+      // Actually, pageview uses GA_MEASUREMENT_ID constant. 
+      // If we want runtime ID, we should probably update pageview signature or window config.
+
+      // Since we configured the ID in layout.tsx via gtag('config'), 
+      // subsequent events just need to send 'page_view' event or update config.
+
+      if (typeof window.gtag !== 'undefined') {
+        window.gtag('config', measurementId as string, {
+          page_path: url,
+        });
+      }
+    }
+  }, [pathname, searchParams, measurementId]);
+
+  return null;
 }
 
 // Type declaration for gtag
