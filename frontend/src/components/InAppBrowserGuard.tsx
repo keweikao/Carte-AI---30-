@@ -14,6 +14,7 @@ export function InAppBrowserGuard() {
         // Line = LINE App
         // Instagram = Instagram App
         if (/FBAN|FBAV|Line|Instagram/.test(userAgent)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsInApp(true);
         }
     }, []);
