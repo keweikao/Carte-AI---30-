@@ -23,13 +23,13 @@ export function MenuSummary({
   totalCount,
   className,
 }: MenuSummaryProps) {
-  const categories = useMemo(() => {
-    return Object.entries(categorySummary).map(([category, count]) => (
-      <Badge key={category} variant="neutral" className="flex-shrink-0">
-        {category} x {count}
-      </Badge>
-    ));
-  }, [categorySummary]);
+  // const categories = useMemo(() => {
+  //   return Object.entries(categorySummary).map(([category, count]) => (
+  //     <Badge key={category} variant="neutral" className="flex-shrink-0">
+  //       {category} x {count}
+  //     </Badge>
+  //   ));
+  // }, [categorySummary]);
 
   const progressValue = totalCount > 0 ? (decidedCount / totalCount) * 100 : 0;
 

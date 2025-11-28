@@ -5,12 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, Check, Utensils, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
+import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { getRecommendations, getAlternatives, finalizeOrder, requestAddOn, UserInputV2 } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
-import { CategoryHeader } from "@/components/category-header";
+// import { CategoryHeader } from "@/components/category-header";
 import { RecommendationSummary } from "@/components/recommendation-summary";
 import { AddOnSection } from "@/components/add-on-section";
 import { getSortedCategories } from "@/constants/categories";
@@ -473,7 +473,7 @@ function RecommendationPageContent() {
                     alternatives: []
                 };
 
-                const newSlotIndex = dishSlots.length;
+                // const newSlotIndex = dishSlots.length;
 
                 // Add to dish slots
                 setDishSlots(prev => [...prev, newSlot]);

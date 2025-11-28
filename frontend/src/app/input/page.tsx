@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home, Zap, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+// import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
 import { TagInput } from "@/components/tag-input"; // New import
 

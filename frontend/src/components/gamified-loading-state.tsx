@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Loader2, Check, BrainCircuit, Lightbulb, Circle, CheckCircle2 } from "lucide-react";
+import { Loader2, BrainCircuit, Lightbulb, Circle, CheckCircle2 } from "lucide-react";
 
 import { TRIVIA_QUESTIONS } from "../data/trivia";
 
@@ -66,8 +66,8 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
         return () => clearInterval(progressInterval);
     }, []);
 
-    const radius = 60; // Half of w-32 (128px) minus border (6px)
-    const circumference = 2 * Math.PI * radius;
+    // const radius = 60; // Half of w-32 (128px) minus border (6px)
+    // const circumference = 2 * Math.PI * radius;
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-8 relative overflow-hidden" role="status" aria-live="polite">
