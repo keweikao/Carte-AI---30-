@@ -75,36 +75,40 @@ class DiningAgent:
                 print(f"Warning: Failed to get user profile or save activity. Error: {e}")
         
         # --- Multi-Agent Workflow ---
-        from agent.agents import VisualAgent, ReviewAgent, SearchAgent, AggregationAgent
-        
-        print("Starting Multi-Agent Analysis...")
-        visual_agent = VisualAgent()
-        review_agent = ReviewAgent()
-        search_agent = SearchAgent()
-        aggregator = AggregationAgent()
-        
-        # Run agents in parallel
-        # Note: VisualAgent needs photos_data from reviews_data (which comes from fetch_place_details)
-        # So we still need the initial fetch.
-        
-        # Prepare inputs for agents
-        photos_data = reviews_data.get("photos", [])
-        
-        agent_tasks = [
-            visual_agent.run(photos_data),
-            review_agent.run(reviews_data),
-            search_agent.run(request.restaurant_name)
-        ]
-        
-        agent_results = await asyncio.gather(*agent_tasks)
-        
-        # Aggregate results
-        high_confidence_candidates = await aggregator.run(agent_results)
-        print(f"Multi-Agent Analysis Complete. Found {len(high_confidence_candidates)} high-confidence items.")
-        
-        # Inject candidates into user_profile for the prompt
-        user_profile["high_confidence_candidates"] = high_confidence_candidates
-        
+        try:
+            from agent.agents import VisualAgent, ReviewAgent, SearchAgent, AggregationAgent
+            
+            print("Starting Multi-Agent Analysis...")
+            visual_agent = VisualAgent()
+            review_agent = ReviewAgent()
+            search_agent = SearchAgent()
+            aggregator = AggregationAgent()
+            
+            # Prepare inputs for agents
+            photos_data = reviews_data.get("photos", [])
+            
+            agent_tasks = [
+                visual_agent.run(photos_data),
+                review_agent.run(reviews_data),
+                search_agent.run(request.restaurant_name)
+            ]
+            
+            agent_results = await asyncio.gather(*agent_tasks)
+            
+            # Aggregate results
+            high_confidence_candidates = await aggregator.run(agent_results)
+            print(f"Multi-Agent Analysis Complete. Found {len(high_confidence_candidates)} high-confidence items.")
+            
+            # Inject candidates into user_profile for the prompt
+            user_profile["high_confidence_candidates"] = high_confidence_candidates
+            
+        except Exception as e:
+            print(f"CRITICAL ERROR in Multi-Agent Workflow: {e}")
+            import traceback
+            traceback.print_exc()
+            # Fallback: Proceed without high_confidence_candidates
+            user_profile["high_confidence_candidates"] = []
+
         # Inject restaurant types into user_profile for prompt context
         if "types" in reviews_data:
             user_profile["restaurant_types"] = reviews_data["types"]
