@@ -16,7 +16,7 @@ interface MenuSummaryProps {
 }
 
 export function MenuSummary({
-  categorySummary,
+  // categorySummary,
   totalPrice,
   perPerson,
   decidedCount,
