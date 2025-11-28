@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/icon_banner.png',
+        url: '/website_preview.png',
         width: 1200,
         height: 630,
         alt: 'Carte AI - 智慧餐廳點餐助手',
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "Carte AI 點餐助手 - 智慧餐廳點餐助手",
     description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
-    images: ['/icon_banner.png'],
+    images: ['/website_preview.png'],
   },
   robots: {
     index: true,
