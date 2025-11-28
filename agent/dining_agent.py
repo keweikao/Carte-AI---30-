@@ -74,36 +74,61 @@ class DiningAgent:
             except Exception as e:
                 print(f"Warning: Failed to get user profile or save activity. Error: {e}")
         
-        # 3. Build V2 Prompt for a large candidate pool
+        # --- Multi-Agent Workflow ---
+        from agent.agents import VisualAgent, ReviewAgent, SearchAgent, AggregationAgent
+        
+        print("Starting Multi-Agent Analysis...")
+        visual_agent = VisualAgent()
+        review_agent = ReviewAgent()
+        search_agent = SearchAgent()
+        aggregator = AggregationAgent()
+        
+        # Run agents in parallel
+        # Note: VisualAgent needs photos_data from reviews_data (which comes from fetch_place_details)
+        # So we still need the initial fetch.
+        
+        # Prepare inputs for agents
+        photos_data = reviews_data.get("photos", [])
+        
+        agent_tasks = [
+            visual_agent.run(photos_data),
+            review_agent.run(reviews_data),
+            search_agent.run(request.restaurant_name)
+        ]
+        
+        agent_results = await asyncio.gather(*agent_tasks)
+        
+        # Aggregate results
+        high_confidence_candidates = aggregator.run(agent_results)
+        print(f"Multi-Agent Analysis Complete. Found {len(high_confidence_candidates)} high-confidence items.")
+        
+        # Inject candidates into user_profile for the prompt
+        user_profile["high_confidence_candidates"] = high_confidence_candidates
+        
         # Inject restaurant types into user_profile for prompt context
         if "types" in reviews_data:
             user_profile["restaurant_types"] = reviews_data["types"]
             
+        # 3. Build V2 Prompt (now with Agent insights)
         prompt = create_prompt_for_gemini_v2(request, menu_json, reviews_json, user_profile)
         print(f"Generated V2 Prompt (First 200 chars): {prompt[:200]}...")
         
-        # --- Visual Menu Parsing: Fetch Photos ---
-        photos_data = reviews_data.get("photos", [])
+        # 4. Call Gemini to get the final candidate pool
+        # We still pass the top photos to the final Gemini call for "vibe check" and additional context
+        # even though VisualAgent has already analyzed them.
         image_parts = []
         if photos_data:
-            print(f"Found {len(photos_data)} photos. Fetching top 3 for visual analysis...")
-            # Take top 3 photos
+            # Take top 3 photos (VisualAgent already analyzed top 5, but we pass 3 to the final generator for context)
             top_photos = photos_data[:3]
             photo_tasks = [fetch_place_photo(photo["photo_reference"]) for photo in top_photos]
-            
-            # Fetch in parallel
             photo_blobs = await asyncio.gather(*photo_tasks)
-            
-            # Convert to Gemini Image parts
             for blob in photo_blobs:
                 if blob:
                     image_parts.append({
-                        "mime_type": "image/jpeg", # Google Places Photos are usually JPEG
+                        "mime_type": "image/jpeg",
                         "data": blob
                     })
-            print(f"Successfully loaded {len(image_parts)} images for Gemini.")
 
-        # 4. Call Gemini to get the candidate pool
         max_retries = 2
         for attempt in range(max_retries + 1):
             try:

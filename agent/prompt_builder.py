@@ -44,6 +44,19 @@ def create_prompt_for_gemini_v2(user_input: UserInputV2, menu_data: str, reviews
         history = user_profile.get("feedback_history", [])
         past_preferences = f"\n- User's Past Feedback History: {json.dumps(history[:3], ensure_ascii=False)}"
 
+    # Multi-Agent Verified Items
+    verified_items_text = "None"
+    if user_profile and user_profile.get("high_confidence_candidates"):
+        candidates = user_profile.get("high_confidence_candidates", [])
+        if candidates:
+            verified_list = []
+            for item in candidates:
+                # Format: "Dish Name ($Price) [Source: visual/review/search]"
+                price_str = f"${item.get('price')}" if item.get('price') else "Price Unknown"
+                source = item.get('source', 'unknown')
+                verified_list.append(f"- {item.get('dish_name')} ({price_str}) [Verified by {source}]")
+            verified_items_text = "\n".join(verified_list)
+
     # Create the user prompt
     user_prompt = f"""
 User Request:
