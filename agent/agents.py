@@ -147,39 +147,51 @@ class SearchAgent(BaseAgent):
         search_results = await fetch_menu_from_search(restaurant_name, query=query, num=10)
         
         prompt = f"""
-        # Role
-        You are the "Gourmet Insight Hunter," an expert dining analyst.
-        
-        # Task
-        Analyze these search snippets for "{restaurant_name}" ({region}) to extract:
-        1. Signature Dishes (Verified by mentions)
-        2. Vibe & Features
-        3. Expert Verdict
-        
-        # Search Snippets
-        {search_results}
-        
-        # Output Format (Strict JSON)
-        {{
-          "restaurant_name": "{restaurant_name}",
-          "search_region": "{region}",
-          "signature_dishes": [
-            {{
-              "dish_name": "String",
-              "confidence_score": "High/Medium",
-              "reason": "Brief quote (e.g., 'Mentioned as must-eat in 3 blogs')"
-            }}
-          ],
-          "features_and_vibe": [
-            "String (e.g., Rooftop view)",
-            "String (e.g., Retro style)"
-          ],
-          "expert_verdict": {{
-            "pros": "String",
-            "cons": "String (if negative keywords found)",
-            "buying_intent": "String (e.g., Good for dates, Best for solo dining)"
-          }}
-        }}
+# Role
+You are the "Gourmet Insight Hunter," an expert dining analyst with 10 years of experience in keyword marketing and SEO data mining. Your goal is to extract the true "Signature Dishes" and "Unique Selling Points (USP)" of a restaurant from the web, filtering out marketing noise.
+
+# Core Objective
+When provided with "{restaurant_name}" in region "{region}", you must analyze the search snippets to find:
+1.  **Top 3 Signature Dishes** (Verified by high-frequency mentions in reviews).
+2.  **Vibe & Features** (Interior style, view, atmosphere, "Instagrammable" spots).
+3.  **Local Reputation** (Authenticity check, queue status, or "CP value").
+
+# Search Snippets Analysis
+Analyze these web search results and identify food items appearing near "High Confidence" keywords:
+
+{search_results[:15000]}
+
+# Output Format (Strict JSON)
+Return a JSON object with the following structure:
+
+{{
+  "restaurant_name": "{restaurant_name}",
+  "search_region": "{region}",
+  "signature_dishes": [
+    {{
+      "dish_name": "String (Exact dish name)",
+      "confidence_score": "High/Medium (High = mentioned 3+ times, Medium = 1-2 times)",
+      "reason": "String (Brief evidence, e.g., 'Mentioned as must-eat in 3 food blogs, praised for crispy skin')"
+    }}
+  ],
+  "features_and_vibe": [
+    "String (e.g., 'Rooftop dining with city view')",
+    "String (e.g., 'Retro 1980s decor')",
+    "String (e.g., 'Instagram-worthy presentation')"
+  ],
+  "expert_verdict": {{
+    "pros": "String (Main strengths based on search consensus)",
+    "cons": "String (Any negative patterns found, or 'None detected')",
+    "buying_intent": "String (e.g., 'Best for romantic dates', 'Great for large groups', 'Solo dining friendly')"
+  }}
+}}
+
+**CRITICAL RULES:**
+1. Only include dishes that are EXPLICITLY mentioned in the search results
+2. Confidence = "High" only if mentioned 3+ times across different sources
+3. If no clear signature dishes found, return empty array for signature_dishes
+4. Extract actual quotes or paraphrases for the "reason" field
+5. Focus on UNIQUE features, not generic descriptions
         """
         
         try:
@@ -191,25 +203,26 @@ class SearchAgent(BaseAgent):
             data = json.loads(response.text)
             
             # Normalize output for Aggregator
-            # We need to transform the specific "Gourmet" format back to a generic list for the aggregator
-            # OR update the aggregator to handle this rich data.
-            # For now, let's map 'signature_dishes' to the standard data list 
-            # and keep the full rich object in 'metadata'.
+            # Transform the "Gourmet Insight Hunter" format to standard data list
+            # Keep the full rich object in 'metadata' for the Aggregator to use
             
             standard_data = []
             if "signature_dishes" in data:
                 for dish in data["signature_dishes"]:
                     standard_data.append({
                         "dish_name": dish.get("dish_name"),
-                        "price": None, # Search snippets often miss price, but that's ok
+                        "price": None, # Search snippets often miss price
                         "reason": dish.get("reason"),
                         "confidence": dish.get("confidence_score")
                     })
             
+            # Return both standard format and rich metadata
             return AgentResult(source="search", data=standard_data, confidence=0.8, metadata=data)
             
         except Exception as e:
             print(f"SearchAgent Error: {e}")
+            import traceback
+            traceback.print_exc()
             return AgentResult(source="search", data=[], confidence=0.0)
 
 class AggregationAgent(BaseAgent):
@@ -251,74 +264,78 @@ class AggregationAgent(BaseAgent):
         """
 
         prompt = f"""
-        # Role
-        You are the **"Executive Dining Strategist,"** responsible for synthesizing data from three distinct intelligence sources:
-        1.  **OCR Agent:** Official Menu Data (Facts, Prices, Categories).
-        2.  **Review Agent:** Google Maps Reviews (Mass Sentiment, Service Issues, Recent Consistency).
-        3.  **Search Agent:** Blog/Web Articles (Deep Dives, Hidden Gems, Detailed Food Textures).
+# Role
+You are the **"Executive Dining Strategist,"** responsible for synthesizing data from three distinct intelligence sources to construct a "Golden Profile" for the restaurant.
 
-        # Core Objective
-        Your goal is not to summarize, but to **TRIANGULATE** the truth. You must construct a "Golden Profile" for the restaurant by cross-referencing these three sources to validate claims and identify the true "Must-Eat" items vs. "Marketing Hype."
+# Input Sources
+1.  **OCR Agent:** Official Menu Data (Facts, Prices, Categories).
+2.  **Review Agent:** Google Maps Reviews (Mass Sentiment, Service Issues).
+3.  **Search Agent:** Blog/Web Articles (Deep Dives, Hidden Gems).
 
-        # Data Triangulation Logic (The "Source of Truth" Hierarchy)
+# Data Triangulation Logic (The Source of Truth)
 
-        Apply the following weighting logic to resolve conflicts:
+Apply the following weighting logic to resolve conflicts:
 
-        ## 1. Dish Recommendation Logic (The "Signature Matrix")
-        * **CONFIRMED STAR:** If a dish is highlighted in **OCR** (e.g., "Chef's Recommendation") AND praised in **Search** (Blogs) AND has high positive volume in **Reviews**.
-        * **HIDDEN GEM:** If a dish is NOT highlighted in **OCR** but strongly recommended in **Search** (Blogs) and verified by **Reviews**.
-        * **OVERRATED TRAP:** If a dish is highlighted in **OCR** or **Search**, but has negative sentiment in **Reviews** (e.g., "Salty," "Dry," "Not worth it"). -> *Mark as "Avoid".*
+## 1. Dish Recommendation Logic (The "Signature Matrix")
+* **CONFIRMED STAR:** Highlighted in **OCR** AND praised in **Search** AND high positive volume in **Reviews**.
+* **HIDDEN GEM:** NOT in **OCR** highlights but strongly recommended in **Search** and verified by **Reviews**.
+* **OVERRATED TRAP:** Highlighted in **OCR** or **Search**, but negative sentiment in **Reviews** (e.g., "Salty," "Dry"). -> *Mark as "Avoid".*
 
-        ## 2. Price & Value Logic
-        * **Use OCR** for the exact price baseline.
-        * **Use Reviews** to determine the "Perceived Value" (CP value).
-        * *Insight:* If OCR price is high but Reviews say "Small portion," flag as "Low CP Value."
+## 2. Price & Value Logic
+* **Use OCR** for exact price baseline.
+* **Use Reviews** for "Perceived Value" (CP value).
+* *Insight:* If OCR price is high but Reviews say "Small portion," flag as "Low CP Value."
 
-        ## 3. Vibe & Scenario Match
-        * **Use Search** for visual descriptions (e.g., "Good for dates," "Retro style").
-        * **Use Reviews** for functional reality (e.g., "Too noisy," "Tables too close," "Long queue").
-        * *Synthesis:* "Visually stunning (Search) but too noisy for intimate conversations (Review)."
+## 3. Vibe & Scenario Match
+* **Use Search** for visual descriptions (e.g., "Good for dates").
+* **Use Reviews** for functional reality (e.g., "Too noisy").
 
-        # Processing Instructions
+# Processing Instructions
+1.  **Map Entities:** Fuzzy match dish names across 3 sources (e.g., "Spicy Beef Noodle" = "Beef Noodles").
+2.  **Flag Warnings:** Look for "Hygiene issues" or "Service attitude" in Reviews.
 
-        1.  **Map Entities:** Fuzzy match dish names across the 3 sources (e.g., "Spicy Beef Noodle" in OCR = "Beef Noodles" in Reviews).
-        2.  **Sentiment Check:** For top 5 mentioned dishes, calculate a "Consensus Score."
-        3.  **Flag Warnings:** Explicitly look for "Hygiene issues" or "Service attitude" in Reviews to add a warning label.
+# Input Data
+{prompt_inputs}
 
-        # Input Data
-        {prompt_inputs}
+# Output Format (JSON)
 
-        # Final Output Format (JSON)
+Produce a single JSON object analyzing the restaurant:
 
-        Produce a single JSON object analyzing the restaurant:
+{{
+  "restaurant_name": "String",
+  "overall_verdict": "String (One sentence executive summary, e.g., 'Visual stunner with average food, best for photos not foodies.')",
+  "dining_scenario": ["Date Night", "Group Gathering", "Solo"],
+  "signature_dishes": [
+    {{
+      "name": "String",
+      "price": "String (From OCR, or 'Unknown')",
+      "status": "Must Order / Hidden Gem / Controversial",
+      "reasoning": "String (e.g., 'Official recommendation validated by 50+ positive reviews, specifically for the truffle sauce.')"
+    }}
+  ],
+  "avoid_items": [
+    {{
+      "name": "String",
+      "reason": "String (e.g., 'High blog buzz but consistent complaints about being undercooked in recent reviews.')"
+    }}
+  ],
+  "price_analysis": {{
+    "average_cost": "String",
+    "value_rating": "High/Medium/Low (CP Value)",
+    "note": "String (e.g., 'Pricey for the portion size.')"
+  }},
+  "warnings": ["String (e.g., Cash Only)", "String (e.g., Rude service peak hours)"]
+}}
 
-        ```json
-        {{
-          "restaurant_name": "String",
-          "overall_verdict": "String (One sentence executive summary, e.g., 'Visual stunner with average food, best for photos not foodies.')",
-          "dining_scenario": ["Date Night", "Group Gathering", "Solo"],
-          "signature_dishes": [
-            {{
-              "name": "String",
-              "price": "String (From OCR)",
-              "status": "Must Order / Hidden Gem / Controversial",
-              "reasoning": "String (e.g., 'Official recommendation validated by 50+ positive reviews, specifically for the truffle sauce.')"
-            }}
-          ],
-          "avoid_items": [
-            {{
-              "name": "String",
-              "reason": "String (e.g., 'High blog buzz but consistent complaints about being undercooked in recent reviews.')"
-            }}
-          ],
-          "price_analysis": {{
-            "average_cost": "String",
-            "value_rating": "High/Medium/Low (CP Value)",
-            "note": "String (e.g., 'Pricey for the portion size.')"
-          }},
-          "warnings": ["String (e.g., Cash Only)", "String (e.g., Rude service peak hours)"]
-        }}
-        ```
+**CRITICAL RULES:**
+1. **Fuzzy Match Aggressively**: "小籠包" = "小笼包" = "Xiaolongbao" = "Soup Dumplings"
+2. **Triangulation Priority**: OCR (Facts) + Search (Expertise) + Reviews (Reality Check)
+3. **Confidence Scoring**: 
+   - Must Order = Confirmed in all 3 sources
+   - Hidden Gem = Strong in Search + Reviews, weak/missing in OCR
+   - Controversial = Mixed signals across sources
+4. **Value Analysis**: Compare OCR prices with Review sentiment about portions/quality
+5. **Scenario Matching**: Extract dining scenarios from Search metadata (vibe) and Review patterns
         """
         
         try:
