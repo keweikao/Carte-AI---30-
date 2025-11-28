@@ -658,12 +658,12 @@ function RecommendationPageContent() {
                             </div>
                         );
                     })}
-                </div>
-            </div>
 
-            {/* Add-On Section */}
-            <div className="container max-w-4xl mx-auto px-4 pb-24">
-                <AddOnSection onAddOn={handleAddOn} isLoading={isAddingDish} />
+                    {/* Add-On Section - Moved inside scrollable container */}
+                    <div className="mt-8">
+                        <AddOnSection onAddOn={handleAddOn} isLoading={isAddingDish} />
+                    </div>
+                </div>
             </div>
 
             {/* Fixed Bottom Bar for Generate Menu */}
