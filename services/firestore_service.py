@@ -374,6 +374,16 @@ def save_user_activity(user_id: str, activity_type: str, data: dict) -> bool:
             **data
         }
         activity_ref.set(activity_data)
+        
+        # Update user's aggregate stats
+        user_ref = db.collection("users").document(user_id)
+        user_ref.set({
+            "activity_counts": {
+                activity_type: firestore.Increment(1)
+            },
+            "last_active": datetime.datetime.now(datetime.timezone.utc)
+        }, merge=True)
+
         print(f"Saved user activity '{activity_type}' for user {user_id}")
         return True
     except Exception as e:

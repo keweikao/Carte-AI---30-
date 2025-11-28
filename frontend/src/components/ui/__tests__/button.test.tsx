@@ -11,9 +11,9 @@ describe('Button Component', () => {
   it('handles click events', async () => {
     const handleClick = jest.fn();
     const user = userEvent.setup();
-    
+
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     await user.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
@@ -26,10 +26,10 @@ describe('Button Component', () => {
   it('applies variant styles', () => {
     const { rerender } = render(<Button variant="outline">Outline</Button>);
     const button = screen.getByRole('button');
-    
-    expect(button).toHaveClass('border-input');
-    
+
+    expect(button).toHaveClass('border-terracotta');
+
     rerender(<Button variant="ghost">Ghost</Button>);
-    expect(button).toHaveClass('hover:bg-accent');
+    expect(button).toHaveClass('hover:bg-cream-200');
   });
 });

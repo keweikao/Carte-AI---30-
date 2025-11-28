@@ -503,7 +503,7 @@ function MenuPageContent() {
                         <div className="text-center space-y-4">
                             <h3 className="text-lg font-semibold text-foreground">請為本次推薦菜色評分</h3>
                             <p className="text-sm text-muted-foreground">您的回饋能幫助我們提供更精準的推薦</p>
-                            <Button onClick={handleRating} size="lg" className="gap-2">
+                            <Button onClick={handleRating} size="lg" className="gap-2 text-charcoal font-bold shadow-md">
                                 <Star className="w-5 h-5" />
                                 立即評分
                             </Button>
