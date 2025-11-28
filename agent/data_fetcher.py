@@ -38,7 +38,7 @@ async def fetch_place_details(restaurant_name: str) -> dict:
             details_url = "https://maps.googleapis.com/maps/api/place/details/json"
             details_params = {
                 "place_id": place_id,
-                "fields": "name,rating,reviews,formatted_address,photos",
+                "fields": "name,rating,reviews,formatted_address,photos,types",
                 "key": GOOGLE_API_KEY,
                 "language": "zh-TW"
             }

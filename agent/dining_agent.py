@@ -75,6 +75,10 @@ class DiningAgent:
                 print(f"Warning: Failed to get user profile or save activity. Error: {e}")
         
         # 3. Build V2 Prompt for a large candidate pool
+        # Inject restaurant types into user_profile for prompt context
+        if "types" in reviews_data:
+            user_profile["restaurant_types"] = reviews_data["types"]
+            
         prompt = create_prompt_for_gemini_v2(request, menu_json, reviews_json, user_profile)
         print(f"Generated V2 Prompt (First 200 chars): {prompt[:200]}...")
         

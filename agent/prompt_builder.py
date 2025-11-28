@@ -115,8 +115,9 @@ You will receive the following data:
 # Core Logic & Constraints
 
 ## 0. Restaurant Theme Detection (HIGHEST PRIORITY)
-**CRITICAL: Identify what this restaurant is famous for based on its name and menu.**
+**CRITICAL: Identify what this restaurant is famous for based on its name, GOOGLE CATEGORY, and menu.**
 
+- **Google Category**: {', '.join(user_profile.get('restaurant_types', [])) if user_profile else 'Unknown'}
 - **Analyze Restaurant Name**: If the restaurant name contains specific dish types (e.g., "牛腸鍋", "拉麵", "壽司", "火鍋", "燒肉"), this is the MAIN THEME.
 - **Priority Rule**: 
   - **MUST recommend the theme dish** as the primary recommendation (e.g., if restaurant is "博多牛腸鍋", the top recommendation MUST be some variation of 牛腸鍋).
