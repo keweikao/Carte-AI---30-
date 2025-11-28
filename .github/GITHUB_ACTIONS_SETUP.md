@@ -52,6 +52,7 @@ Google Cloud Service Account 的 JSON 金鑰
      --member="serviceAccount:github-actions@gen-lang-client-0415289079.iam.gserviceaccount.com" \
      --role="roles/iam.serviceAccountUser"
 
+   ```
    # Secret Manager Secret Accessor
    gcloud projects add-iam-policy-binding gen-lang-client-0415289079 \
      --member="serviceAccount:github-actions@gen-lang-client-0415289079.iam.gserviceaccount.com" \
@@ -104,15 +105,18 @@ Google Cloud Service Account 的 JSON 金鑰
 ## 📊 監控部署
 
 ### 查看部署狀態
+
 1. 前往 GitHub Repository → Actions
 2. 點擊最近的 workflow run
 3. 查看每個步驟的日誌
 
 ### 查看部署結果
+
 - **前端**: https://dining-frontend-u33peegeaa-de.a.run.app
 - **後端**: https://dining-backend-1045148759148.asia-east1.run.app
 
 ### 查看 Cloud Run 日誌
+
 ```bash
 # 前端日誌
 gcloud run services logs read dining-frontend --region=asia-east1 --limit=50
