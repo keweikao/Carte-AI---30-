@@ -51,7 +51,7 @@ export function PricingModal({ isOpen, onClose, currentCredits }: PricingModalPr
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[900px] bg-background">
+            <DialogContent className="sm:max-w-[900px] bg-background max-h-[90vh] overflow-y-auto w-[95vw]">
                 <DialogHeader className="text-center pb-6">
                     <DialogTitle className="text-3xl font-bold font-display mb-2">
                         升級您的用餐體驗
