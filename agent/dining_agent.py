@@ -179,11 +179,31 @@ class DiningAgent:
                 }
 
                 
+                # --- NEW: Update user's dining patterns (Memory System) ---
+                user_id = getattr(request, 'user_id', None)
+                if user_id:
+                    try:
+                        from agent.memory_agent import MemoryAgent
+                        memory_agent = MemoryAgent()
+                        await memory_agent.update_dining_patterns(
+                            user_id=user_id,
+                            party_size=request.party_size,
+                            dining_style=request.dining_style,
+                            occasion=request.occasion or 'casual'
+                        )
+                        print(f"  📊 Updated dining patterns for user {user_id}")
+                    except Exception as e:
+                        print(f"  ⚠️  Could not update dining patterns: {e}")
+                
                 # --- New: Save the full candidate pool for future 'alternatives' requests ---
                 try:
                     # We need the recommendation_id from the response_data
                     recommendation_id = response_data["recommendation_id"]
                     save_recommendation_candidates(recommendation_id, raw_menu_items, cuisine_type)
+                    
+                    # Also save recommendation_id to response for frontend to use when submitting feedback
+                    response_data["recommendation_id"] = recommendation_id
+                    
                 except Exception as e:
                     print(f"Warning: Failed to save recommendation candidates to cache. Error: {e}")
 

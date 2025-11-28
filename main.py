@@ -480,6 +480,61 @@ async def finalize_order(
             status_code=500,
             detail="Failed to finalize order"
         )
+    
+    # --- NEW: Record restaurant visit and feedback in Memory System ---
+    try:
+        from agent.memory_agent import MemoryAgent
+        memory_agent = MemoryAgent()
+        
+        # Get user input from session
+        user_input = session.get("user_input", {})
+        
+        # Record restaurant visit
+        selected_dish_names = [item.dish_name for item in finalize.final_selections]
+        await memory_agent.record_restaurant_visit(
+            user_id=user_id,
+            restaurant_name=session.get("restaurant_name"),
+            place_id=user_input.get("place_id"),
+            cuisine_type=session.get("restaurant_cuisine_type", "Unknown"),
+            budget_spent=finalize.total_price,
+            occasion=user_input.get("occasion", "casual"),
+            selected_dishes=selected_dish_names,
+            rating=finalize.rating if hasattr(finalize, 'rating') else None
+        )
+        
+        # Save dish feedback if provided
+        if hasattr(finalize, 'dish_feedback') and finalize.dish_feedback:
+            selected_dishes = []
+            rejected_dishes = []
+            
+            for feedback in finalize.dish_feedback:
+                dish_data = {
+                    "dish_name": feedback.get("dish_name"),
+                    "category": feedback.get("category")
+                }
+                
+                if feedback.get("liked"):
+                    selected_dishes.append(dish_data)
+                elif feedback.get("rejected"):
+                    dish_data["reason"] = feedback.get("reason", "Not specified")
+                    rejected_dishes.append(dish_data)
+            
+            if selected_dishes or rejected_dishes:
+                await memory_agent.save_feedback(
+                    user_id=user_id,
+                    recommendation_id=recommendation_id,
+                    selected_dishes=selected_dishes,
+                    rejected_dishes=rejected_dishes,
+                    occasion=user_input.get("occasion")
+                )
+        
+        print(f"  💾 Recorded restaurant visit and feedback for user {user_id}")
+        
+    except Exception as e:
+        print(f"  ⚠️  Could not save to memory system: {e}")
+        # Don't fail the request if memory save fails
+        import traceback
+        traceback.print_exc()
 
     # 產生訂單 ID
     order_id = f"order_{uuid.uuid4().hex[:12]}"
