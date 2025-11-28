@@ -2,32 +2,38 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Loader2, Camera, MessageSquare, Search, Sparkles } from 'lucide-react';
+import { CheckCircle2, Loader2, Database, Utensils, Wallet, ChefHat, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const steps = [
     {
-        id: 'visual',
-        label: 'Visual Agent 正在分析圖片菜單...',
-        icon: Camera,
+        id: 'profile',
+        label: 'Profile Agent 正在建立餐廳黃金檔案...',
+        icon: Database,
         duration: 3000,
     },
     {
-        id: 'review',
-        label: 'Review Agent 正在分析 Google 評論...',
-        icon: MessageSquare,
+        id: 'selector',
+        label: 'Dish Selector 正在挑選最佳菜色...',
+        icon: Utensils,
         duration: 2500,
     },
     {
-        id: 'search',
-        label: 'Search Agent 正在搜尋食記推薦...',
-        icon: Search,
-        duration: 3500,
+        id: 'budget',
+        label: 'Budget Optimizer 正在精算預算...',
+        icon: Wallet,
+        duration: 2000,
     },
     {
-        id: 'aggregation',
-        label: 'Aggregation Agent 正在統整必吃菜單...',
-        icon: Sparkles,
+        id: 'chef',
+        label: 'Executive Chef 正在檢查口味平衡...',
+        icon: ChefHat,
+        duration: 2500,
+    },
+    {
+        id: 'manager',
+        label: 'Restaurant Manager 正在最終審核...',
+        icon: ClipboardCheck,
         duration: 2000,
     },
 ];
