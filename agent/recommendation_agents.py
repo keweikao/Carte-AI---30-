@@ -70,19 +70,20 @@ class DishSelectorAgent(RecommendationAgentBase):
         # Extract user note for custom scenario handling
         user_note = getattr(user_input, 'natural_input', None) or ""
         
-        # NEW: Fetch personal memory
+        # NEW: Fetch enriched personal memory (includes restaurant history)
         memory_context = ""
         user_id = getattr(user_input, 'user_id', None)
         if user_id:
             try:
                 from agent.memory_agent import MemoryAgent
                 memory_agent = MemoryAgent()
-                memory_context = await memory_agent.get_personal_memory(
+                memory_context = await memory_agent.get_enriched_memory_context(
                     user_id=user_id,
-                    occasion=user_input.occasion
+                    occasion=user_input.occasion,
+                    restaurant_name=user_input.restaurant_name
                 )
                 if memory_context:
-                    print(f"  📚 Loaded personal memory for user {user_id}")
+                    print(f"  📚 Loaded enriched memory for user {user_id}")
             except Exception as e:
                 print(f"  ⚠️  Could not load memory: {e}")
         
