@@ -580,11 +580,7 @@ function RecommendationPageContent() {
 
                         return (
                             <div key={category} className="mb-8">
-                                <CategoryHeader
-                                    category={category}
-                                    count={slotsInCategory.length}
-                                    cuisineType={data.cuisine_type}
-                                />
+                                {/* CategoryHeader Removed */}
 
                                 <div className="space-y-4">
                                     {slotsInCategory.map((slot: DishSlot) => {
