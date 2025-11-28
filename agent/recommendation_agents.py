@@ -70,6 +70,22 @@ class DishSelectorAgent(RecommendationAgentBase):
         # Extract user note for custom scenario handling
         user_note = getattr(user_input, 'natural_input', None) or ""
         
+        # NEW: Fetch personal memory
+        memory_context = ""
+        user_id = getattr(user_input, 'user_id', None)
+        if user_id:
+            try:
+                from agent.memory_agent import MemoryAgent
+                memory_agent = MemoryAgent()
+                memory_context = await memory_agent.get_personal_memory(
+                    user_id=user_id,
+                    occasion=user_input.occasion
+                )
+                if memory_context:
+                    print(f"  📚 Loaded personal memory for user {user_id}")
+            except Exception as e:
+                print(f"  ⚠️  Could not load memory: {e}")
+        
         # Build previous critique section
         critique_section = ""
         if previous_critique:
@@ -79,6 +95,14 @@ The previous menu was rejected for the following reason:
 {previous_critique}
 
 **CRITICAL**: Address this issue in your new selection.
+"""
+        
+        # Build memory section for prompt
+        memory_section = ""
+        if memory_context:
+            memory_section = f"""
+# 🔒 Personal Memory (HIGHEST PRIORITY - Never Ignore)
+{memory_context}
 """
         
         prompt = f"""
@@ -95,6 +119,7 @@ You are the **"Menu Architect,"** an expert dining concierge. You curate the per
 - User Note (HIGHEST PRIORITY): "{user_note}"
 - Budget: {user_input.budget.amount} TWD ({user_input.budget.type})
 
+{memory_section}
 # Data Sources
 ## Candidate Pool
 {json.dumps(candidates[:30], ensure_ascii=False, indent=2)}
