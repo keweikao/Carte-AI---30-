@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getRecommendations, getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync, pollJobStatus } from "@/lib/api";
+import { getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync, pollJobStatus } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
 // import { CategoryHeader } from "@/components/category-header";
 import { RecommendationSummary } from "@/components/recommendation-summary";
@@ -225,7 +225,7 @@ function RecommendationPageContent() {
                         setTotalPrice(result.total_price);
 
                         const initialStatus = new Map<string, 'pending' | 'selected'>();
-                        result.items.forEach((slot: any) => initialStatus.set(slot.display.dish_name, 'pending'));
+                        result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'pending'));
                         setSlotStatus(initialStatus);
                         break;
                     } else if (statusData.status === 'failed') {
