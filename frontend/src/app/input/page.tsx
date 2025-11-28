@@ -99,7 +99,7 @@ function InputPageContents() {
                 ...(formData.dish_count && { dish_count: formData.dish_count.toString() }),
                 ...(formData.place_id && { place_id: formData.place_id })
             });
-            router.push(`/ recommendation ? ${params.toString()} `);
+            router.push(`/recommendation?${params.toString()}`);
         }
     }, [step, formData, router, budgetType]);
 
