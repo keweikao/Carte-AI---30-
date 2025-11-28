@@ -13,8 +13,10 @@ RUN npm ci
 COPY . .
 
 # Build the application
-# The NEXT_PUBLIC_API_URL will be injected by the Cloud Build environment
-# based on the 'gcloud run deploy' command's '--set-env-vars' flag.
+# Set build-time environment variables for Next.js
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=G-EB1596V7J2
+ENV NEXT_PUBLIC_API_URL=https://dining-backend-1045148759148.asia-east1.run.app
+
 RUN npm run build
 
 # Production stage
