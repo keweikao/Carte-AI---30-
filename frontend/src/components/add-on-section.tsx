@@ -82,12 +82,14 @@ export function AddOnSection({ onAddOn, isLoading = false }: AddOnSectionProps) 
                             }
                         }}
                         disabled={disabled}
-                        className="flex-1"
+                        disabled={disabled}
+                        className="flex-1 min-w-0"
                     />
                     <Button
                         onClick={handleCustomAdd}
                         disabled={disabled || !customCategory.trim()}
                         size="icon"
+                        className="shrink-0"
                     >
                         <Plus className="w-4 h-4" />
                     </Button>

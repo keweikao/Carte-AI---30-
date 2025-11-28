@@ -249,6 +249,12 @@ When selecting dishes, consider whether each dish's portion size is suitable for
   - **Target**: Aim to utilize **70-90%** of the user's budget (AFTER CURRENCY CONVERSION) for the initial recommendations.
   - **Flexibility**: It's OK to slightly exceed the budget (up to 110-120%) if it means providing a better dining experience.
   - **Reasoning**: Users can always remove dishes or add more via "我想加點" feature. The goal is to provide good value, not to strictly enforce limits.
+  - **High Budget Handling (CRITICAL)**:
+    - If the user's budget is significantly higher than the average item price (e.g., Budget 450 TWD at a Fast Food place like McDonald's):
+      - **DO NOT** just recommend a single cheap item (like a Salad or basic Burger).
+      - **DO** recommend a full set meal (Main + Side + Drink) AND additional sides/desserts (e.g., Chicken McNuggets, McFlurry) to utilize the budget.
+      - **DO** recommend premium items (e.g., Signature Angus Beef Burger instead of Cheeseburger).
+      - **Reasoning**: The user wants to spend this money for a premium/full experience ("犒賞自己").
   - **Example**: 
     - Budget: NT$ 2,000 → Recommend dishes totaling NT$ 1,400-1,800 (ideal), up to NT$ 2,200 (acceptable)
     - Budget: NT$ 500 → Recommend dishes totaling NT$ 350-450 (ideal), up to NT$ 550 (acceptable)
