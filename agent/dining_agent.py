@@ -171,7 +171,7 @@ class DiningAgent:
                 currency = llm_output.get("currency", "TWD")
 
                 # --- New Logic: Process raw items into DishSlots ---
-                dish_slots, final_menu_items = self._process_llm_candidates(raw_menu_items, request)
+                dish_slots, final_menu_items = self._process_llm_candidates(raw_menu_items, request, currency)
 
                 # 4. Calculate final summary and price
                 total_price = sum(item.price for item in final_menu_items)
@@ -243,25 +243,33 @@ class DiningAgent:
                     raise RuntimeError(f"Failed after {max_retries} retries: {e}")
                 await asyncio.sleep(1)
 
-    def _process_llm_candidates(self, raw_items: list, request: UserInputV2) -> (list[DishSlotResponse], list[MenuItemV2]):
-        """Helper to process a raw list of menu items into dish slots."""
+    def _process_llm_candidates(self, raw_menu_items: list, request: UserInputV2, currency: str = "TWD") -> (list[DishSlotResponse], list[MenuItemV2]):
+        """Helper to process a raw list of menu items into dish slots, respecting budget."""
         
         # 1. Group items by category
         items_by_category = defaultdict(list)
-        for item_data in raw_items:
+        for item_data in raw_menu_items:
             try:
                 item = MenuItemV2.model_validate(item_data)
                 items_by_category[item.category].append(item)
             except Exception as e:
                 print(f"Skipping invalid item data: {item_data}. Error: {e}")
 
-        # 2. Determine target dish count
+        # 2. Determine target dish count & Budget
         if request.dish_count_target:
             target_count = request.dish_count_target
         else:
             target_count = request.party_size + 1 if request.dining_style == "Shared" else request.party_size
 
-        # 3. Build Dish Slots (simple greedy selection)
+        # Calculate Budget in Local Currency
+        budget_in_twd = request.budget.amount * request.party_size if request.budget.type == "per_person" else request.budget.amount
+        exchange_rates = {"JPY": 4.5, "USD": 0.032, "EUR": 0.029, "KRW": 42.0, "TWD": 1.0}
+        rate = exchange_rates.get(currency, 1.0)
+        target_budget = budget_in_twd * rate
+        
+        print(f"Budget Target: {target_budget} {currency} (Original: {budget_in_twd} TWD)")
+
+        # 3. Build Dish Slots (Budget-Aware Selection)
         dish_slots = []
         final_menu_items = []
         
@@ -282,12 +290,9 @@ class DiningAgent:
         # Sort available categories based on the predefined order
         sorted_categories = sorted(items_by_category.keys(), key=lambda x: category_order.index(x) if x in category_order else len(category_order))
         
-        # This loop creates one slot per available category until the target count is reached
-        while len(final_menu_items) < target_count and any(items_by_category.values()):
+        # Helper to pick a dish
+        def pick_dish():
             for category in sorted_categories:
-                if len(final_menu_items) >= target_count:
-                    break
-                
                 if items_by_category[category]:
                     display_dish = items_by_category[category].pop(0)
                     alternatives = items_by_category[category][:2] # Take up to 2 alternatives
@@ -298,6 +303,25 @@ class DiningAgent:
                         alternatives=alternatives
                     ))
                     final_menu_items.append(display_dish)
+                    return True
+            return False
+
+        # Phase 1: Meet Minimum Dish Count
+        while len(final_menu_items) < target_count:
+            if not pick_dish():
+                break
+        
+        # Phase 2: Budget Expansion (Add more dishes if under budget)
+        # Only for Shared style or if explicit budget is high
+        current_total = sum(item.price or 0 for item in final_menu_items)
+        max_dishes = request.party_size * 2 # Cap to avoid over-ordering
+        
+        if request.dining_style == "Shared":
+            while current_total < target_budget * 0.8 and len(final_menu_items) < max_dishes:
+                print(f"  Under budget ({current_total} < {target_budget}). Adding more dishes...")
+                if not pick_dish():
+                    break
+                current_total = sum(item.price or 0 for item in final_menu_items)
         
         return dish_slots, final_menu_items
 
