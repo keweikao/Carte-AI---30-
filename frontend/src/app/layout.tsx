@@ -95,6 +95,8 @@ import { Analytics } from "@/lib/analytics";
 import Script from "next/script";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 
+import { InAppBrowserGuard } from "@/components/InAppBrowserGuard";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -141,6 +143,7 @@ export default function RootLayout({
           "text-charcoal",
         ].join(" ")}
       >
+        <InAppBrowserGuard />
         <AuthProvider>
           <Header />
           {children}
