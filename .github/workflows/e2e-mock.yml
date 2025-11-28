@@ -17,6 +17,8 @@ jobs:
       E2E_BASE_URL: "http://127.0.0.1:3000"
       E2E_API_URL: "http://127.0.0.1:8000"
       E2E_AUTH_HEADER: "Bearer fake-token"
+      NEXT_PUBLIC_API_URL: "http://127.0.0.1:8000"
+      NEXT_PUBLIC_USE_MOCK: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,7 +51,8 @@ jobs:
       - name: Start frontend dev server
         run: |
           cd frontend
-          npm run dev -- --hostname 0.0.0.0 --port 3000 > frontend.log 2>&1 &
+          NEXT_PUBLIC_API_URL=http://127.0.0.1:8000 NEXT_PUBLIC_USE_MOCK=1 npm run dev -- --hostname 0.0.0.0 --port 3000 > frontend.log 2>&1 &
+          cd ..
 
       - name: Wait for services
         run: |
@@ -67,10 +70,9 @@ jobs:
             fi
             sleep 2
           done
-
-          echo "Waiting for Frontend (http://127.0.0.1:3000)..."
+          echo "Waiting for Frontend (http://127.0.0.1:3000/input?error=mock_bypass)..."
           for i in {1..60}; do
-            if curl -s http://127.0.0.1:3000 >/dev/null; then
+            if curl -s http://127.0.0.1:3000/input?error=mock_bypass >/dev/null; then
               echo "Frontend is ready!"
               break
             fi
