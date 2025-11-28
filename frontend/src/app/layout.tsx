@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://dining-frontend-u33peegeaa-de.a.run.app'),
+  metadataBase: new URL('https://www.carte.tw'),
   alternates: {
     canonical: '/',
   },
@@ -53,13 +53,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Carte AI 點餐助手 - 智慧餐廳點餐助手",
     description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
-    url: 'https://dining-frontend-u33peegeaa-de.a.run.app',
+    url: 'https://www.carte.tw',
     siteName: 'Carte AI 點餐助手',
     locale: 'zh_TW',
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
+        url: '/icon_banner.png',
         width: 1200,
         height: 630,
         alt: 'Carte AI - 智慧餐廳點餐助手',
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "Carte AI 點餐助手 - 智慧餐廳點餐助手",
     description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
-    images: ['/og-image.png'],
+    images: ['/icon_banner.png'],
   },
   robots: {
     index: true,
