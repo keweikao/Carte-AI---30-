@@ -82,7 +82,6 @@ export function AddOnSection({ onAddOn, isLoading = false }: AddOnSectionProps) 
                             }
                         }}
                         disabled={disabled}
-                        disabled={disabled}
                         className="flex-1 min-w-0"
                     />
                     <Button
