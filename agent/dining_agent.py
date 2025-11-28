@@ -26,6 +26,15 @@ class DiningAgent:
             print(f"CRITICAL ERROR: GEMINI_API_KEY is missing or invalid. Current value: {GEMINI_API_KEY[:5]}..." if GEMINI_API_KEY else "None")
             raise ValueError("Gemini API Key is not configured.")
 
+        # Initialize Agents
+        from agent.agents import VisualAgent, ReviewAgent, SearchAgent, AggregationAgent
+        visual_agent = VisualAgent()
+        review_agent = ReviewAgent()
+        search_agent = SearchAgent()
+        aggregator = AggregationAgent()
+        
+        search_task = None
+
         # 1. Fetch Data (Cache or Live)
         cached_data = None
         try:
@@ -41,6 +50,11 @@ class DiningAgent:
             print(f"Fetching live data for {request.place_id or request.restaurant_name}...")
             reviews_task = fetch_place_details(request.restaurant_name)
             menu_task = fetch_menu_from_search(request.restaurant_name)
+            
+            # Start SearchAgent in parallel
+            print("Starting SearchAgent early...")
+            search_task = asyncio.create_task(search_agent.run(request.restaurant_name))
+
             reviews_data, menu_text = await asyncio.gather(reviews_task, menu_task)
             try:
                 # Save with place_id if available
@@ -75,25 +89,24 @@ class DiningAgent:
                 print(f"Warning: Failed to get user profile or save activity. Error: {e}")
         
         # --- Multi-Agent Workflow ---
+        visual_result = None
         try:
-            from agent.agents import VisualAgent, ReviewAgent, SearchAgent, AggregationAgent
-            
             print("Starting Multi-Agent Analysis...")
-            visual_agent = VisualAgent()
-            review_agent = ReviewAgent()
-            search_agent = SearchAgent()
-            aggregator = AggregationAgent()
             
             # Prepare inputs for agents
             photos_data = reviews_data.get("photos", [])
             
-            agent_tasks = [
-                visual_agent.run(photos_data),
-                review_agent.run(reviews_data),
-                search_agent.run(request.restaurant_name)
-            ]
+            # Start remaining agents
+            visual_task = visual_agent.run(photos_data)
+            review_task = review_agent.run(reviews_data)
             
-            agent_results = await asyncio.gather(*agent_tasks)
+            # If search_task wasn't started (e.g. cached data), start it now
+            if not search_task:
+                 search_task = asyncio.create_task(search_agent.run(request.restaurant_name))
+            
+            # Wait for all
+            visual_result, review_result, search_result = await asyncio.gather(visual_task, review_task, search_task)
+            agent_results = [visual_result, review_result, search_result]
             
             # Aggregate results
             high_confidence_candidates = await aggregator.run(agent_results)
@@ -121,7 +134,11 @@ class DiningAgent:
         # We still pass the top photos to the final Gemini call for "vibe check" and additional context
         # even though VisualAgent has already analyzed them.
         image_parts = []
-        if photos_data:
+        # Try to reuse blobs from VisualAgent
+        if visual_result and visual_result.metadata and "blobs" in visual_result.metadata:
+             print("Reusing image blobs from VisualAgent...")
+             image_parts = visual_result.metadata["blobs"][:3]
+        elif photos_data:
             # Take top 3 photos (VisualAgent already analyzed top 5, but we pass 3 to the final generator for context)
             top_photos = photos_data[:3]
             photo_tasks = [fetch_place_photo(photo["photo_reference"]) for photo in top_photos]
@@ -185,21 +202,23 @@ class DiningAgent:
                     try:
                         from agent.memory_agent import MemoryAgent
                         memory_agent = MemoryAgent()
-                        await memory_agent.update_dining_patterns(
+                        # Run memory update in background
+                        asyncio.create_task(memory_agent.update_dining_patterns(
                             user_id=user_id,
                             party_size=request.party_size,
                             dining_style=request.dining_style,
                             occasion=request.occasion or 'casual'
-                        )
-                        print(f"  📊 Updated dining patterns for user {user_id}")
+                        ))
+                        print(f"  📊 Dining patterns update scheduled for user {user_id}")
                     except Exception as e:
-                        print(f"  ⚠️  Could not update dining patterns: {e}")
+                        print(f"  ⚠️  Could not schedule dining patterns update: {e}")
                 
                 # --- New: Save the full candidate pool for future 'alternatives' requests ---
                 try:
                     # We need the recommendation_id from the response_data
                     recommendation_id = response_data["recommendation_id"]
-                    save_recommendation_candidates(recommendation_id, raw_menu_items, cuisine_type)
+                    # Run cache save in background (using to_thread since it might be sync)
+                    asyncio.create_task(asyncio.to_thread(save_recommendation_candidates, recommendation_id, raw_menu_items, cuisine_type))
                     
                     # Also save recommendation_id to response for frontend to use when submitting feedback
                     response_data["recommendation_id"] = recommendation_id

@@ -58,7 +58,7 @@ class VisualAgent(BaseAgent):
         extracted_items = await self.ocr_skill.execute(valid_images)
         
         confidence = 0.9 if extracted_items else 0.0
-        return AgentResult(source="visual", data=extracted_items, confidence=confidence, metadata={"image_count": len(valid_images)})
+        return AgentResult(source="visual", data=extracted_items, confidence=confidence, metadata={"image_count": len(valid_images), "blobs": valid_images})
 
 class ReviewAgent(BaseAgent):
     """
