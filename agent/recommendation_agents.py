@@ -108,96 +108,46 @@ The previous menu was rejected for the following reason:
         
         prompt = f"""
 # Role
-You are the **"Menu Architect,"** an expert dining concierge. You curate the perfect menu by balancing **Gastronomy (Taste)**, **Logistics (Portion)**, and **Psychology (Context)**.
+You are the **"Menu Architect,"** an expert dining concierge. Your goal is to curate the INITIAL menu draft.
 
+# ⚠️ CRITICAL FEEDBACK FROM PREVIOUS ATTEMPT
 {critique_section}
+*Instruction:* If feedback exists, you MUST adjust your selection logic to fix the reported issues. (e.g., "Add more food", "Remove spicy items").
 
-# User Context & Constraints
+# User Context
 - Party Size: {user_input.party_size}
-- Dining Style: {user_input.dining_style}
 - Occasion: {user_input.occasion or 'casual'}
-- Dietary Restrictions: {', '.join(user_input.preferences) if user_input.preferences else 'None'} (STRICT HARD FILTER)
-- User Note (HIGHEST PRIORITY): "{user_note}"
-- Budget: {user_input.budget.amount} TWD ({user_input.budget.type})
+- Dining Goal: {user_input.occasion or 'General Dining'}
+- Dietary Restrictions: {', '.join(user_input.preferences) if user_input.preferences else 'None'} (STRICT FILTER)
+- User Note: "{user_note}" (Highest Priority Override)
 
-{memory_section}
 # Data Sources
-## Candidate Pool
-{json.dumps(candidates[:30], ensure_ascii=False, indent=2)}
+- Verified Signatures: {verified_dishes} (Must prioritize these)
+- Candidate Pool: {json.dumps(candidates[:30], ensure_ascii=False, indent=2)}
 
-## Verified Signature Dishes (from Multi-Agent Analysis)
-{verified_dishes}
-
-# Decision Logic (The Decoder Ring)
-
-## 1. Custom Scenario Handling (PRIORITY CHECK)
-**If User Note is provided:**
-1. Parse the note for:
-   - Specific cravings (e.g., "想吃湯", "want something crispy")
-   - Mood/vibe (e.g., "心情不好", "celebrating", "tired")
-   - Special requests (e.g., "不要太油", "要清淡")
-2. **User Note OVERRIDES standard occasion rules** if there's a conflict
-3. Example: Occasion=Fitness + Note="今天想放縱吃炸雞" → ALLOW fried chicken (small portion)
-
-## 2. Occasion Protocol (The Vibe Check)
-**IMPORTANT**: If User Note provides a custom scenario, adapt these rules accordingly.
-
-* **Business:** "Safe & Impressive."
-   - MUST include 1 **Centerpiece** (Whole Fish, Steak, Premium Soup, Signature Set) if budget allows
-   - BAN: Messy food (Ribs, Shell-on Shrimp/Crab, Whole Chicken with bones), Spicy food that causes sweating
-   - BAN: Foods requiring hands to peel/crack (Lobster, Crab, unless pre-shelled)
-   - PREFER: Dishes that can be elegantly shared with serving spoons
-
-* **Date:** "Mess-Free & Aesthetic."
-   - BAN: Garlic/Onion heavy, Teeth-staining (Squid Ink, Beets), Unglamorous eating (Big Bones, Whole Fish with head)
-   - BAN: Foods that require messy eating (Ribs, Shell-on seafood)
-   - PREFER: Beautifully plated dishes, Boneless options, Shareable small plates
-   - BONUS: Instagram-worthy presentation
-
-* **Family:** "Inclusivity."
-   - MUST include: 1 Soft dish (Elderly/kids friendly - Steamed Egg, Tofu, Soup), 1 Vegetable
-   - CONSIDER: Kid-friendly options (Not too spicy, Not too exotic)
-   - PREFER: Large shareable portions
-
-* **Friends:** "Fun & Value."
-   - PREFER: High CP value items, Adventurous/unique dishes
-   - ALLOW: Messy foods (it's casual!)
-   - BONUS: Conversation starters (unique presentations)
-
-* **Fitness:** "Protein & Clean."
-   - BOOST: High Protein (Grilled Chicken, Fish, Tofu), Steamed/Grilled items
-   - BAN: Deep Fried (unless User Note overrides)
-   - PREFER: Vegetables, Lean proteins
-
-* **Custom/Other:** 
-   - If occasion is not standard OR User Note provides context:
-   - Extract intent from User Note (e.g., "comfort food" → warm soups, "light meal" → salads/small portions)
-   - Adapt rules flexibly based on the vibe
-
-## 3. Quantity & Structure Logic
-* **Group (Sharing):** Target N+1 dishes (N = Party Size)
-  - Structure: 1-2 Mains + 1 Veg + 1 Soup + 1 Starch + Others
-  - If budget allows: Add Centerpiece
-* **Individual:** 1 Main + 1 Staple OR 1 Set Meal per person
+# Decision Logic (The Protocol)
+1.  **Dietary Filter:** Strictly remove items violating restrictions.
+2.  **Goal Alignment:**
+    * *Quick Fix:* Focus on Sets/Rice Bowls.
+    * *Treat Yourself:* Focus on Premium ingredients (Wagyu/Seafood).
+    * *Business:* Must include a "Centerpiece" (Whole fish/Steak). No messy food.
+    * *Date:* No garlic, no bones, no mess.
+3.  **Quantity Rule:** Target N+1 dishes for sharing (N = Party Size).
 
 # Output Format (JSON)
 {{
   "selected_dishes": [
     {{
       "dish_name": "String",
-      "dish_name_local": "String",
       "price": Integer,
       "quantity": Integer,
       "category": "String",
-      "reason": "String (MUST link to specific context: e.g., 'Selected for Date Night because boneless and elegant' or 'User requested soup, this is the signature option')",
-      "tag": "必點/隱藏版/主秀/人氣/招牌 or null"
+      "tag": "Signature/Centerpiece/Hidden Gem/Standard",
+      "reason": "String (Why this specific dish for this specific User Context?)"
     }}
   ],
-  "selection_rationale": "String (Explain overall strategy, especially if adapting to custom scenario)"
+  "rationale": "String (Brief strategy explanation)"
 }}
-
-**Target**: Select 10-12 dishes as initial pool
-**CRITICAL**: If User Note conflicts with Occasion, prioritize User Note and explain in rationale.
 """
         
         try:
@@ -209,7 +159,7 @@ You are the **"Menu Architect,"** an expert dining concierge. You curate the per
             data = json.loads(response.text)
             
             selected = data.get("selected_dishes", [])
-            rationale = data.get("selection_rationale", "")
+            rationale = data.get("rationale", "")
             print(f"✓ Selected {len(selected)} dishes")
             print(f"  Strategy: {rationale[:100]}...")
             
@@ -255,28 +205,61 @@ class BudgetOptimizerAgent(RecommendationAgentBase):
         
         print(f"   Current: ${total} / ${budget_amount} = {utilization:.1%}")
         
-        # Check if within target range (80-100%)
-        if 0.8 <= utilization <= 1.0:
-            print(f"✓ Budget utilization is optimal: {utilization:.1%}")
-            return AgentDecision(
-                agent_name="BudgetOptimizer",
-                approved=True,
-                data=current_menu,
-                metadata={"total": total, "utilization": utilization}
-            )
-        
-        # Determine action
         occasion = user_input.occasion or 'casual'
         
-        if utilization < 0.8:
-            action = "ADD_DISHES"
-            target_add = int((budget_amount * 0.9) - total)
-            prompt = self._build_upsell_prompt(current_menu, total, budget_amount, utilization, target_add, candidate_pool)
-        else:
-            # Over budget - check for authorized overspend
-            action = "REDUCE_COST"
-            target_reduce = int(total - (budget_amount * 0.95))
-            prompt = self._build_reduce_prompt(current_menu, total, budget_amount, utilization, target_reduce, occasion)
+        # Refactored to use a single prompt for all budget scenarios
+        prompt = f"""
+# Role
+You are the **"Value-First Budget Manager."** Your goal is to optimize the menu to fit the budget while maximizing dining experience value.
+
+# Current Status
+- Current Menu: {json.dumps(current_menu, ensure_ascii=False, indent=2)}
+- Current Menu Total: ${total}
+- Target Budget: ${budget_amount}
+- Utilization: {utilization * 100:.1f}%
+- Occasion: {occasion}
+- Party Size: {user_input.party_size}
+
+# Optimization Strategy
+
+## If Under Budget (< 80% utilization): UPSELL.
+1.  **Upgrade Portions:** Change "Small" to "Large" for shared dishes.
+2.  **Add Experience:** Add Appetizers, Desserts, or a Pitcher of Drink.
+3.  **Premium Swap:** Swap a standard dish for a Premium version (e.g., Regular Fried Rice -> Truffle Fried Rice).
+4.  **Prioritize:** Add dishes that enhance the occasion (e.g., a centerpiece for Business).
+
+## If Over Budget (> 100% utilization): SMART CUT.
+1.  **Authorized Overspend:** If Occasion is "Business" or "Treat Yourself" AND the overage is caused by a Signature Centerpiece (e.g., Whole Fish), you are authorized to **KEEP IT** (Authorized Overspend up to 120% of budget).
+2.  **Downgrade:** Large -> Small portions.
+3.  **Trim:** Remove extra Soups or expensive Sides.
+4.  **Protection:** NEVER remove the #1 Verified Signature Dish or dishes crucial for dietary restrictions.
+
+## If Optimal Budget (80-100% utilization): NO ACTION.
+- If utilization is already between 80% and 100%, no changes are needed unless there's a specific instruction to improve value.
+
+# Output Format (JSON)
+{{
+  "action": "ADD_DISHES" / "REDUCE_COST" / "AUTHORIZED_OVERSPEND" / "NO_ACTION",
+  "modifications": [
+    {{
+      "type": "add/remove/upgrade/downgrade",
+      "dish_name": "String",
+      "reason": "String"
+    }}
+  ],
+  "updated_menu": [
+    {{
+      "dish_name": "String",
+      "price": Integer,
+      "quantity": Integer,
+      "category": "String",
+      "tag": "String",
+      "reason": "String"
+    }}
+  ],
+  "final_adjustment_note": "String (Explain the overall budget strategy and outcome)"
+}}
+"""
         
         try:
             response = await asyncio.to_thread(
@@ -287,15 +270,15 @@ class BudgetOptimizerAgent(RecommendationAgentBase):
             data = json.loads(response.text)
             
             updated_menu = data.get("updated_menu", current_menu)
-            new_total = data.get("new_total", total)
-            new_util = data.get("new_utilization", utilization)
-            action_taken = data.get("action", action)
-            justification = data.get("justification", "")
+            # Recalculate total
+            new_total = sum(d.get('price', 0) * d.get('quantity', 1) for d in updated_menu)
+            new_util = new_total / budget_amount if budget_amount > 0 else 0
+            
+            action_taken = data.get("action", "NO_ACTION")
+            justification = data.get("final_adjustment_note", "")
             
             print(f"✓ Action: {action_taken}")
             print(f"  New Total: ${new_total} ({new_util:.1%})")
-            if justification:
-                print(f"  Reason: {justification[:100]}...")
             
             # Check if optimization was successful
             # Allow authorized overspend
@@ -324,100 +307,6 @@ class BudgetOptimizerAgent(RecommendationAgentBase):
                 data=current_menu,
                 issues=[str(e)]
             )
-    
-    def _build_upsell_prompt(self, current_menu, total, budget_amount, utilization, target_add, candidate_pool):
-        return f"""
-# Role
-You are a **Strategic Upselling Expert**. Your goal is to maximize the dining experience, not just stuff the user with food.
-
-# Current Status
-- Total: ${total} (Utilization: {utilization:.1%})
-- Budget: ${budget_amount}
-- Target to Add: ~${target_add}
-
-# Current Menu
-{json.dumps(current_menu, ensure_ascii=False, indent=2)}
-
-# Available Candidates for Adding
-{json.dumps(candidate_pool[:20], ensure_ascii=False, indent=2)}
-
-# Upsell Strategy (Priority Order)
-1. **Quality Upgrade (First Priority):** Can we upgrade a "Small" portion to "Large"? Can we swap a standard dish for a Premium Version (e.g., Fried Rice → Truffle Fried Rice)?
-2. **Experience Add-on:** Add Drinks, Desserts, or Appetizers to complete the meal experience.
-3. **The "More Food" Trap:** Do NOT add more Main Courses if the dish_count is already sufficient. Only add Mains if clearly needed.
-4. **CP Value Check**: If budget has lots of room (< 60% used), prioritize high CP value add-ons (e.g., $200 dessert rather than $800 third main course).
-
-# Output Format (JSON)
-{{
-  "action": "ADD_DISHES",
-  "modifications": [
-    {{
-      "type": "upgrade/add",
-      "dish_name": "String",
-      "reason": "String (e.g., 'Upgraded to Large for sharing', 'Added Dessert to complete the meal')"
-    }}
-  ],
-  "updated_menu": [
-    {{
-      "dish_name": "String",
-      "dish_name_local": "String",
-      "price": Integer,
-      "quantity": Integer,
-      "category": "String",
-      "reason": "String",
-      "tag": "String or null"
-    }}
-  ],
-  "new_total": Integer,
-  "new_utilization": Float,
-  "justification": "String (Brief explanation of strategy)"
-}}
-"""
-    
-    def _build_reduce_prompt(self, current_menu, total, budget_amount, utilization, target_reduce, occasion):
-        return f"""
-# Role
-You are a **Value-First Budget Manager**.
-
-# Current Status
-- Total: ${total} (Utilization: {utilization:.1%} - OVER BUDGET)
-- Budget: ${budget_amount}
-- Overage: ${total - budget_amount}
-- Occasion: {occasion}
-
-# Current Menu
-{json.dumps(current_menu, ensure_ascii=False, indent=2)}
-
-# Logic: "Soft Limit" vs "Hard Limit"
-**Check:** Is the over-budget caused by a **Centerpiece** (tag="主秀" or high-value signature dish) in a **Business/Date/Treat** scenario?
-   - **YES:** You are authorized to **KEEP** it if overage is within 20%. Set action as "AUTHORIZED_OVERSPEND".
-   - **NO:** Proceed to cut costs.
-
-# Cost Cutting Strategy (if not authorized overspend)
-1. **Portion Adjustment**: Reduce quantity (e.g., 4 portions → 2 portions of staple)
-2. **Downgrade Portions**: Large → Small/Regular
-3. **Remove Non-Essentials**: Remove extra Soups or expensive Sides
-4. **Swap**: Replace Premium ingredients with Standard ones (e.g., Grouper → Bass)
-5. **Protector Rule**: NEVER remove the #1 Verified Signature Dish (tag="必點")
-
-# Output Format (JSON)
-{{
-  "action": "REDUCE_COST" or "AUTHORIZED_OVERSPEND",
-  "justification": "String (Explain why we kept the expensive dish OR what we cut)",
-  "modifications": [
-    {{
-      "type": "remove/downgrade/reduce_quantity",
-      "dish_name": "String",
-      "reason": "String"
-    }}
-  ],
-  "updated_menu": [...],
-  "new_total": Integer,
-  "new_utilization": Float
-}}
-
-**CRITICAL**: If authorizing overspend, clearly state the reason (e.g., "Kept Whole Fish as centerpiece for business dinner, overage is acceptable").
-"""
 
 class BalanceCheckerAgent(RecommendationAgentBase):
     """
@@ -500,48 +389,29 @@ class BalanceCheckerAgent(RecommendationAgentBase):
         
         prompt = f"""
 # Role
-You are the **"Executive Chef"** checking the menu flow. A menu is not just a list; it is a symphony.
+You are the **"Executive Chef"** responsible for Menu Flow & Harmony.
 
 # Current Menu
 {json.dumps(current_menu, ensure_ascii=False, indent=2)}
 
-# Current Menu Analysis
-{json.dumps(analysis, ensure_ascii=False, indent=2)}
-
-# Identified Issues
-{json.dumps(issues, ensure_ascii=False)}
-
-# Balance Rules (The "Chef's Eye")
-
-## 1. The Flavor Balance
-* **Grease Control:** If > 50% dishes are Fried/Stir-fry → MUST add Acidic/Pickled/Fresh (e.g., Cucumber Salad, Pickled Vegetables, Citrus-based dish).
-* **Texture Contrast:** Ensure mix of Crispy, Soft, Chewy. (Don't order 3 soft tofu-like dishes).
-
-## 2. The Color & Category
-* **Visuals:** Is everything Brown/Red? Suggest a Green Vegetable.
-* **Category:** Do we have Protein? Veg? Carb? Soup? (Unless "Quick Fix").
-
-## 3. Repetition Check
-* **Ingredient:** Avoid repeating main ingredients (e.g., Beef Soup + Beef Stir-fry).
-* **Method:** Avoid repeating cooking methods (e.g., 3 Deep Fried items).
-* **Sauce/Flavor Profile**: Avoid repeating sauce flavors (e.g., Two "Three-Cup" dishes = too similar).
-
-## 4. Temperature Balance
-* **Hot vs Cold**: Ensure temperature contrast (e.g., All hot dishes → suggest adding a cold appetizer or salad).
+# Balance Rules (The Chef's Eye)
+1.  **Grease Control:** If > 50% of dishes are Deep Fried/Stir-fry -> MUST add an Acidic/Pickled/Fresh dish (e.g., Cucumber salad, Tea).
+2.  **Texture Contrast:** Ensure a mix of Crispy, Soft, and Chewy.
+3.  **Color check:** Is everything Brown/Red? Suggest a Green Vegetable.
+4.  **Repetition:** Do not repeat the main ingredient (e.g., Beef Soup + Beef Stir-fry).
 
 # Task
-Suggest a **SWAP** (Replace X with Y) rather than just adding Z (to preserve budget/quantity).
-If adding is necessary, suggest the category/type to add.
+If balance is poor, suggest a **SWAP** (Replace X with Y) to fix the issue without breaking the budget/quantity.
 
 # Output Format (JSON)
 {{
-  "balanced": Boolean,
+  "is_balanced": Boolean,
   "adjustments": [
     {{
-      "issue": "String (e.g., 'Too much Grease', 'Repetitive Beef', 'Missing vegetable')",
-      "action": "replace/add",
-      "target_dish": "String (Dish to remove, if action=replace)",
-      "suggestion": "String (Dish category/type to add, e.g., 'Refreshing Cucumber Salad', 'Steamed Vegetable')"
+      "issue": "String (e.g., Too much fried food)",
+      "action": "replace",
+      "target_dish": "String (Dish to remove)",
+      "suggestion": "String (Dish category/name to add, e.g., 'Refreshing Salad')"
     }}
   ]
 }}
@@ -560,7 +430,7 @@ If adding is necessary, suggest the category/type to add.
             
             return AgentDecision(
                 agent_name="BalanceChecker",
-                approved=data.get("balanced", False),
+                approved=data.get("is_balanced", False),
                 data=current_menu,
                 issues=issues,
                 suggestions=[adj.get("suggestion") for adj in adjustments],
@@ -683,50 +553,29 @@ class QualityAssuranceAgent(RecommendationAgentBase):
         
         prompt = f"""
 # Role
-You are the **Restaurant Manager** performing the final inspection before presenting the menu to the guest.
+You are the **"Restaurant Manager"** performing the final sanity check before presenting the menu to the guest.
 
 # Context
-- Occasion: {user_input.occasion or 'casual'}
+- Scenario: {user_input.occasion or 'casual'} ({user_input.occasion or 'General Dining'})
 - Party Size: {user_input.party_size}
-- Dining Style: {user_input.dining_style}
-- Budget: {user_input.budget.amount} TWD
+- Menu: {json.dumps(final_menu, ensure_ascii=False, indent=2)}
 
-# Menu to Inspect
-{json.dumps(final_menu, ensure_ascii=False, indent=2)}
-
-# Inspection Checklist
-
-## 1. Social Appropriateness
-- Is the menu weird for the occasion? 
-  Examples of WEIRD:
-  * 4 desserts and 1 meat for a Business Dinner
-  * Solo diner ordering a Whole Chicken
-  * Date night with 3 garlic-heavy dishes
-- If Business/Date: Are there any messy items left? (Shell-on seafood, ribs, etc.)
-
-## 2. Logic Check
-- Are "Per Head" items (Rice, Tea, Single Dessert) count reasonable for Party Size?
-  * Tolerance: +/- 1 is ok
-  * WRONG: 2 rice for 4 people, or 8 desserts for 2 people
-- Is the dish count reasonable? (Not too few, not too many)
-
-## 3. Price Sanity Check
-- Check for abnormal pricing:
-  * Budget $3000 but only ordered $500 worth (too low)
-  * Single dish costs $2000 out of $3000 budget (too concentrated)
-
-## 4. Signature Dish Presence
-- Is there at least 1 signature/must-order dish?
-- If not, this is a WARNING (not fatal, but worth noting)
+# Inspection Checklist (Strict)
+1.  **Logic Check (The "Per Head" Rule):**
+    - Are "Unit-based items" (Rice, Tea, Single Dessert, Oysters) equal to Party Size?
+    - *Tolerance:* +/- 1 is acceptable for sharing, but "2 desserts for 4 people" is REJECTED.
+2.  **Social Appropriateness:**
+    - If "Business": Is the menu too cheap/simple? Is there a Centerpiece? Are there messy items (Ribs)?
+    - If "Solo": Is there too much food?
+3.  **Constraint Validation:**
+    - Double check Dietary Restrictions (e.g., "No Beef" but "Beef Soup" is present) -> FATAL ERROR.
 
 # Output Format (JSON)
 {{
   "approved": Boolean,
-  "critique": "String (If rejected, explain exactly what looks weird. If approved, say 'All checks passed.')",
-  "warnings": ["String (Non-fatal issues worth noting)"]
+  "critique": "String (If rejected, explain EXACTLY what to fix. This will be sent to the DishSelector. e.g., 'Rejected because desserts are insufficient for 4 people.')",
+  "fatal_error": Boolean
 }}
-
-**Be strict but fair. If something is genuinely weird from a human perspective, reject it.**
 """
         
         try:
