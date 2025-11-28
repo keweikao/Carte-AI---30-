@@ -37,6 +37,10 @@ test.describe('API smoke (mock-friendly)', () => {
       timeout: 30_000,
     });
 
+    if (!res.ok()) {
+      console.log('API Error Status:', res.status());
+      console.log('API Error Body:', await res.text());
+    }
     expect(res.ok()).toBeTruthy();
     const json = await res.json();
     expect(Array.isArray(json.items)).toBeTruthy();

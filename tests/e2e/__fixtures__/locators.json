@@ -1,7 +1,7 @@
 {
   "landing": {
     "loginButton": "text=使用 Google 登入",
-    "heroTitle": "text=Carte AI 點餐助手"
+    "heroTitle": "h1:text(\"Carte AI 點餐助手\")"
   },
   "input": {
     "restaurantField": "input[name=\"restaurant_name\"], input[placeholder*=\"餐廳\"]",
