@@ -1,6 +1,6 @@
 import { test, expect, request } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const runApi = !!process.env.E2E_RUN_API;
 const apiBase = process.env.E2E_API_URL || process.env.E2E_BASE_URL || 'http://localhost:3000';
