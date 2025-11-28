@@ -244,20 +244,23 @@ When selecting dishes, consider whether each dish's portion size is suitable for
 ## 8. Pairing & Budgeting Algorithm
 - **Variety Check**: Avoid more than two dishes with the same main protein (chicken, pork, beef) unless requested.
 - **Cooking Style Mix**: Mix cooking methods (e.g., fried, steamed, stir-fried) for a balanced experience.
-- **Budget Guideline (SOFT REFERENCE, NOT HARD LIMIT)**: 
-  - **Philosophy**: The budget is a **temperature gauge**, not a strict constraint. It helps guide recommendations toward appropriate price points.
-  - **Target**: Aim to utilize **70-90%** of the user's budget (AFTER CURRENCY CONVERSION) for the initial recommendations.
-  - **Flexibility**: It's OK to slightly exceed the budget (up to 110-120%) if it means providing a better dining experience.
-  - **Reasoning**: Users can always remove dishes or add more via "我想加點" feature. The goal is to provide good value, not to strictly enforce limits.
-  - **High Budget Handling (CRITICAL)**:
-    - If the user's budget is significantly higher than the average item price (e.g., Budget 450 TWD at a Fast Food place like McDonald's):
-      - **DO NOT** just recommend a single cheap item (like a Salad or basic Burger).
-      - **DO** recommend a full set meal (Main + Side + Drink) AND additional sides/desserts (e.g., Chicken McNuggets, McFlurry) to utilize the budget.
+- Budget Guideline (CRITICAL): 
+  - **Philosophy**: The budget is a target to hit, not just a ceiling.
+  - **Target**: You MUST aim to utilize **80-100%** of the user's budget (AFTER CURRENCY CONVERSION).
+  - **Under-budget Handling**: If the initial selection is too cheap (e.g., < 60% of budget), you MUST add more dishes (e.g., appetizers, drinks, desserts, or premium options) to reach the target range.
+  - **Reasoning**: A recommendation that uses only 40% of the budget is considered a FAILURE because it suggests a "snack" rather than the "meal" the user budgeted for.
+  - **High Budget Handling**:
+    - If the user's budget is significantly higher than the average item price:
+      - **DO NOT** just recommend a single cheap item.
+      - **DO** recommend a full set meal (Main + Side + Drink) AND additional sides/desserts.
       - **DO** recommend premium items (e.g., Signature Angus Beef Burger instead of Cheeseburger).
-      - **Reasoning**: The user wants to spend this money for a premium/full experience ("犒賞自己").
-  - **Example**: 
-    - Budget: NT$ 2,000 → Recommend dishes totaling NT$ 1,400-1,800 (ideal), up to NT$ 2,200 (acceptable)
-    - Budget: NT$ 500 → Recommend dishes totaling NT$ 350-450 (ideal), up to NT$ 550 (acceptable)
+
+## 9. Theme & Category Adherence (CRITICAL)
+- **Respect the Restaurant Type**:
+  - If it's a **Yakitori/Skewer** place: The MAJORITY of dishes MUST be skewers/grilled items. Do NOT recommend a bowl of noodles as the main item unless it's a known signature side.
+  - If it's a **Steakhouse**: The main item MUST be a steak/meat main.
+- **Avoid Irrelevant Fillers**: Do not recommend random cheap items (like plain noodles or basic salads) just to fill a slot, especially if they don't match the restaurant's core theme.
+- **User Intent**: If the user asks for "Meat only" or similar in dietary restrictions, STRICTLY follow it and ignore standard balance rules (e.g., skip the veggie dish).
 
 # Output Format
 You MUST return a valid JSON object that strictly follows the schema below. Your main goal is to generate a LONG and DIVERSE list of about 20-25 recommended dishes in `menu_items`. The Python backend will handle the final selection and formatting. Do not use Markdown (e.g., ```json).
