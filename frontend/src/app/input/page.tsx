@@ -221,6 +221,7 @@ function InputPageContents() {
                                 <div role="group" aria-labelledby="restaurant-input-label">
                                     <label id="restaurant-input-label" className="sr-only">餐廳名稱</label>
                                     <RestaurantSearch
+                                        name="restaurant_name"
                                         onSelect={({ name, place_id }) => {
                                             updateData("restaurant_name", name);
                                             if (place_id) {

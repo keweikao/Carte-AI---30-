@@ -11,6 +11,7 @@ interface RestaurantSearchProps {
   onSelect: (details: { name: string; place_id?: string }) => void;
   onChange?: (value: string) => void;
   defaultValue?: string;
+  name?: string;
 }
 
 interface Suggestion {
@@ -20,7 +21,7 @@ interface Suggestion {
   secondary_text: string;
 }
 
-export function RestaurantSearch({ onSelect, onChange, defaultValue }: RestaurantSearchProps) {
+export function RestaurantSearch({ onSelect, onChange, defaultValue, name }: RestaurantSearchProps) {
   const { data: session } = useSession();
   const [value, setValue] = useState(defaultValue || '');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -118,6 +119,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue }: Restauran
     <div className="relative w-full" ref={containerRef}>
       <div className="relative">
         <Input
+          name={name}
           type="text"
           placeholder="例如：鼎泰豐、海底撈..."
           value={value}
