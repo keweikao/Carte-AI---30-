@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
+// import { useMemo } from "react";
+// import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { RecommendationResponse } from "@/types";
