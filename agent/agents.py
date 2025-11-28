@@ -66,7 +66,7 @@ class ReviewAgent(BaseAgent):
     """
     async def run(self, reviews_data: Dict[str, Any]) -> AgentResult:
         print("ReviewAgent: Analyzing reviews...")
-        reviews_text = json.dumps(reviews_data.get("reviews", []), ensure_ascii=False)
+        reviews_text = json.dumps(reviews_data.get("reviews", []), ensure_ascii=False, default=str)
         
         prompt = f"""
         Analyze these restaurant reviews to identify the most popular/signature dishes.
@@ -254,13 +254,13 @@ class AggregationAgent(BaseAgent):
         # Construct Prompt Inputs
         prompt_inputs = f"""
         # Source 1: OCR Agent (Official Menu)
-        {json.dumps(ocr_data, ensure_ascii=False, indent=2)}
+        {json.dumps(ocr_data, ensure_ascii=False, indent=2, default=str)}
         
         # Source 2: Review Agent (Google Reviews)
-        {json.dumps(review_data, ensure_ascii=False, indent=2)}
+        {json.dumps(review_data, ensure_ascii=False, indent=2, default=str)}
         
         # Source 3: Search Agent (Web/Blogs)
-        {json.dumps(search_data, ensure_ascii=False, indent=2)}
+        {json.dumps(search_data, ensure_ascii=False, indent=2, default=str)}
         """
 
         prompt = f"""

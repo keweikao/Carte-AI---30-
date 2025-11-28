@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI, Depends, HTTPException, status, Query
+from fastapi import FastAPI, Depends, HTTPException, status, Query, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from schemas.recommendation import UserInputV2, RecommendationResponseV2, RecommendationRequest, FullRecommendationResponse, MenuItemV2, AddOnRequest, AddOnResponse, DishSlotResponse
 from schemas.feedback import FeedbackRequest
@@ -15,7 +15,9 @@ from services.firestore_service import (
     add_swap_to_session,
     finalize_recommendation_session,
     get_recommendation_candidates,
-    save_user_activity
+    save_user_activity,
+    save_job_status,
+    get_job_status
 )
 import uvicorn
 import os
@@ -570,3 +572,44 @@ def health_check():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+async def process_recommendation_async(job_id: str, request: UserInputV2, token: str):
+    try:
+        save_job_status(job_id, "processing")
+        
+        # Initialize agent
+        agent = DiningAgent()
+        
+        # Run recommendation logic
+        result = await agent.get_recommendations_v2(request)
+        
+        # Serialize result
+        result_dict = result.model_dump()
+        
+        save_job_status(job_id, "completed", result=result_dict)
+        
+    except Exception as e:
+        print(f"Async Job Error: {e}")
+        save_job_status(job_id, "failed", error=str(e))
+
+@app.post("/v2/recommendations/async")
+async def create_recommendation_job(
+    request: UserInputV2,
+    background_tasks: BackgroundTasks,
+    authorization: HTTPAuthorizationCredentials = Depends(security)
+):
+    verify_google_token(authorization.credentials)
+    
+    job_id = str(uuid.uuid4())
+    save_job_status(job_id, "pending")
+    
+    background_tasks.add_task(process_recommendation_async, job_id, request, authorization.credentials)
+    
+    return {"job_id": job_id, "status": "pending"}
+
+@app.get("/v2/recommendations/status/{job_id}")
+async def get_recommendation_job_status(job_id: str):
+    status = get_job_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return status

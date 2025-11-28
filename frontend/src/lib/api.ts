@@ -225,3 +225,43 @@ export async function requestAddOn(
 
     return response.json();
 }
+
+export async function getRecommendationsAsync(
+    data: UserInputV2,
+    token?: string
+) {
+    const authToken = token || DEV_TOKEN;
+    const response = await fetch(`${API_BASE_URL}/v2/recommendations/async`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to start async recommendation`);
+    }
+
+    return response.json();
+}
+
+export async function pollJobStatus(
+    jobId: string,
+    token?: string
+) {
+    const authToken = token || DEV_TOKEN;
+    const response = await fetch(`${API_BASE_URL}/v2/recommendations/status/${jobId}`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${authToken}`
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to poll job status`);
+    }
+
+    return response.json();
+}

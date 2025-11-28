@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getRecommendations, getAlternatives, finalizeOrder, requestAddOn, UserInputV2 } from "@/lib/api";
+import { getRecommendations, getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync, pollJobStatus } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
 // import { CategoryHeader } from "@/components/category-header";
 import { RecommendationSummary } from "@/components/recommendation-summary";
@@ -206,21 +206,35 @@ function RecommendationPageContent() {
 
                 // @ts-expect-error - id_token exists on session but not in type definition
                 const token = session?.id_token;
-                const result: RecommendationData = await getRecommendations(requestData, token);
 
-                // --- Set V3 State ---
-                setData(result);
-                setDishSlots(result.items);
-                setTotalPrice(result.total_price);
+                // Start Async Job
+                const jobResponse = await getRecommendationsAsync(requestData, token);
+                const jobId = jobResponse.job_id;
 
-                const initialStatus = new Map<string, 'pending' | 'selected'>();
-                result.items.forEach(slot => initialStatus.set(slot.display.dish_name, 'pending'));
-                setSlotStatus(initialStatus);
+                // Poll loop
+                while (true) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    const statusData = await pollJobStatus(jobId, token);
 
-                setTimeout(() => {
-                    if (interval) clearInterval(interval);
-                    setInitialLoading(false);
-                }, 3000);
+                    if (statusData.status === 'completed') {
+                        const result: RecommendationData = statusData.result;
+
+                        // --- Set V3 State ---
+                        setData(result);
+                        setDishSlots(result.items);
+                        setTotalPrice(result.total_price);
+
+                        const initialStatus = new Map<string, 'pending' | 'selected'>();
+                        result.items.forEach((slot: any) => initialStatus.set(slot.display.dish_name, 'pending'));
+                        setSlotStatus(initialStatus);
+                        break;
+                    } else if (statusData.status === 'failed') {
+                        throw new Error(statusData.error || "Analysis failed");
+                    }
+                }
+
+                if (interval) clearInterval(interval);
+                setInitialLoading(false);
 
             } catch (err) {
                 const error = err as Error;
@@ -232,8 +246,11 @@ function RecommendationPageContent() {
                 if (message.includes("504")) message = "伺服器回應逾時，請稍後再試或減少菜品數量";
                 if (message.includes("500")) message = "伺服器發生錯誤，請稍後再試";
 
-                setError(message);
-                setInitialLoading(false);
+                // Redirect to input page on error
+                // alert(`發生錯誤: ${message}\n即將返回搜尋頁面。`); // Optional: Alert is annoying, maybe just toast?
+                // Using a simple alert for now as requested "jump back" implies immediate action
+                // But let's just redirect.
+                router.push('/input');
             }
         };
 

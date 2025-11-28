@@ -123,7 +123,7 @@ You are the **"Menu Architect,"** an expert dining concierge. Your goal is to cu
 
 # Data Sources
 - Verified Signatures: {verified_dishes} (Must prioritize these)
-- Candidate Pool: {json.dumps(candidates[:30], ensure_ascii=False, indent=2)}
+- Candidate Pool: {json.dumps(candidates[:30], ensure_ascii=False, indent=2, default=str)}
 
 # Decision Logic (The Protocol)
 1.  **Dietary Filter:** Strictly remove items violating restrictions.
@@ -213,7 +213,7 @@ class BudgetOptimizerAgent(RecommendationAgentBase):
 You are the **"Value-First Budget Manager."** Your goal is to optimize the menu to fit the budget while maximizing dining experience value.
 
 # Current Status
-- Current Menu: {json.dumps(current_menu, ensure_ascii=False, indent=2)}
+- Current Menu: {json.dumps(current_menu, ensure_ascii=False, indent=2, default=str)}
 - Current Menu Total: ${total}
 - Target Budget: ${budget_amount}
 - Utilization: {utilization * 100:.1f}%
@@ -392,7 +392,7 @@ class BalanceCheckerAgent(RecommendationAgentBase):
 You are the **"Executive Chef"** responsible for Menu Flow & Harmony.
 
 # Current Menu
-{json.dumps(current_menu, ensure_ascii=False, indent=2)}
+{json.dumps(current_menu, ensure_ascii=False, indent=2, default=str)}
 
 # Balance Rules (The Chef's Eye)
 1.  **Grease Control:** If > 50% of dishes are Deep Fried/Stir-fry -> MUST add an Acidic/Pickled/Fresh dish (e.g., Cucumber salad, Tea).
@@ -558,7 +558,7 @@ You are the **"Restaurant Manager"** performing the final sanity check before pr
 # Context
 - Scenario: {user_input.occasion or 'casual'} ({user_input.occasion or 'General Dining'})
 - Party Size: {user_input.party_size}
-- Menu: {json.dumps(final_menu, ensure_ascii=False, indent=2)}
+- Menu: {json.dumps(final_menu, ensure_ascii=False, indent=2, default=str)}
 
 # Inspection Checklist (Strict)
 1.  **Logic Check (The "Per Head" Rule):**

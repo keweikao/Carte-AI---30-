@@ -389,3 +389,41 @@ def save_user_activity(user_id: str, activity_type: str, data: dict) -> bool:
     except Exception as e:
         print(f"Error saving user activity: {e}")
         return False
+
+def save_job_status(job_id: str, status: str, result: dict = None, error: str = None):
+    """
+    Saves the status of an async job.
+    """
+    if not db:
+        return
+
+    doc_ref = db.collection("jobs").document(job_id)
+    data = {
+        "status": status,
+        "updated_at": datetime.datetime.now(datetime.timezone.utc)
+    }
+    if result:
+        data["result"] = result
+    if error:
+        data["error"] = error
+        
+    try:
+        doc_ref.set(data, merge=True)
+    except Exception as e:
+        print(f"Error saving job status: {e}")
+
+def get_job_status(job_id: str) -> dict:
+    """
+    Retrieves the status of an async job.
+    """
+    if not db:
+        return None
+
+    try:
+        doc = db.collection("jobs").document(job_id).get()
+        if doc.exists:
+            return doc.to_dict()
+    except Exception as e:
+        print(f"Error getting job status: {e}")
+    
+    return None
