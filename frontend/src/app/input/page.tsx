@@ -251,6 +251,9 @@ function InputPageContents() {
                                         }}
                                         defaultValue={formData.restaurant_name}
                                     />
+                                    <p className="text-xs text-muted-foreground mt-2 text-center" id="restaurant-search-hint">
+                                        💡 請等待 Google Maps 自動帶出餐廳建議後點選，以獲得最精準的菜單資訊
+                                    </p>
                                 </div>
                                 <Button
                                     className="w-full py-6 text-lg bg-primary hover:bg-primary/90"
