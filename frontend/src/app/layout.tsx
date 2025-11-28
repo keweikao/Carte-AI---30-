@@ -45,6 +45,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  icons: {
+    icon: '/logo-icon.svg',
+    shortcut: '/logo-icon.svg',
+    apple: '/logo-icon.svg',
+  },
   openGraph: {
     title: "Carte AI 點餐助手 - 智慧餐廳點餐助手",
     description: "30秒快速決定吃什麼！AI 分析 Google 評論，推薦最適合您的菜色",
@@ -78,11 +83,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
+
   manifest: '/manifest.json',
 };
 
