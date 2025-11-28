@@ -118,22 +118,92 @@ class ReviewAgent(BaseAgent):
 
 class SearchAgent(BaseAgent):
     """
-    The 'Explorer': Finds external validation from web search.
+    The 'Explorer': Finds external validation from web search using the 'Gourmet Insight Hunter' persona.
     """
+    def _detect_region(self, restaurant_name: str) -> str:
+        """Simple heuristic to detect region based on character sets."""
+        if any("\u3040" <= c <= "\u30ff" for c in restaurant_name): # Hiragana/Katakana
+            return "JP"
+        if any("\uac00" <= c <= "\ud7a3" for c in restaurant_name): # Hangul
+            return "KR"
+        if any("\u4e00" <= c <= "\u9fff" for c in restaurant_name): # CJK Unified Ideographs
+            return "TC" # Default to TC for Hanzi (could be SC, but user context is TW)
+        return "EN" # Default to English/Global
+
+    def _construct_query(self, restaurant_name: str, region: str) -> str:
+        """Constructs a boolean search query based on region."""
+        keywords = {
+            "TC": {
+                "dish": '("必點" OR "招牌" OR "推薦" OR "必吃")',
+                "vibe": '("特色" OR "打卡" OR "氛圍" OR "景觀" OR "好拍")',
+                "neg": '-site:ubereats.com -site:foodpanda.tw -site:deliveroo.hk'
+            },
+            "JP": {
+                "dish": '("名物" OR "必食" OR "看板メニュー" OR "一番人気")',
+                "vibe": '("雰囲気" OR "個室" OR "絶景" OR "隠れ家" OR "インスタ映え")',
+                "neg": '-site:ubereats.com -site:demae-can.com'
+            },
+            "KR": {
+                "dish": '("대표메뉴" OR "추천" OR "시그니처" OR "존맛")',
+                "vibe": '("분위기" OR "감성" OR "뷰맛집" OR "이색")',
+                "neg": '-site:baemin.com -site:yogiyo.co.kr'
+            },
+            "EN": {
+                "dish": '("Must order" OR "Signature dish" OR "Best dish" OR "Highly recommend")',
+                "vibe": '("Atmosphere" OR "Vibe" OR "Interior" OR "Hidden gem")',
+                "neg": '-site:ubereats.com -site:grubhub.com -site:doordash.com -site:yelp.com'
+            }
+        }
+        
+        k = keywords.get(region, keywords["EN"])
+        # Combine Dish and Vibe keywords to maximize single API call efficiency
+        # Query: "{Name}" ({Dish} OR {Vibe}) {Neg}
+        return f'"{restaurant_name}" ({k["dish"]} OR {k["vibe"]}) {k["neg"]}'
+
     async def run(self, restaurant_name: str) -> AgentResult:
-        print(f"SearchAgent: Searching for {restaurant_name}...")
-        search_results = await fetch_menu_from_search(restaurant_name)
+        region = self._detect_region(restaurant_name)
+        query = self._construct_query(restaurant_name, region)
+        
+        print(f"SearchAgent: Searching for {restaurant_name} (Region: {region})...")
+        print(f"Query: {query}")
+        
+        # Fetch max 10 results
+        search_results = await fetch_menu_from_search(restaurant_name, query=query, num=10)
         
         prompt = f"""
-        Extract dish names and prices from these search snippets.
+        # Role
+        You are the "Gourmet Insight Hunter," an expert dining analyst.
         
-        Snippets:
+        # Task
+        Analyze these search snippets for "{restaurant_name}" ({region}) to extract:
+        1. Signature Dishes (Verified by mentions)
+        2. Vibe & Features
+        3. Expert Verdict
+        
+        # Search Snippets
         {search_results}
         
-        Return a JSON list:
-        [
-            {"dish_name": "Name", "price": 100, "source_snippet": "..."}
-        ]
+        # Output Format (Strict JSON)
+        {{
+          "restaurant_name": "{restaurant_name}",
+          "search_region": "{region}",
+          "signature_dishes": [
+            {{
+              "dish_name": "String",
+              "confidence_score": "High/Medium",
+              "reason": "Brief quote (e.g., 'Mentioned as must-eat in 3 blogs')"
+            }}
+          ],
+          "features_and_vibe": [
+            "String (e.g., Rooftop view)",
+            "String (e.g., Retro style)"
+          ],
+          "expert_verdict": {{
+            "pros": "String",
+            "cons": "String (if negative keywords found)",
+            "buying_intent": "String (e.g., Good for dates, Best for solo dining)"
+          }}
+        }}
         """
         
         try:
@@ -143,7 +213,25 @@ class SearchAgent(BaseAgent):
                 generation_config={"response_mime_type": "application/json"}
             )
             data = json.loads(response.text)
-            return AgentResult(source="search", data=data, confidence=0.6)
+            
+            # Normalize output for Aggregator
+            # We need to transform the specific "Gourmet" format back to a generic list for the aggregator
+            # OR update the aggregator to handle this rich data.
+            # For now, let's map 'signature_dishes' to the standard data list 
+            # and keep the full rich object in 'metadata'.
+            
+            standard_data = []
+            if "signature_dishes" in data:
+                for dish in data["signature_dishes"]:
+                    standard_data.append({
+                        "dish_name": dish.get("dish_name"),
+                        "price": None, # Search snippets often miss price, but that's ok
+                        "reason": dish.get("reason"),
+                        "confidence": dish.get("confidence_score")
+                    })
+            
+            return AgentResult(source="search", data=standard_data, confidence=0.8, metadata=data)
+            
         except Exception as e:
             print(f"SearchAgent Error: {e}")
             return AgentResult(source="search", data=[], confidence=0.0)

@@ -72,7 +72,7 @@ async def fetch_place_photo(photo_reference: str, max_width: int = 400) -> bytes
             print(f"Error fetching photo: {e}")
             return None
 
-async def fetch_menu_from_search(restaurant_name: str) -> str:
+async def fetch_menu_from_search(restaurant_name: str, query: str = None, num: int = 10) -> str:
     """
     Searches for menu or food reviews using Google Custom Search API.
     Returns a concatenated string of snippets.
@@ -82,11 +82,16 @@ async def fetch_menu_from_search(restaurant_name: str) -> str:
 
     async with httpx.AsyncClient() as client:
         url = "https://www.googleapis.com/customsearch/v1"
+        
+        # Construct query if not provided
+        if not query:
+            query = f"{restaurant_name} 菜單 食記 推薦"
+            
         params = {
             "key": GOOGLE_API_KEY,
             "cx": SEARCH_ENGINE_ID,
-            "q": f"{restaurant_name} 菜單 食記 推薦",
-            "num": 5
+            "q": query,
+            "num": min(num, 10) # API max is 10
         }
         try:
             response = await client.get(url, params=params)
@@ -98,7 +103,8 @@ async def fetch_menu_from_search(restaurant_name: str) -> str:
                 for item in data["items"]:
                     title = item.get("title", "")
                     snippet = item.get("snippet", "")
-                    snippets.append(f"Title: {title}\nSnippet: {snippet}\n")
+                    link = item.get("link", "")
+                    snippets.append(f"Title: {title}\nSnippet: {snippet}\nLink: {link}\n")
             
             return "\n".join(snippets) if snippets else "No menu information found."
             
