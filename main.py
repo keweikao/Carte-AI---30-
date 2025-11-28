@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from schemas.recommendation import UserInputV2, RecommendationResponseV2, RecommendationRequest, FullRecommendationResponse, MenuItemV2, AddOnRequest, AddOnResponse
+from schemas.recommendation import UserInputV2, RecommendationResponseV2, RecommendationRequest, FullRecommendationResponse, MenuItemV2, AddOnRequest, AddOnResponse, DishSlotResponse
 from schemas.feedback import FeedbackRequest
 from schemas.tracking import SwapRequest, SwapResponse, FinalizeRequest, FinalizeResponse
 from agent.dining_agent import DiningAgent
