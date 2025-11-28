@@ -99,7 +99,7 @@ class DiningAgent:
         agent_results = await asyncio.gather(*agent_tasks)
         
         # Aggregate results
-        high_confidence_candidates = aggregator.run(agent_results)
+        high_confidence_candidates = await aggregator.run(agent_results)
         print(f"Multi-Agent Analysis Complete. Found {len(high_confidence_candidates)} high-confidence items.")
         
         # Inject candidates into user_profile for the prompt

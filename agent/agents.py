@@ -23,12 +23,15 @@ class BaseAgent:
     async def run(self, *args, **kwargs) -> AgentResult:
         raise NotImplementedError
 
+from agent.skills import MenuExtractionSkill
+
 class VisualAgent(BaseAgent):
     """
-    The 'Eye': Extracts structured menu data from images.
+    The 'Eye': Extracts structured menu data from images using the MenuExtractionSkill.
     """
     def __init__(self):
-        super().__init__(model_name='gemini-2.5-flash') # Or Pro Vision if available/needed
+        super().__init__(model_name='gemini-2.5-flash')
+        self.ocr_skill = MenuExtractionSkill(model_name='gemini-2.5-flash')
 
     async def run(self, photos_data: List[Dict[str, Any]]) -> AgentResult:
         print("VisualAgent: Analyzing photos...")
@@ -51,38 +54,11 @@ class VisualAgent(BaseAgent):
         if not valid_images:
             return AgentResult(source="visual", data=[], confidence=0.0)
 
-        prompt = """
-        You are a Menu Transcription Expert. 
-        Analyze these restaurant images. Identify ANY menu pages or food items with visible prices.
+        # Use the Skill
+        extracted_items = await self.ocr_skill.execute(valid_images)
         
-        Extract a JSON list of items found. Format:
-        [
-            {"dish_name": "Name", "price": 100, "description": "visible text"}
-        ]
-        
-        Rules:
-        1. Only extract text that is clearly visible. Do NOT hallucinate.
-        2. If price is missing, set price to null.
-        3. Ignore non-food text (like phone numbers, addresses).
-        """
-
-        try:
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                [prompt] + valid_images,
-                generation_config={"response_mime_type": "application/json"}
-            )
-            data = json.loads(response.text)
-            # Basic validation: ensure it's a list
-            if isinstance(data, dict) and "menu_items" in data:
-                data = data["menu_items"]
-            elif not isinstance(data, list):
-                data = []
-                
-            return AgentResult(source="visual", data=data, confidence=0.9, metadata={"image_count": len(valid_images)})
-        except Exception as e:
-            print(f"VisualAgent Error: {e}")
-            return AgentResult(source="visual", data=[], confidence=0.0)
+        confidence = 0.9 if extracted_items else 0.0
+        return AgentResult(source="visual", data=extracted_items, confidence=confidence, metadata={"image_count": len(valid_images)})
 
 class ReviewAgent(BaseAgent):
     """
@@ -236,34 +212,144 @@ class SearchAgent(BaseAgent):
             print(f"SearchAgent Error: {e}")
             return AgentResult(source="search", data=[], confidence=0.0)
 
-class AggregationAgent:
+class AggregationAgent(BaseAgent):
     """
-    The 'Judge': Synthesizes data and assigns confidence scores.
+    The 'Judge': Synthesizes data from all agents using the 'Executive Dining Strategist' persona.
     """
-    def run(self, results: List[AgentResult]) -> List[Dict[str, Any]]:
-        print("AggregationAgent: Synthesizing results...")
+    def __init__(self):
+        super().__init__(model_name='gemini-2.5-flash')
+
+    async def run(self, results: List[AgentResult]) -> List[Dict[str, Any]]:
+        print("AggregationAgent: Synthesizing results with Executive Strategy...")
         
-        # 1. Flatten all items
-        all_items = []
+        # Organize inputs by source
+        ocr_data = []
+        review_data = []
+        search_data = []
+        
         for res in results:
-            for item in res.data:
-                item["source"] = res.source
-                item["base_confidence"] = res.confidence
-                all_items.append(item)
+            if res.source == "visual":
+                ocr_data = res.data
+            elif res.source == "review":
+                review_data = res.data
+            elif res.source == "search":
+                search_data = res.data # This is the standard list, metadata has the rich JSON
+                # If search agent returns rich metadata, we might want to use that instead for the prompt
+                if res.metadata:
+                    search_data = res.metadata
+
+        # Construct Prompt Inputs
+        prompt_inputs = f"""
+        # Source 1: OCR Agent (Official Menu)
+        {json.dumps(ocr_data, ensure_ascii=False, indent=2)}
         
-        # 2. Simple deduplication and scoring (Placeholder logic)
-        # In a real implementation, we would use fuzzy matching to merge "Beef Noodle" and "Beef Noodles"
+        # Source 2: Review Agent (Google Reviews)
+        {json.dumps(review_data, ensure_ascii=False, indent=2)}
         
-        # For now, just pass through with an added 'final_score'
-        final_pool = []
-        for item in all_items:
-            score = item.get("base_confidence", 0.5) * 100
+        # Source 3: Search Agent (Web/Blogs)
+        {json.dumps(search_data, ensure_ascii=False, indent=2)}
+        """
+
+        prompt = f"""
+        # Role
+        You are the **"Executive Dining Strategist,"** responsible for synthesizing data from three distinct intelligence sources:
+        1.  **OCR Agent:** Official Menu Data (Facts, Prices, Categories).
+        2.  **Review Agent:** Google Maps Reviews (Mass Sentiment, Service Issues, Recent Consistency).
+        3.  **Search Agent:** Blog/Web Articles (Deep Dives, Hidden Gems, Detailed Food Textures).
+
+        # Core Objective
+        Your goal is not to summarize, but to **TRIANGULATE** the truth. You must construct a "Golden Profile" for the restaurant by cross-referencing these three sources to validate claims and identify the true "Must-Eat" items vs. "Marketing Hype."
+
+        # Data Triangulation Logic (The "Source of Truth" Hierarchy)
+
+        Apply the following weighting logic to resolve conflicts:
+
+        ## 1. Dish Recommendation Logic (The "Signature Matrix")
+        * **CONFIRMED STAR:** If a dish is highlighted in **OCR** (e.g., "Chef's Recommendation") AND praised in **Search** (Blogs) AND has high positive volume in **Reviews**.
+        * **HIDDEN GEM:** If a dish is NOT highlighted in **OCR** but strongly recommended in **Search** (Blogs) and verified by **Reviews**.
+        * **OVERRATED TRAP:** If a dish is highlighted in **OCR** or **Search**, but has negative sentiment in **Reviews** (e.g., "Salty," "Dry," "Not worth it"). -> *Mark as "Avoid".*
+
+        ## 2. Price & Value Logic
+        * **Use OCR** for the exact price baseline.
+        * **Use Reviews** to determine the "Perceived Value" (CP value).
+        * *Insight:* If OCR price is high but Reviews say "Small portion," flag as "Low CP Value."
+
+        ## 3. Vibe & Scenario Match
+        * **Use Search** for visual descriptions (e.g., "Good for dates," "Retro style").
+        * **Use Reviews** for functional reality (e.g., "Too noisy," "Tables too close," "Long queue").
+        * *Synthesis:* "Visually stunning (Search) but too noisy for intimate conversations (Review)."
+
+        # Processing Instructions
+
+        1.  **Map Entities:** Fuzzy match dish names across the 3 sources (e.g., "Spicy Beef Noodle" in OCR = "Beef Noodles" in Reviews).
+        2.  **Sentiment Check:** For top 5 mentioned dishes, calculate a "Consensus Score."
+        3.  **Flag Warnings:** Explicitly look for "Hygiene issues" or "Service attitude" in Reviews to add a warning label.
+
+        # Input Data
+        {prompt_inputs}
+
+        # Final Output Format (JSON)
+
+        Produce a single JSON object analyzing the restaurant:
+
+        ```json
+        {{
+          "restaurant_name": "String",
+          "overall_verdict": "String (One sentence executive summary, e.g., 'Visual stunner with average food, best for photos not foodies.')",
+          "dining_scenario": ["Date Night", "Group Gathering", "Solo"],
+          "signature_dishes": [
+            {{
+              "name": "String",
+              "price": "String (From OCR)",
+              "status": "Must Order / Hidden Gem / Controversial",
+              "reasoning": "String (e.g., 'Official recommendation validated by 50+ positive reviews, specifically for the truffle sauce.')"
+            }}
+          ],
+          "avoid_items": [
+            {{
+              "name": "String",
+              "reason": "String (e.g., 'High blog buzz but consistent complaints about being undercooked in recent reviews.')"
+            }}
+          ],
+          "price_analysis": {{
+            "average_cost": "String",
+            "value_rating": "High/Medium/Low (CP Value)",
+            "note": "String (e.g., 'Pricey for the portion size.')"
+          }},
+          "warnings": ["String (e.g., Cash Only)", "String (e.g., Rude service peak hours)"]
+        }}
+        ```
+        """
+        
+        try:
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            data = json.loads(response.text)
             
-            # Boost if price is present
-            if item.get("price"):
-                score += 10
-                
-            item["confidence_score"] = min(score, 100)
-            final_pool.append(item)
+            # Transform to standard format for the main agent
+            final_pool = []
+            if "signature_dishes" in data:
+                for dish in data["signature_dishes"]:
+                    final_pool.append({
+                        "dish_name": dish.get("name"),
+                        "price": dish.get("price"), # Might be a string like "$100" or "Unknown"
+                        "reason": dish.get("reasoning"),
+                        "source": "aggregator",
+                        "status": dish.get("status"),
+                        "confidence_score": 95 if dish.get("status") == "Must Order" else 85
+                    })
             
-        return final_pool
+            # We can also return the full analysis in a special way if needed, 
+            # but the interface expects List[Dict].
+            # Let's attach the full analysis to the first item's metadata or similar if we want to preserve it,
+            # or just rely on the high confidence candidates list.
+            
+            return final_pool
+            
+        except Exception as e:
+            print(f"AggregationAgent Error: {e}")
+            # Fallback to simple aggregation if LLM fails
+            return []
