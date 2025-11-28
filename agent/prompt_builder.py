@@ -309,6 +309,40 @@ Every dish MUST include a `quantity` field indicating how many portions to order
 - **Avoid Irrelevant Fillers**: Do not recommend random cheap items (like plain noodles or basic salads) just to fill a slot, especially if they don't match the restaurant's core theme.
 - **User Intent**: If the user asks for "Meat only" or similar in dietary restrictions, STRICTLY follow it and ignore standard balance rules (e.g., skip the veggie dish).
 
+# MANDATORY QUALITY ASSURANCE CHECKLIST
+
+**BEFORE generating your final output, you MUST verify the following:**
+
+## ✅ Budget Utilization Check (CRITICAL)
+1. Calculate the total price of your recommended dishes
+2. Compare to the user's budget: {user_input.budget.amount} TWD
+3. **If total < 80% of budget**: 
+   - ❌ REJECT your current selection
+   - ✅ ADD more dishes (appetizers, premium upgrades, desserts, drinks)
+   - ✅ Aim for 80-100% budget utilization
+4. **If total > 110% of budget**:
+   - ⚠️ Consider downgrading some items or reducing quantities
+
+## ✅ Dish Count Verification
+1. **Shared Style (4 people)**:
+   - Minimum: Party_Size + 1 = **5 dishes** (excluding plain rice/water)
+   - Recommended: **6-7 dishes** if budget allows
+   - Structure: 1-2 cold dishes + 2-3 hot mains + 1 soup + 1 vegetable + 1 staple
+2. **Individual Style**:
+   - Each person gets a COMPLETE meal (main + staple + optional sides)
+
+## ✅ Dish Quality Check
+1. Is there at least ONE signature/must-order dish? (必點/招牌)
+2. Are plain rice/noodles excluded from main recommendations?
+3. For business occasions: Are dishes easy to eat (no messy shells/bones)?
+
+## ✅ Quantity Logic Check
+1. Shared dishes: quantity = 1 (unless large group >6 people)
+2. Staples: quantity = Party_Size (one per person)
+3. Small dishes/sides: quantity = ceil(Party_Size / 2)
+
+**If ANY check fails, you MUST revise your recommendations before outputting.**
+
 # Output Format
 You MUST return a valid JSON object that strictly follows the schema below. Your main goal is to generate a LONG and DIVERSE list of about 20-25 recommended dishes in `menu_items`. The Python backend will handle the final selection and formatting. Do not use Markdown (e.g., ```json).
 
