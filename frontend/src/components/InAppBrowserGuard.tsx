@@ -8,7 +8,7 @@ export function InAppBrowserGuard() {
     useEffect(() => {
         if (typeof window === "undefined") return;
 
-        const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+        const userAgent = navigator.userAgent || navigator.vendor || (window as unknown as { opera?: string }).opera || "";
         // Detect Messenger, LINE, Instagram, Facebook app
         // FBAN/FBAV = Facebook App
         // Line = LINE App
