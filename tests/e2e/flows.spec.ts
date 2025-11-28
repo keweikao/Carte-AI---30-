@@ -15,8 +15,8 @@ test.describe('UI flow (mock login + recommendation)', () => {
       await expect(page.locator(locators.landing.heroTitle)).toBeVisible();
     }
 
-    // 使用 error=mock 以略過未登入自動跳轉（前端判斷 unauth + !error 才會 redirect）
-    await page.goto('/input?error=mock');
+    // 使用 error=mock_bypass 以略過未登入自動跳轉（前端判斷 unauth + !error 才會 redirect）
+    await page.goto('/input?error=mock_bypass');
 
     const restaurantField = page.locator(locators.input.restaurantField);
     await expect(restaurantField).toBeVisible();

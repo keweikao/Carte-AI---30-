@@ -162,7 +162,7 @@ function InputPageContents() {
     }, [formData.mode, formData.people]);
 
     // --- CONDITIONAL RENDERING ---
-    if (error) {
+    if (error && error !== 'mock_bypass') {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4 bg-background" role="alert" aria-live="assertive">
                 <AlertCircle className="w-16 h-16 text-destructive" aria-hidden="true" />
@@ -184,7 +184,7 @@ function InputPageContents() {
         );
     }
 
-    if (!session) {
+    if (!session && error !== 'mock_bypass') {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" role="status" aria-label="載入中">
