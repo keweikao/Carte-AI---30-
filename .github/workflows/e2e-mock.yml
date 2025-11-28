@@ -39,6 +39,8 @@ jobs:
           cd frontend
           npm install
           npx playwright install --with-deps chromium
+          cd ..
+          npm install @playwright/test typescript ts-node
 
       - name: Start backend (mock mode)
         run: |
@@ -61,8 +63,7 @@ jobs:
 
       - name: Run Playwright tests (mock mode)
         run: |
-          cd frontend
-          E2E_RUN_UI=1 E2E_RUN_API=1 E2E_BASE_URL=http://127.0.0.1:3000 E2E_API_URL=http://127.0.0.1:8000 npx playwright test -c ../tests/e2e/playwright.config.ts
+          E2E_RUN_UI=1 E2E_RUN_API=1 E2E_BASE_URL=http://127.0.0.1:3000 E2E_API_URL=http://127.0.0.1:8000 npx playwright test -c tests/e2e/playwright.config.ts
 
       - name: Upload Playwright reports
         if: always()
