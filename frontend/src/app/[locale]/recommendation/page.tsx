@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info, Crown } from "lucide-react";
@@ -54,13 +55,14 @@ interface ErrorStateProps {
 
 // Re-usable error component
 function ErrorState({ error }: ErrorStateProps) {
+    const t = useTranslations('RecommendationPage');
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4 bg-background" role="alert" aria-live="assertive">
             <AlertCircle className="w-16 h-16 text-destructive" aria-hidden="true" />
-            <h2 className="text-2xl font-bold text-foreground">出錯了！</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t('error_title')}</h2>
             <p className="text-muted-foreground">{error}</p>
             <Link href="/input">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" aria-label="返回輸入頁重新設定">返回重新設定</Button>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" aria-label={t('back_button')}>{t('back_button')}</Button>
             </Link>
         </div>
     );
@@ -68,6 +70,7 @@ function ErrorState({ error }: ErrorStateProps) {
 
 // Skeleton state for when recommendations are being prepared
 function RecommendationSkeleton() {
+    const t = useTranslations('RecommendationPage');
     return (
         <div className="relative min-h-screen bg-background pb-32 font-sans">
             <div className="absolute inset-0 w-full h-full overflow-y-auto">
@@ -75,10 +78,10 @@ function RecommendationSkeleton() {
                 <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
                     <div className="container flex h-14 items-center justify-between px-4">
                         <Button variant="ghost" disabled className="gap-2">
-                            <ArrowLeft className="w-4 h-4" />返回設定
+                            <ArrowLeft className="w-4 h-4" />{t('back_button')}
                         </Button>
                         <Button disabled className="gap-2 bg-primary hover:bg-primary/90">
-                            <Check className="w-4 h-4" />產出點餐菜單
+                            <Check className="w-4 h-4" />{t('generate_menu_button')}
                         </Button>
                     </div>
                 </div>
@@ -87,11 +90,11 @@ function RecommendationSkeleton() {
                 <div className="bg-background/95 backdrop-blur-sm sticky top-14 z-10 px-6 py-4 shadow-sm border-b">
                     <div className="flex justify-between items-end mb-2">
                         <div>
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">菜單總價</p>
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">{t('total_price')}</p>
                             <div className="h-9 w-32 bg-cream-200 rounded animate-skeleton" />
                         </div>
                         <div className="text-right">
-                            <p className="text-xs text-muted-foreground mb-1">人均約</p>
+                            <p className="text-xs text-muted-foreground mb-1">{t('per_person')}</p>
                             <div className="h-7 w-24 bg-cream-200 rounded animate-skeleton" />
                         </div>
                     </div>
@@ -109,6 +112,8 @@ function RecommendationSkeleton() {
 }
 
 function RecommendationPageContent() {
+    const t = useTranslations('RecommendationPage');
+    const locale = useLocale();
     const searchParams = useSearchParams();
     const router = useRouter();
     const { data: session } = useSession();
@@ -167,11 +172,11 @@ function RecommendationPageContent() {
                     dish_count_target: dish_count_str ? parseInt(dish_count_str) : null,
                     preferences: searchParams.get("dietary")?.split(",").filter(p => p) || [],
                     occasion,
-                    language: "繁體中文",
+                    language: locale, // Dynamic language
                 };
 
                 if (!requestData.restaurant_name) {
-                    throw new Error("餐廳名稱為必填項。");
+                    throw new Error(t('error_restaurant_required'));
                 }
 
                 // @ts-expect-error - id_token exists on session but not in type definition
@@ -184,16 +189,16 @@ function RecommendationPageContent() {
             } catch (err) {
                 const error = err as Error;
                 console.error("Job start error:", error);
-                let message = error.message || "無法啟動推薦任務，請稍後再試";
-                if (message.includes("504")) message = "伺服器回應逾時，請稍後再試";
-                if (message.includes("500")) message = "伺服器發生錯誤，請稍後再試";
+                let message = error.message || t('error_job_start');
+                if (message.includes("504")) message = t('error_timeout');
+                if (message.includes("500")) message = t('error_server');
                 setError(message);
                 setInitialLoading(false);
             }
         };
 
         startJob();
-    }, [searchParams, session, jobId]);
+    }, [searchParams, session, jobId, locale, t]);
 
     // Calculate dynamic totals based on SELECTED items
     const selectedTotalPrice = useMemo(() => {
@@ -425,11 +430,11 @@ function RecommendationPageContent() {
                 setTotalPrice(prev => prev + (newDish.price * newDish.quantity));
 
                 // Show success message (you can add a toast here)
-                console.log(`成功加點：${newDish.dish_name}`);
+                console.log(`${t('add_success')}${newDish.dish_name}`);
             }
         } catch (error) {
             console.error('Failed to add on:', error);
-            alert(`加點失敗：${error instanceof Error ? error.message : '未知錯誤'}`);
+            alert(`${t('add_failed')}${error instanceof Error ? error.message : '未知錯誤'}`);
         } finally {
             setIsAddingDish(false);
         }
@@ -501,7 +506,7 @@ function RecommendationPageContent() {
             <div className="absolute inset-0 w-full h-full overflow-y-auto">
                 <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur" role="banner">
                     <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
-                        <Button variant="ghost" onClick={handleBackToSettings} className="gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4" aria-label="返回設定頁"><ArrowLeft className="w-4 h-4" aria-hidden="true" />返回修改偏好</Button>
+                        <Button variant="ghost" onClick={handleBackToSettings} className="gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4" aria-label={t('back_button')}><ArrowLeft className="w-4 h-4" aria-hidden="true" />{t('back_button')}</Button>
 
                     </div>
                 </div>
@@ -509,11 +514,11 @@ function RecommendationPageContent() {
                 <div className="bg-background/95 backdrop-blur-sm sticky top-14 z-10 px-4 sm:px-6 py-4 shadow-sm border-b" role="region" aria-label="價格摘要">
                     <div className="flex justify-between items-end mb-2">
                         <div>
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">菜單總價</p>
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">{t('total_price')}</p>
                             <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-mono transition-colors duration-300" aria-live="polite">{data.currency || 'NT$'} {selectedTotalPrice.toLocaleString()}</h1>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs text-muted-foreground mb-1">人均約</p>
+                            <p className="text-xs text-muted-foreground mb-1">{t('per_person')}</p>
                             <p className="text-lg sm:text-xl font-bold text-orange-600 font-mono" aria-live="polite">{data.currency || 'NT$'} {perPerson.toLocaleString()}</p>
                         </div>
                     </div>
@@ -530,7 +535,7 @@ function RecommendationPageContent() {
                     {isAllSignaturesMode && (
                         <div className="flex items-center justify-center gap-2 mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded-full shadow-sm">
                             <Crown className="w-5 h-5 fill-yellow-500 text-yellow-600" />
-                            <span className="font-bold">招牌全制霸模式</span>
+                            <span className="font-bold">{t('mode_all_signatures')}</span>
                         </div>
                     )}
 
@@ -591,12 +596,12 @@ function RecommendationPageContent() {
                                                                     {status === 'selected' ? (
                                                                         <>
                                                                             <CheckCircle2 className="w-4 h-4 mr-1.5" aria-hidden="true" />
-                                                                            已選擇
+                                                                            {t('selected')}
                                                                         </>
                                                                     ) : (
                                                                         <>
                                                                             <span className="mr-1.5 text-lg leading-none">+</span>
-                                                                            加入
+                                                                            {t('add_dish')}
                                                                         </>
                                                                     )}
                                                                 </Button>
@@ -610,7 +615,7 @@ function RecommendationPageContent() {
                                                                     aria-busy={isSwapping}
                                                                 >
                                                                     <RotateCw className={`w-4 h-4 mr-1.5 ${isSwapping ? 'animate-spin' : ''}`} aria-hidden="true" />
-                                                                    換一道
+                                                                    {t('swap_dish')}
                                                                 </Button>
                                                             </div>
                                                         </div>
@@ -682,15 +687,15 @@ function RecommendationPageContent() {
                                 localStorage.setItem('final_menu', JSON.stringify(finalMenu));
                                 router.push('/menu');
                             } else {
-                                alert("請至少選擇一道菜品以產出菜單。");
+                                alert(t('error_no_selection'));
                             }
                         }}
                         // disabled={selectedTotalPrice === 0} // Removed as per user request
                         className="w-full h-12 text-lg font-bold gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
-                        aria-label="產出最終點餐菜單"
+                        aria-label={t('generate_menu_button')}
                     >
                         <Check className="w-5 h-5" aria-hidden="true" />
-                        產出點餐菜單 ({dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected').length} 道)
+                        {t('generate_menu_button')} ({dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected').length} 道)
                     </Button>
                 </div>
             </div>
@@ -701,34 +706,34 @@ function RecommendationPageContent() {
                     <AlertDialogHeader>
                         <div className="flex items-center gap-2 mb-2">
                             <Info className="w-5 h-5 text-blue-600" />
-                            <AlertDialogTitle className="text-foreground">該類別暫無更多推薦</AlertDialogTitle>
+                            <AlertDialogTitle className="text-foreground">{t('empty_pool_title')}</AlertDialogTitle>
                         </div>
                         <AlertDialogDescription className="text-muted-foreground">
-                            目前 <span className="font-semibold text-foreground">{emptyPoolCategory}</span> 類別已經沒有更多菜品可以推薦了。
+                            {t('empty_pool_desc', { category: emptyPoolCategory })}
                             {swappedDishes.get(emptyPoolCategory)?.length ? (
                                 <span className="block mt-2">
-                                    您之前換掉了 {swappedDishes.get(emptyPoolCategory)?.length} 道菜，可以查看並重新考慮。
+                                    {t('empty_pool_swapped_desc', { count: swappedDishes.get(emptyPoolCategory)?.length || 0 })}
                                 </span>
                             ) : null}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                         <AlertDialogCancel onClick={handleKeepCurrentDish} className="w-full sm:w-auto">
-                            保留當前菜品
+                            {t('keep_current')}
                         </AlertDialogCancel>
                         {swappedDishes.get(emptyPoolCategory)?.length ? (
                             <AlertDialogAction
                                 onClick={handleViewSwappedDishes}
                                 className="w-full sm:w-auto bg-primary hover:bg-primary/90"
                             >
-                                查看之前換掉的菜品
+                                {t('view_swapped')}
                             </AlertDialogAction>
                         ) : (
                             <AlertDialogAction
                                 onClick={handleKeepCurrentDish}
                                 className="w-full sm:w-auto bg-primary hover:bg-primary/90"
                             >
-                                確定
+                                {t('confirm')}
                             </AlertDialogAction>
                         )}
                     </AlertDialogFooter>

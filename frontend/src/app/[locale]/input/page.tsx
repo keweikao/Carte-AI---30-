@@ -1,5 +1,5 @@
-"use client";
-
+import { useTranslations } from "next-intl";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MultiAgentLoader } from "@/components/multi-agent-loader";
@@ -9,12 +9,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home, Zap, Compass, Crown } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 // import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
 import { TagInput } from "@/components/tag-input"; // New import
 
 function InputPageContents() {
+    const t = useTranslations('InputPage');
     // --- HOOKS ---
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -161,20 +161,21 @@ function InputPageContents() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-8"
                             role="region"
-                            aria-label="步驟一：選擇餐廳"
+                            aria-label={t('title')}
                         >
                             <div className="space-y-2 text-center">
 
-                                <h2 className="text-2xl font-bold">不知道怎麼點？</h2>
-                                <p className="text-muted-foreground">輸入餐廳名稱，AI 根據 Google Map 及實際評價幫你推薦菜色。</p>
+                                <h2 className="text-2xl font-bold">{t('title')}</h2>
+                                <p className="text-muted-foreground">{t('subtitle')}</p>
                             </div>
 
                             <div className="space-y-4">
                                 <div role="group" aria-labelledby="restaurant-input-label">
-                                    <label id="restaurant-input-label" className="sr-only">餐廳名稱</label>
+                                    <label id="restaurant-input-label" className="sr-only">{t('restaurant_placeholder')}</label>
                                     <RestaurantSearch
                                         name="restaurant_name"
                                         onSelect={({ name, place_id }) => {
+                                            // ... (keep existing logic)
                                             updateData("restaurant_name", name);
                                             if (place_id) {
                                                 setFormData(prev => ({ ...prev, place_id }));
@@ -204,6 +205,7 @@ function InputPageContents() {
                                             updateData("restaurant_name", value);
                                         }}
                                         defaultValue={formData.restaurant_name}
+                                        placeholder={t('restaurant_placeholder')}
                                     />
                                     <div className="flex justify-between items-start mt-2">
                                         <p className="text-xs text-muted-foreground" id="restaurant-search-hint">
@@ -215,9 +217,9 @@ function InputPageContents() {
                                     className="w-full py-6 text-lg bg-primary hover:bg-primary/90"
                                     onClick={handleNext}
                                     disabled={!formData.restaurant_name}
-                                    aria-label="繼續到下一步，設定用餐偏好"
+                                    aria-label={t('next_button')}
                                 >
-                                    下一步 <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
+                                    {t('next_button')} <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
                                 </Button>
                             </div>
                         </motion.div>
@@ -232,7 +234,7 @@ function InputPageContents() {
                             exit={{ opacity: 0, x: -20 }}
                             className="w-full space-y-8 pb-8"
                             role="region"
-                            aria-label="步驟二：設定用餐偏好"
+                            aria-label={t('step2_title')}
                         >
                             {/* 返回按鈕 */}
                             <Button
@@ -249,14 +251,14 @@ function InputPageContents() {
                                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                                     <Sparkles className="text-primary w-6 h-6" />
                                 </div>
-                                <h2 className="text-2xl font-bold">開啟你的美食探索之旅</h2>
-                                <p className="text-muted-foreground">告訴我們你的喜好。</p>
+                                <h2 className="text-2xl font-bold">{t('step2_title')}</h2>
+                                <p className="text-muted-foreground">{t('step2_subtitle')}</p>
                             </div>
 
                             <div className="space-y-8">
                                 {/* Dining Style (Moved to Top) */}
                                 <div className="space-y-3">
-                                    <Label className="text-base">用餐方式</Label>
+                                    <Label className="text-base">{t('mode_label')}</Label>
                                     <RadioGroup
                                         defaultValue={formData.mode}
                                         onValueChange={(val) => updateData("mode", val)}
@@ -269,7 +271,7 @@ function InputPageContents() {
                                                 className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
                                             >
                                                 <Users className="h-5 w-5" />
-                                                <span className="font-medium">大家一起分食</span>
+                                                <span className="font-medium">{t('mode_sharing')}</span>
                                             </Label>
                                         </div>
                                         <div>
@@ -279,7 +281,7 @@ function InputPageContents() {
                                                 className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
                                             >
                                                 <Utensils className="h-5 w-5" />
-                                                <span className="font-medium">個人套餐</span>
+                                                <span className="font-medium">{t('mode_individual')}</span>
                                             </Label>
                                         </div>
                                     </RadioGroup>
@@ -287,23 +289,23 @@ function InputPageContents() {
 
                                 {/* Occasion (Contextual) */}
                                 <div className="space-y-3">
-                                    <Label className="text-base">用餐情境</Label>
+                                    <Label className="text-base">{t('occasion_label')}</Label>
                                     <RadioGroup
                                         defaultValue={formData.occasion}
                                         onValueChange={(val) => updateData("occasion", val)}
                                         className="grid grid-cols-2 sm:grid-cols-4 gap-2"
                                     >
                                         {(formData.mode === "individual" ? [
-                                            { id: "quick", label: "快速解決", icon: Zap },
-                                            { id: "treat", label: "犒賞自己", icon: Sparkles },
-                                            { id: "fitness", label: "健身減脂", icon: Dumbbell },
-                                            { id: "adventure", label: "全新探險", icon: Compass },
+                                            { id: "quick", label: t('occasion_quick'), icon: Zap },
+                                            { id: "treat", label: t('occasion_treat'), icon: Sparkles },
+                                            { id: "fitness", label: t('occasion_fitness'), icon: Dumbbell },
+                                            { id: "adventure", label: t('occasion_adventure'), icon: Compass },
                                         ] : [
-                                            { id: "friends", label: "朋友聚會", icon: Users },
-                                            { id: "family", label: "家庭聚餐", icon: Home },
-                                            { id: "date", label: "約會慶祝", icon: Heart },
-                                            { id: "business", label: "商務聚餐", icon: Briefcase },
-                                            { id: "all_signatures", label: "招牌全制霸", icon: Crown },
+                                            { id: "friends", label: t('occasion_friends'), icon: Users },
+                                            { id: "family", label: t('occasion_family'), icon: Home },
+                                            { id: "date", label: t('occasion_date'), icon: Heart },
+                                            { id: "business", label: t('occasion_business'), icon: Briefcase },
+                                            { id: "all_signatures", label: t('occasion_all_signatures'), icon: Crown },
                                         ]).map((item) => (
                                             <div key={item.id}>
                                                 <RadioGroupItem value={item.id} id={`occasion-${item.id}`} className="peer sr-only" />
@@ -321,7 +323,7 @@ function InputPageContents() {
 
                                 {/* People Count */}
                                 <div className="space-y-3">
-                                    <Label htmlFor="people-count" className="text-base">幾位用餐？</Label>
+                                    <Label htmlFor="people-count" className="text-base">{t('people_label')}</Label>
                                     <div className="flex items-center justify-between bg-secondary/30 p-4 rounded-xl" role="group" aria-labelledby="people-count">
                                         <span className="text-sm text-muted-foreground">人數</span>
                                         <div className="flex items-center space-x-4">
@@ -351,7 +353,7 @@ function InputPageContents() {
 
                                 {/* Dietary */}
                                 <div className="space-y-3">
-                                    <Label className="text-base">其他用餐需求</Label>
+                                    <Label className="text-base">{t('dietary_label')}</Label>
                                     <TagInput
                                         value={formData.dietary_restrictions.split(',').map(s => s.trim()).filter(Boolean)}
                                         onChange={(tags) => updateData("dietary_restrictions", tags.join(", "))}
@@ -363,7 +365,7 @@ function InputPageContents() {
                                             { id: "some_no_spicy", label: "不太能吃辣", icon: "🌶️" },
                                             { id: "some_no_cilantro", label: "不要香菜", icon: "🌿" },
                                         ]}
-                                        placeholder="例如：不吃花生、奶蛋素..."
+                                        placeholder={t('dietary_placeholder')}
                                     />
                                     <Textarea
                                         placeholder="還有什麼特別需求都可以告訴我，例如：不吃牛、怕過敏、偏好當季食材..."
@@ -376,9 +378,9 @@ function InputPageContents() {
                                 <Button
                                     className="w-full py-6 text-lg bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-xl"
                                     onClick={handleNext}
-                                    aria-label="完成設定並開始生成推薦菜單"
+                                    aria-label={t('generate_button')}
                                 >
-                                    開始生成推薦 <Check className="ml-2 w-5 h-5" aria-hidden="true" />
+                                    {t('generate_button')} <Check className="ml-2 w-5 h-5" aria-hidden="true" />
                                 </Button>
                             </div>
                         </motion.div>

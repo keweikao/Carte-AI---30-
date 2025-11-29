@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface FinalMenu {
 
 // Skeleton loading state for Menu Page
 function MenuPageSkeleton() {
+    const t = useTranslations('MenuPage');
     return (
         <div className="min-h-screen bg-background pb-20">
             {/* Header */}
@@ -41,25 +43,25 @@ function MenuPageSkeleton() {
                 <div className="container flex h-14 items-center justify-between px-4">
                     <Button variant="ghost" disabled className="gap-2">
                         <ArrowLeft className="w-4 h-4" />
-                        返回修改
+                        {t('back_button')}
                     </Button>
                     <div className="flex gap-2">
                         <Button variant="outline" disabled className="gap-2">
                             <Printer className="w-4 h-4" />
-                            列印
+                            {t('print_button')}
                         </Button>
                         <Button variant="outline" disabled className="gap-2">
                             <Share2 className="w-4 h-4" />
-                            分享
+                            {t('share_button')}
                         </Button>
                         <Button disabled className="gap-2 bg-primary">
                             <Star className="w-4 h-4" />
-                            評分
+                            {t('rate_button')}
                         </Button>
                     </div>
                 </div>
             </div>
-
+            {/* ... (rest of skeleton) */}
             {/* Menu Content */}
             <div className="container max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
@@ -117,6 +119,7 @@ function MenuPageSkeleton() {
 }
 
 function MenuPageContent() {
+    const t = useTranslations('MenuPage');
     const searchParams = useSearchParams();
     const router = useRouter();
     const { data: session } = useSession();
@@ -265,20 +268,17 @@ function MenuPageContent() {
         const imageBlob = await generateShareImage();
 
         // Construct share URL
-        let shareUrl = 'https://www.carte.tw';
-        if (menu?.original_params) {
-            const params = new URLSearchParams();
-            const p = menu.original_params;
-            if (p.restaurant) params.set('restaurant', p.restaurant);
-            if (p.people) params.set('people', p.people);
-            if (p.dietary) params.set('dietary', p.dietary);
-            if (p.mode) params.set('mode', p.mode);
-            if (p.occasion) params.set('occasion', p.occasion);
-            if (p.place_id) params.set('place_id', p.place_id);
-            shareUrl = `https://www.carte.tw/recommendation?${params.toString()}`;
-        }
+        // Construct share URL
+        const shareUrl = 'https://www.carte.tw';
 
-        const shareText = `🍽️ Carte AI 智慧推薦菜單\n\n我用 AI 點餐助手在「${menu?.restaurant_name}」找到了完美組合！\n\n💰 總價：${menu?.currency || 'NT$'} ${menu?.total_price.toLocaleString()}\n👥 ${menu?.party_size} 人份 · ${menu?.dishes.length} 道菜\n\n✨ 30 秒解決選擇困難，每一道都是精選！\n立即體驗 → ${shareUrl}`;
+        const shareText = t('share_text_template', {
+            restaurant: menu?.restaurant_name || '',
+            currency: menu?.currency || 'NT$',
+            total_price: menu?.total_price.toLocaleString() || '0',
+            people: menu?.party_size || 0,
+            dishes: menu?.dishes.length || 0,
+            url: shareUrl
+        });
 
         if (imageBlob && navigator.share) {
             try {
@@ -291,7 +291,7 @@ function MenuPageContent() {
                 if (navigator.canShare && navigator.canShare(shareData)) {
                     await navigator.share(shareData);
                 } else {
-                    alert('您的瀏覽器不支援直接分享圖片，將提供下載選項。');
+                    alert(t('share_image_unsupported'));
                     // Fallback to existing download/copy if native share is not fully supported for images
                     setShareImageUrl(URL.createObjectURL(imageBlob));
                     setShowShareMenu(true);
@@ -299,13 +299,13 @@ function MenuPageContent() {
             } catch (error) {
                 console.error('Error sharing:', error);
                 // Fallback to existing download/copy if share fails
-                alert('分享失敗，將提供下載選項。');
+                alert(t('share_failed'));
                 setShareImageUrl(URL.createObjectURL(imageBlob));
                 setShowShareMenu(true);
             }
         } else if (imageBlob) {
             // Fallback for browsers not supporting navigator.share
-            alert('您的瀏覽器不支援直接分享，請下載圖片後手動分享。');
+            alert(t('share_browser_unsupported'));
             setShareImageUrl(URL.createObjectURL(imageBlob));
             setShowShareMenu(true);
         }
@@ -337,10 +337,10 @@ function MenuPageContent() {
             ]);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
-            alert('圖片已複製到剪貼簿！');
+            alert(t('copy_success'));
         } catch (err) {
             console.error('Failed to copy image:', err);
-            alert('複製失敗，請使用下載功能');
+            alert(t('copy_failed'));
         }
     };
 
@@ -358,10 +358,10 @@ function MenuPageContent() {
                 product_feedback: data.product_feedback
             }, token);
             setShowRatingModal(false);
-            alert('感謝您的評分！');
+            alert(t('rate_success'));
         } catch (error) {
             console.error('Failed to submit feedback:', error);
-            alert('評分提交失敗，請稍後再試。');
+            alert(t('rate_failed'));
         }
     };
 
@@ -373,8 +373,8 @@ function MenuPageContent() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center space-y-4">
-                    <p className="text-muted-foreground">載入菜單中...</p>
-                    <Button onClick={handleBack}>返回</Button>
+                    <p className="text-muted-foreground">{t('loading')}</p>
+                    <Button onClick={handleBack}>{t('back')}</Button>
                 </div>
             </div>
         );
@@ -387,22 +387,22 @@ function MenuPageContent() {
             {/* Header - Hidden on print */}
             <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur print:hidden" role="banner">
                 <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
-                    <Button variant="ghost" onClick={() => router.push('/input')} className="gap-2" aria-label="返回上一頁修改菜單">
+                    <Button variant="ghost" onClick={() => router.push('/input')} className="gap-2" aria-label={t('back_button')}>
                         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-                        返回修改
+                        {t('back_button')}
                     </Button>
                     <div className="flex gap-1 sm:gap-2" role="group" aria-label="菜單操作">
-                        <Button variant="outline" onClick={() => router.push('/')} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="搜尋新餐廳">
+                        <Button variant="outline" onClick={() => router.push('/')} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label={t('search_new_button')}>
                             <Search className="w-4 h-4" aria-hidden="true" />
-                            搜尋新餐廳
+                            {t('search_new_button')}
                         </Button>
-                        <Button variant="outline" onClick={handlePrint} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="列印菜單">
+                        <Button variant="outline" onClick={handlePrint} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label={t('print_button')}>
                             <Printer className="w-4 h-4" aria-hidden="true" />
-                            列印
+                            {t('print_button')}
                         </Button>
-                        <Button variant="outline" onClick={handleShare} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label="分享菜單">
+                        <Button variant="outline" onClick={handleShare} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label={t('share_button')}>
                             <Share2 className="w-4 h-4" aria-hidden="true" />
-                            分享
+                            {t('share_button')}
                         </Button>
                     </div>
                 </div>
@@ -433,7 +433,7 @@ function MenuPageContent() {
                             onClick={() => setShowLocalLanguage(!showLocalLanguage)}
                             className="gap-2"
                         >
-                            {showLocalLanguage ? "顯示中文菜名" : "顯示原文菜名"}
+                            {showLocalLanguage ? t('show_chinese_name') : t('show_original_name')}
                         </Button>
                     </div>
                 </motion.div>
@@ -447,13 +447,13 @@ function MenuPageContent() {
                     <Card className="p-6 mb-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                         <div className="flex justify-between items-end">
                             <div>
-                                <p className="text-sm text-muted-foreground mb-1">菜單總價</p>
+                                <p className="text-sm text-muted-foreground mb-1">{t('total_price')}</p>
                                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground font-mono">
                                     {menu.currency || 'NT$'} {menu.total_price.toLocaleString()}
                                 </h2>
                             </div>
                             <div className="text-right">
-                                <p className="text-sm text-muted-foreground mb-1">人均約</p>
+                                <p className="text-sm text-muted-foreground mb-1">{t('per_person')}</p>
                                 <p className="text-xl sm:text-2xl font-bold text-primary font-mono">
                                     {menu.currency || 'NT$'} {perPerson.toLocaleString()}
                                 </p>
@@ -464,7 +464,7 @@ function MenuPageContent() {
 
                 {/* Dishes List */}
                 <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-foreground mb-4">推薦菜色</h3>
+                    <h3 className="text-xl font-semibold text-foreground mb-4">{t('title')}</h3>
                     <ul className="space-y-4" role="list" aria-label="最終菜單列表">
                         {menu.dishes.map((dish, index) => (
                             <motion.li
@@ -494,7 +494,7 @@ function MenuPageContent() {
                                             </p>
                                             {dish.review_count && (
                                                 <p className="text-xs text-muted-foreground mt-2">
-                                                    {dish.review_count} 則好評
+                                                    {dish.review_count} {t('reviews')}
                                                 </p>
                                             )}
                                         </div>
@@ -508,7 +508,7 @@ function MenuPageContent() {
                                                 </p>
                                             )}
                                             {dish.price_estimated && (
-                                                <p className="text-xs text-muted-foreground">估價</p>
+                                                <p className="text-xs text-muted-foreground">{t('estimated')}</p>
                                             )}
                                         </div>
                                     </div>
@@ -527,11 +527,11 @@ function MenuPageContent() {
                 >
                     <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                         <div className="text-center space-y-4">
-                            <h3 className="text-lg font-semibold text-foreground">請為本次推薦菜色評分</h3>
-                            <p className="text-sm text-muted-foreground">您的回饋能幫助我們提供更精準的推薦</p>
+                            <h3 className="text-lg font-semibold text-foreground">{t('rate_title')}</h3>
+                            <p className="text-sm text-muted-foreground">{t('rate_desc')}</p>
                             <Button onClick={handleRating} size="lg" className="gap-2 text-charcoal font-bold shadow-md">
                                 <Star className="w-5 h-5" />
-                                立即評分
+                                {t('rate_now_button')}
                             </Button>
                         </div>
                     </Card>
@@ -544,14 +544,14 @@ function MenuPageContent() {
                     transition={{ delay: 0.6 }}
                     className="mt-8 text-center space-y-4"
                 >
-                    <p className="text-sm text-muted-foreground">由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️</p>
+                    <p className="text-sm text-muted-foreground">{t('footer_note')}</p>
                     <Button
                         variant="outline"
                         onClick={() => router.push('/')}
                         className="gap-2"
                     >
                         <Search className="w-4 h-4" />
-                        搜尋新餐廳
+                        {t('search_new_button')}
                     </Button>
                 </motion.div>
             </div>
@@ -567,9 +567,9 @@ function MenuPageContent() {
             <Dialog open={showShareMenu} onOpenChange={setShowShareMenu}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>分享菜單</DialogTitle>
+                        <DialogTitle>{t('share_dialog_title')}</DialogTitle>
                         <DialogDescription>
-                            您的瀏覽器不支援直接分享，您可以下載圖片或複製到剪貼簿。
+                            {t('share_dialog_desc')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col items-center gap-4 py-4">
@@ -583,11 +583,11 @@ function MenuPageContent() {
                         )}
                         <div className="flex gap-2 w-full">
                             <Button onClick={handleDownloadImage} className="flex-1 gap-2" variant="outline">
-                                <Download className="w-4 h-4" /> 下載圖片
+                                <Download className="w-4 h-4" /> {t('download_image')}
                             </Button>
                             <Button onClick={handleCopyImage} className="flex-1 gap-2" variant="outline">
                                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                {copied ? "已複製" : "複製圖片"}
+                                {copied ? t('copied') : t('copy_image')}
                             </Button>
                         </div>
                     </div>

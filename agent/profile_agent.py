@@ -95,7 +95,8 @@ class RestaurantProfileAgent:
                     "golden_profile": golden_profile,
                     "candidates": candidates,
                     "reviews_data": reviews_data,
-                    "agent_results": agent_results_dict
+                    "agent_results": agent_results_dict,
+                    "is_cache_hit": True
                 }
         else:
             # Case C: Run Analysis (Set Lock)
@@ -186,5 +187,6 @@ class RestaurantProfileAgent:
                 "visual": visual_result,
                 "review": review_result,
                 "search": search_result
-            }
+            },
+            "is_cache_hit": False
         }

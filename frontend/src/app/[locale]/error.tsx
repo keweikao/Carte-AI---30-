@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -165,19 +166,19 @@ export default function Error({
                       聯繫客服團隊
                     </a>
                     <span className="hidden sm:inline text-charcoal/30">|</span>
-                    <a
+                    <Link
                       href="/help"
                       className="text-terracotta hover:underline font-medium"
                     >
                       查看說明文件
-                    </a>
+                    </Link>
                     <span className="hidden sm:inline text-charcoal/30">|</span>
-                    <a
+                    <Link
                       href="/status"
                       className="text-terracotta hover:underline font-medium"
                     >
                       系統狀態
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
