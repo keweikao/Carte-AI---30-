@@ -109,12 +109,11 @@ function InputPageContents() {
     useEffect(() => {
         const restaurant = searchParams.get("restaurant");
         const people = searchParams.get("people");
-        const budget = searchParams.get("budget");
         const dietary = searchParams.get("dietary");
         const mode = searchParams.get("mode");
         const dishCount = searchParams.get("dish_count");
 
-        if (restaurant || people || budget) {
+        if (restaurant || people) {
             const parsedPeople = people ? parseInt(people) : 2;
             // 將 URL 參數的 mode 轉換為內部使用的類型
             const urlMode = mode as "solo" | "sharing" | "individual" | null;
@@ -408,7 +407,7 @@ function InputPageContents() {
                                         <span className="text-muted-foreground">道</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                        💡 不填的話，AI 會根據人數和預算自動決定
+                                        💡 不填的話，AI 會根據人數自動決定
                                     </p>
                                 </div>
 
