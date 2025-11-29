@@ -268,7 +268,6 @@ function MenuPageContent() {
         const imageBlob = await generateShareImage();
 
         // Construct share URL
-        // Construct share URL
         const shareUrl = 'https://www.carte.tw';
 
         const shareText = t('share_text_template', {
