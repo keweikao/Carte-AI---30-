@@ -259,14 +259,15 @@ gcloud run deploy dining-backend \
 ## Phase 7: Staging 部署
 
 ### Task 7.1: 部署到 Staging 環境
-**狀態**: ⏳ 待執行  
+**狀態**: 🚧 進行中
 **預計時間**: 1 小時
 
 **步驟**:
-1. [ ] 部署 Backend 到 Staging
-2. [ ] 部署 Frontend 到 Staging
-3. [ ] 驗證 Health Check
-4. [ ] 執行煙霧測試（Smoke Test）
+1. [x] 建立 Staging Workflows (Completed: 2025-11-29)
+2. [x] 更新 CORS 設定 (Completed: 2025-11-29)
+3. [ ] 推送 staging 分支觸發部署
+4. [ ] 驗證 Health Check
+5. [ ] 執行煙霧測試（Smoke Test）
 
 **驗證指令**:
 ```bash
