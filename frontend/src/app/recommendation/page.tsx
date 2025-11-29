@@ -669,7 +669,15 @@ function RecommendationPageContent() {
                                     cuisine_type: data.cuisine_type,
                                     dishes: selectedSlots.map(slot => slot.display),
                                     total_price: selectedTotalPrice,
-                                    party_size: parseInt(searchParams.get("people") || "2")
+                                    party_size: parseInt(searchParams.get("people") || "2"),
+                                    original_params: {
+                                        restaurant: searchParams.get("restaurant"),
+                                        people: searchParams.get("people"),
+                                        dietary: searchParams.get("dietary"),
+                                        mode: searchParams.get("mode"),
+                                        occasion: searchParams.get("occasion"),
+                                        place_id: searchParams.get("place_id")
+                                    }
                                 };
                                 localStorage.setItem('final_menu', JSON.stringify(finalMenu));
                                 router.push('/menu');

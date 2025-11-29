@@ -22,6 +22,14 @@ interface FinalMenu {
     total_price: number;
     party_size: number;
     currency?: string;
+    original_params?: {
+        restaurant: string | null;
+        people: string | null;
+        dietary: string | null;
+        mode: string | null;
+        occasion: string | null;
+        place_id: string | null;
+    };
 }
 
 // Skeleton loading state for Menu Page
@@ -251,9 +259,26 @@ function MenuPageContent() {
         });
     };
 
+
+
     const handleShare = async () => {
         const imageBlob = await generateShareImage();
-        const shareText = `🍽️ Carte AI 智慧推薦菜單\n\n我用 AI 點餐助手在「${menu?.restaurant_name}」找到了完美組合！\n\n💰 總價：${menu?.currency || 'NT$'} ${menu?.total_price.toLocaleString()}\n👥 ${menu?.party_size} 人份 · ${menu?.dishes.length} 道菜\n\n✨ 30 秒解決選擇困難，每一道都是精選！\n立即體驗 → carte.ai`;
+
+        // Construct share URL
+        let shareUrl = 'https://www.carte.tw';
+        if (menu?.original_params) {
+            const params = new URLSearchParams();
+            const p = menu.original_params;
+            if (p.restaurant) params.set('restaurant', p.restaurant);
+            if (p.people) params.set('people', p.people);
+            if (p.dietary) params.set('dietary', p.dietary);
+            if (p.mode) params.set('mode', p.mode);
+            if (p.occasion) params.set('occasion', p.occasion);
+            if (p.place_id) params.set('place_id', p.place_id);
+            shareUrl = `https://www.carte.tw/recommendation?${params.toString()}`;
+        }
+
+        const shareText = `🍽️ Carte AI 智慧推薦菜單\n\n我用 AI 點餐助手在「${menu?.restaurant_name}」找到了完美組合！\n\n💰 總價：${menu?.currency || 'NT$'} ${menu?.total_price.toLocaleString()}\n👥 ${menu?.party_size} 人份 · ${menu?.dishes.length} 道菜\n\n✨ 30 秒解決選擇困難，每一道都是精選！\n立即體驗 → ${shareUrl}`;
 
         if (imageBlob && navigator.share) {
             try {
@@ -261,6 +286,7 @@ function MenuPageContent() {
                     files: [new File([imageBlob], 'carte_menu.png', { type: 'image/png' })],
                     title: 'Carte AI 智慧推薦菜單',
                     text: shareText,
+                    url: shareUrl // Add URL to share data
                 };
                 if (navigator.canShare && navigator.canShare(shareData)) {
                     await navigator.share(shareData);
