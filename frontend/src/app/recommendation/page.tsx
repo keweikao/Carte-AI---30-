@@ -645,6 +645,7 @@ function RecommendationPageContent() {
                                     const selectedSlots = dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected');
 
                                     // Track finalization
+                                    // Track finalization
                                     await finalizeOrder(data.recommendation_id, {
                                         final_selections: selectedSlots.map(slot => ({
                                             dish_name: slot.display.dish_name,
@@ -652,7 +653,9 @@ function RecommendationPageContent() {
                                             price: slot.display.price,
                                         })),
                                         total_price: selectedTotalPrice,
-                                        session_duration_seconds: duration
+                                        session_duration_seconds: duration,
+                                        recommended_count: dishSlots.length,
+                                        selected_count: selectedSlots.length
                                     });
                                 } catch (e) {
                                     console.error("Failed to track order finalization:", e);
@@ -670,9 +673,11 @@ function RecommendationPageContent() {
                                 };
                                 localStorage.setItem('final_menu', JSON.stringify(finalMenu));
                                 router.push('/menu');
+                            } else {
+                                alert("請至少選擇一道菜品以產出菜單。");
                             }
                         }}
-                        disabled={selectedTotalPrice === 0}
+                        // disabled={selectedTotalPrice === 0} // Removed as per user request
                         className="w-full h-12 text-lg font-bold gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                         aria-label="產出最終點餐菜單"
                     >

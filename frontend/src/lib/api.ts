@@ -171,6 +171,8 @@ export async function finalizeOrder(
         }[];
         total_price: number;
         session_duration_seconds?: number;
+        recommended_count?: number;
+        selected_count?: number;
     },
     token?: string
 ) {
