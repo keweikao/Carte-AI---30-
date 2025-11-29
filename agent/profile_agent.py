@@ -81,6 +81,22 @@ class RestaurantProfileAgent:
             print(f"✓ Using cached data for {restaurant_name}")
             reviews_data = cached_data.get("reviews_data", {})
             menu_text = cached_data.get("menu_text", "")
+            
+            # OPTIMIZATION: If we have the Golden Profile cached, return immediately!
+            if "golden_profile" in cached_data and cached_data["golden_profile"]:
+                print(f"🚀 Cache HIT: Golden Profile found! Skipping Multi-Agent Analysis.")
+                golden_profile = cached_data["golden_profile"]
+                agent_results_dict = cached_data.get("agent_results", {})
+                
+                # Reconstruct candidates from Golden Profile (since we trust it)
+                candidates = golden_profile
+                
+                return {
+                    "golden_profile": golden_profile,
+                    "candidates": candidates,
+                    "reviews_data": reviews_data,
+                    "agent_results": agent_results_dict
+                }
         else:
             # Case C: Run Analysis (Set Lock)
             print(f"Fetching live data for {restaurant_name}...")
@@ -102,16 +118,13 @@ class RestaurantProfileAgent:
             try:
                 reviews_data, menu_text = await asyncio.gather(reviews_task, menu_task)
                 
-                # Save to cache
+                # NOTE: We save raw data here first, but we'll update it with Golden Profile later
                 save_restaurant_data(
                     place_id=place_id,
                     restaurant_name=restaurant_name,
                     reviews_data=reviews_data,
                     menu_text=menu_text
                 )
-                
-                # Mark as Completed
-                doc_ref.set({"status": "completed"}, merge=True)
                 
             except Exception as e:
                 print(f"❌ Analysis failed: {e}")
@@ -136,18 +149,34 @@ class RestaurantProfileAgent:
         print(f"✓ Golden Profile generated with {len(golden_profile)} verified items.")
         
         # Combine candidates from Visual and Search for the "Pool"
-        # Visual data is usually high quality (OCR)
-        # Search data is good for signatures
         candidates = []
         if visual_result.data:
             candidates.extend(visual_result.data)
         if search_result.data:
-            # Avoid duplicates if possible, or just dump them in
             candidates.extend(search_result.data)
             
-        # If we have no candidates, use the golden profile as candidates
         if not candidates:
             candidates = golden_profile
+            
+        # Save Analysis Results to Cache (Update the doc)
+        try:
+            agent_results_map = {
+                "visual": visual_result,
+                "review": review_result,
+                "search": search_result
+            }
+            save_restaurant_data(
+                place_id=place_id,
+                restaurant_name=restaurant_name,
+                reviews_data=reviews_data,
+                menu_text=menu_text,
+                golden_profile=golden_profile,
+                agent_results=agent_results_map
+            )
+            # Mark as Completed
+            doc_ref.set({"status": "completed"}, merge=True)
+        except Exception as e:
+             print(f"Warning: Failed to save analysis results: {e}")
             
         return {
             "golden_profile": golden_profile,

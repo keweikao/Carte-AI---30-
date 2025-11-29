@@ -94,7 +94,9 @@ def save_restaurant_data(
         place_id: str = None,
         restaurant_name: str = None,
         reviews_data: dict = None,
-        menu_text: str = None):
+        menu_text: str = None,
+        golden_profile: list = None,
+        agent_results: dict = None):
     """
     Saves restaurant data to Firestore.
     Prioritizes place_id as the key, falls back to restaurant_name for backward compatibility.
@@ -114,6 +116,21 @@ def save_restaurant_data(
         "menu_text": menu_text,
         "updated_at": datetime.datetime.now(datetime.timezone.utc)
     }
+
+    if golden_profile:
+        data["golden_profile"] = golden_profile
+    if agent_results:
+        # Convert Pydantic models to dict if necessary
+        # Assuming agent_results is a dict of AgentDecision objects or dicts
+        serializable_results = {}
+        for k, v in agent_results.items():
+            if hasattr(v, "model_dump"):
+                serializable_results[k] = v.model_dump()
+            elif hasattr(v, "dict"):
+                serializable_results[k] = v.dict()
+            else:
+                serializable_results[k] = v
+        data["agent_results"] = serializable_results
 
     try:
         doc_ref.set(data)
