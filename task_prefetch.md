@@ -352,10 +352,12 @@ curl -X POST https://dining-backend-staging-xxx.run.app/v2/prefetch_restaurant \
 ---
 
 ### Task 9.2: 效能優化
-**狀態**: ⏳ 待執行  
+**狀態**: 🚧 進行中
 **預計時間**: 視需求而定
 
 **優化方向**:
+- [x] **Golden Profile Caching**: 快取 AI 分析結果，跳過重複運算 (Completed: 2025-11-29)
+- [x] **First Visit Message**: 首次訪問顯示溫馨提示 (Completed: 2025-11-29)
 - [ ] 將 Polling 改為 Pub/Sub 推送
 - [ ] 實作漸進式載入
 - [ ] 優化 Firestore 查詢效率
