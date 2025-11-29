@@ -5,12 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MultiAgentLoader } from "@/components/multi-agent-loader";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home, Zap, Compass, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 // import Image from "next/image";
@@ -32,66 +29,30 @@ function InputPageContents() {
         dietary_restrictions: string;
         mode: "sharing" | "individual";
         occasion: "business" | "date" | "family" | "friends" | "fitness" | "all_signatures";
-        dish_count: number | null;
     }>({
         restaurant_name: "",
         place_id: undefined,
         people: 2,
         dietary_restrictions: "",
         mode: "sharing",
-        occasion: "friends",
-        dish_count: null
+        occasion: "friends"
     });
-    const [dishCountWarning, setDishCountWarning] = useState<string | null>(null);
 
     // --- FUNCTIONS ---
     const updateData = useCallback((key: string, value: string | number | null) => {
         setFormData(prev => ({ ...prev, [key]: value }));
     }, []);
 
-    const validateDishCount = (count: number | null, people: number): { valid: boolean; message?: string } => {
-        if (!count) return { valid: true };
-
-        const minDishes = Math.max(1, Math.floor(people * 0.8));
-        const maxDishes = people * 3;
-
-        if (count < minDishes) {
-            return {
-                valid: false,
-                message: `建議至少點 ${minDishes} 道菜，才能滿足 ${people} 人份量`
-            };
-        }
-
-        if (count > maxDishes) {
-            return {
-                valid: false,
-                message: `${count} 道菜對 ${people} 人來說可能太多了，建議不超過 ${maxDishes} 道`
-            };
-        }
-
-        return { valid: true };
-    };
-
     const handleNext = useCallback(() => {
         if (step === 1 && formData.restaurant_name) {
             setStep(2);
         } else if (step === 2) {
-            // 驗證菜品數量
-            if (formData.dish_count) {
-                const validation = validateDishCount(formData.dish_count, formData.people);
-                if (!validation.valid && validation.message) {
-                    setDishCountWarning(validation.message);
-                    return;
-                }
-            }
-
             const params = new URLSearchParams({
                 restaurant: formData.restaurant_name,
                 people: formData.people.toString(),
                 dietary: formData.dietary_restrictions,
                 mode: formData.mode,
-                occasion: formData.occasion, // Add occasion here
-                ...(formData.dish_count && { dish_count: formData.dish_count.toString() }),
+                occasion: formData.occasion,
                 ...(formData.place_id && { place_id: formData.place_id })
             });
             router.push(`/recommendation?${params.toString()}`);
@@ -111,7 +72,6 @@ function InputPageContents() {
         const people = searchParams.get("people");
         const dietary = searchParams.get("dietary");
         const mode = searchParams.get("mode");
-        const dishCount = searchParams.get("dish_count");
 
         if (restaurant || people) {
             const parsedPeople = people ? parseInt(people) : 2;
@@ -136,8 +96,7 @@ function InputPageContents() {
                     people: adjustedPeople,
                     dietary_restrictions: dietary || "",
                     mode: parsedMode,
-                    occasion: "friends", // Default to friends if not specified
-                    dish_count: dishCount ? parseInt(dishCount) : null
+                    occasion: "friends"
                 });
             }, 0);
         }
@@ -390,27 +349,6 @@ function InputPageContents() {
                                     </div>
                                 </div>
 
-
-
-                                {/* Dish Count (Optional) */}
-                                <div className="space-y-3">
-                                    <Label className="text-base">想要幾道菜？（選填）</Label>
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            placeholder="留空則由 AI 決定"
-                                            value={formData.dish_count || ""}
-                                            onChange={(e) => updateData("dish_count", e.target.value ? parseInt(e.target.value) : null)}
-                                            className="bg-secondary/30 border-transparent focus:border-primary"
-                                        />
-                                        <span className="text-muted-foreground">道</span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                        💡 不填的話，AI 會根據人數自動決定
-                                    </p>
-                                </div>
-
                                 {/* Dietary */}
                                 <div className="space-y-3">
                                     <Label className="text-base">其他用餐需求</Label>
@@ -447,45 +385,6 @@ function InputPageContents() {
                     )}
                 </AnimatePresence>
             </div>
-
-            {/* 警告對話框 */}
-            <AlertDialog open={!!dishCountWarning} onOpenChange={() => setDishCountWarning(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>菜品數量建議</AlertDialogTitle>
-                        <AlertDialogDescription>{dishCountWarning}</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="flex gap-3 mt-4">
-                        <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                                setDishCountWarning(null);
-                                // 不做任何事，留在當前頁面讓用戶修改
-                            }}
-                        >
-                            那我改一下
-                        </Button>
-                        <Button
-                            className="flex-1 bg-primary"
-                            onClick={() => {
-                                setDishCountWarning(null);
-                                // 繼續提交，執行原本的導航邏輯
-                                const params = new URLSearchParams({
-                                    restaurant: formData.restaurant_name,
-                                    people: formData.people.toString(),
-                                    dietary: formData.dietary_restrictions,
-                                    mode: formData.mode,
-                                    ...(formData.dish_count && { dish_count: formData.dish_count.toString() })
-                                });
-                                router.push(`/recommendation?${params.toString()}`);
-                            }}
-                        >
-                            就是要點
-                        </Button>
-                    </div>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }
