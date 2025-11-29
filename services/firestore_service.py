@@ -463,7 +463,8 @@ def save_job_status(
         current_agent: str = None,
         current_step: int = None,
         total_steps: int = None,
-        logs: list = None):
+        logs: list = None,
+        metadata: dict = None):
     """
     Saves the status of an async job with optional progress information.
 
@@ -476,6 +477,7 @@ def save_job_status(
         current_step: Current step number (1-indexed)
         total_steps: Total number of steps
         logs: List of log messages from current agent
+        metadata: Additional metadata (e.g., is_cache_hit)
     """
     if not db:
         return
@@ -497,6 +499,8 @@ def save_job_status(
         data["total_steps"] = total_steps
     if logs is not None:
         data["logs"] = logs
+    if metadata is not None:
+        data["metadata"] = metadata
 
     try:
         doc_ref.set(data, merge=True)

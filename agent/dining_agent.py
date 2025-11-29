@@ -25,6 +25,7 @@ class DiningAgent:
         self.orchestrator = OrchestratorAgent()
         # We might need a model for fallback or small tasks, but the sub-agents handle most LLM calls.
         self.model = genai.GenerativeModel('gemini-2.5-flash')
+        self.is_cache_hit = False
 
     async def get_recommendations_v2(self, request: UserInputV2) -> RecommendationResponseV2:
         """Orchestrates the V2 recommendation process using the new Multi-Agent Architecture."""
@@ -37,6 +38,9 @@ class DiningAgent:
         # 1. Intelligence Layer: Get Restaurant Profile
         # This runs Visual, Review, Search, and Aggregation agents
         profile_data = await self.profiler.analyze(request.restaurant_name, request.place_id)
+        
+        # Check cache status
+        self.is_cache_hit = profile_data.get("is_cache_hit", False)
         
         golden_profile = profile_data["golden_profile"]
         candidates = profile_data["candidates"]

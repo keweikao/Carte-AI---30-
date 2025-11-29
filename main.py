@@ -678,6 +678,14 @@ async def process_recommendation_async(job_id: str, request: UserInputV2, token:
     處理推薦請求的非同步任務，並推送進度更新
     """
     try:
+        # Check cache status early to inform user
+        from services.firestore_service import get_cached_data
+        # Use place_id if available, otherwise name
+        cached_data = get_cached_data(place_id=request.place_id, restaurant_name=request.restaurant_name)
+        is_cache_hit = False
+        if cached_data and "golden_profile" in cached_data and cached_data["golden_profile"]:
+             is_cache_hit = True
+
         # 定義 Agent 配置
         AGENT_CONFIGS = [
             {
@@ -719,7 +727,7 @@ async def process_recommendation_async(job_id: str, request: UserInputV2, token:
         ]
 
         # 初始化狀態
-        save_job_status(job_id, "processing", total_steps=4)
+        save_job_status(job_id, "processing", total_steps=4, metadata={"is_cache_hit": is_cache_hit})
 
         # 模擬 Agent 執行過程
         for config in AGENT_CONFIGS:

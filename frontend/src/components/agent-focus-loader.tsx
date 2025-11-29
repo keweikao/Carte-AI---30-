@@ -14,6 +14,7 @@ export function AgentFocusLoader<T = unknown>({ jobId, onComplete, onError }: Ag
     const [logs, setLogs] = useState<string[]>([]);
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [totalSteps, setTotalSteps] = useState<number>(4);
+    const [isFirstVisit, setIsFirstVisit] = useState<boolean>(false);
 
     useEffect(() => {
         const pollInterval = setInterval(async () => {
@@ -42,6 +43,11 @@ export function AgentFocusLoader<T = unknown>({ jobId, onComplete, onError }: Ag
 
                 if (data.total_steps) {
                     setTotalSteps(data.total_steps);
+                }
+
+                // 檢查是否為首次訪問 (Cache Miss)
+                if (data.metadata && data.metadata.is_cache_hit === false) {
+                    setIsFirstVisit(true);
                 }
 
                 // 檢查完成狀態
@@ -73,6 +79,14 @@ export function AgentFocusLoader<T = unknown>({ jobId, onComplete, onError }: Ag
                     totalSteps={totalSteps}
                 />
             </AnimatePresence>
+
+            {/* 溫馨提示 */}
+            {isFirstVisit && (
+                <div className="mt-6 text-center space-y-1 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <p className="text-primary font-medium">✨ 您是第一位探索這家餐廳的美食家！</p>
+                    <p className="text-sm text-muted-foreground">AI 正在進行深度分析，請稍候片刻...</p>
+                </div>
+            )}
 
             {/* 小知識卡片 */}
             <div className="mt-8 w-full max-w-md">
