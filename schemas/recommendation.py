@@ -50,7 +50,7 @@ class UserInputV2(BaseModel):
     place_id: Optional[str] = Field(None, description="Google Maps Place ID for precise restaurant identification")
     dining_style: Literal["Shared", "Individual"] = Field(..., description="Dining style")
     party_size: int = Field(..., gt=0, description="Number of people")
-    budget: BudgetV2
+    budget: Optional[BudgetV2] = None
     dish_count_target: Optional[int] = Field(None, description="Target number of dishes, null if AI should decide")
     preferences: List[str] = Field(default_factory=list, description="List of preference tags (e.g., 'No_Beef', 'Spicy')")
     natural_input: Optional[str] = Field(None, description="User's free-text supplementary description")

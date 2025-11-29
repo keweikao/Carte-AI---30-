@@ -115,14 +115,14 @@ The previous menu was rejected for the following reason:
 
         prompt = f"""
 # Role
-You are the **"Menu Architect,"** an expert dining concierge. Your goal is to curate the INITIAL menu draft.
+You are the **"Culinary Experience Curator."** You are not an accountant; you are a gastronome. Your goal is to maximize **Flavor** and **Experience**.
 
 # ⚠️ CRITICAL FEEDBACK FROM PREVIOUS ATTEMPT
 {critique_section}
 *Instruction:* If feedback exists, you MUST adjust your selection logic to fix the reported issues. (e.g., "Add more food", "Remove spicy items").
 
 # User Context
-- Party Size: {user_input.party_size}
+- Party Size: {user_input.party_size} (N people)
 - Occasion: {user_input.occasion or 'casual'}
 - Dining Goal: {user_input.occasion or 'General Dining'}
 - Dietary Restrictions: {', '.join(user_input.preferences) if user_input.preferences else 'None'} (STRICT FILTER)
@@ -133,13 +133,27 @@ You are the **"Menu Architect,"** an expert dining concierge. Your goal is to cu
 - Candidate Pool: {json.dumps(candidates[:30], ensure_ascii=False, indent=2, default=str)}
 
 # Decision Logic (The Protocol)
-1.  **Dietary Filter:** Strictly remove items violating restrictions.
-2.  **Goal Alignment:**
-    * *Quick Fix:* Focus on Sets/Rice Bowls.
-    * *Treat Yourself:* Focus on Premium ingredients (Wagyu/Seafood).
-    * *Business:* Must include a "Centerpiece" (Whole fish/Steak). No messy food.
-    * *Date:* No garlic, no bones, no mess.
-3.  **Quantity Rule:** Target N+1 dishes for sharing (N = Party Size).
+
+## 1. The "All Signatures" Protocol (Crown Mode 👑)
+**Trigger:** If `occasion` == 'all_signatures'
+**Rule:**
+1.  **Aggressive Inclusion:** You MUST include dishes tagged as "Signature", "Must Order", or "Chef's Special".
+2.  **Category Override:** Ignore standard balance rules (e.g., it's okay to have 3 meat dishes if they are all signatures).
+3.  **Portion Reality Check (Gluttony Protocol):**
+    - If (Count of Signatures) <= (N + 2): **Select ALL of them.**
+    - If (Count of Signatures) > (N + 3): **Prioritize Top N+3 Signatures** based on popularity/reviews. (Do not overwhelm the user with too many dishes).
+4.  **Filler Strategy:** Do NOT add filler dishes (rice/soup/greens) unless necessary to cleanse the palate or if signatures are insufficient for the party size.
+
+## 2. The Standard Protocol (Balanced Mode)
+**Trigger:** All other occasions
+**Rule:**
+1.  **Anchor:** Start with Top 1-2 Verified Signatures.
+2.  **Structure:** Target **N+1 dishes** (Sharing logic).
+    - Mix: Meat + Veg + Carb/Soup.
+3.  **Vibe Match:**
+    - *Date:* Avoid messy food.
+    - *Business:* Safe & Presentable.
+4.  **Dietary Filter:** Strictly remove items violating restrictions.
 
 # Output Format (JSON)
 {{
@@ -189,155 +203,7 @@ You are the **"Menu Architect,"** an expert dining concierge. Your goal is to cu
             )
 
 
-class BudgetOptimizerAgent(RecommendationAgentBase):
-    """
-    預算優化專家 (Strategic Upselling Expert)
 
-    Enhanced with:
-    - Authorized overspend for special occasions
-    - Quality upgrade priority
-    - Portion adjustment
-    """
-
-    async def run(self,
-                  current_menu: List[Dict[str, Any]],
-                  budget_amount: int,
-                  candidate_pool: List[Dict[str, Any]],
-                  user_input: UserInputV2) -> AgentDecision:
-
-        print("💰 BudgetOptimizerAgent: Optimizing budget utilization...")
-
-        # Calculate current total
-        total = sum((dish.get('price') or 0) * dish.get('quantity', 1)
-                    for dish in current_menu)
-        utilization = total / budget_amount if budget_amount > 0 else 0
-
-        print(f"   Current: ${total} / ${budget_amount} = {utilization:.1%}")
-
-        # --- Strategy 3: Python Pre-check (Hybrid Logic) ---
-        # If budget is within optimal range (80% - 100%), skip LLM
-        if 0.8 <= utilization <= 1.0:
-            print(f"✓ Budget perfect ({utilization:.1%}), skipping LLM.")
-            return AgentDecision(
-                agent_name="BudgetOptimizer",
-                approved=True,
-                data=current_menu,
-                metadata={
-                    "modifications": [],
-                    "total": total,
-                    "utilization": utilization,
-                    "action": "NO_ACTION",
-                    "justification": "Budget is already within optimal range (80-100%)."})
-        # ---------------------------------------------------
-
-        occasion = user_input.occasion or 'casual'
-
-        # Refactored to use a single prompt for all budget scenarios
-        prompt = f"""
-# Role
-You are the **"Value-First Budget Manager."** Your goal is to optimize the menu to fit the budget while maximizing dining experience value.
-
-# Current Status
-- Current Menu: {json.dumps(current_menu, ensure_ascii=False, indent=2, default=str)}
-- Current Menu Total: ${total}
-- Target Budget: ${budget_amount}
-- Utilization: {utilization * 100:.1f}%
-- Occasion: {occasion}
-- Party Size: {user_input.party_size}
-
-# Optimization Strategy
-
-## If Under Budget (< 80% utilization): UPSELL.
-1.  **Upgrade Portions:** Change "Small" to "Large" for shared dishes.
-2.  **Add Experience:** Add Appetizers, Desserts, or a Pitcher of Drink.
-3.  **Premium Swap:** Swap a standard dish for a Premium version (e.g., Regular Fried Rice -> Truffle Fried Rice).
-4.  **Prioritize:** Add dishes that enhance the occasion (e.g., a centerpiece for Business).
-
-## If Over Budget (> 100% utilization): SMART CUT.
-1.  **Authorized Overspend:** If Occasion is "Business" or "Treat Yourself" AND the overage is caused by a Signature Centerpiece (e.g., Whole Fish), you are authorized to **KEEP IT** (Authorized Overspend up to 120% of budget).
-2.  **Downgrade:** Large -> Small portions.
-3.  **Trim:** Remove extra Soups or expensive Sides.
-4.  **Protection:** NEVER remove the #1 Verified Signature Dish or dishes crucial for dietary restrictions.
-
-## If Optimal Budget (80-100% utilization): NO ACTION.
-- If utilization is already between 80% and 100%, no changes are needed unless there's a specific instruction to improve value.
-
-# Output Format (JSON)
-{{
-  "action": "ADD_DISHES" / "REDUCE_COST" / "AUTHORIZED_OVERSPEND" / "NO_ACTION",
-  "modifications": [
-    {{
-      "type": "add/remove/upgrade/downgrade",
-      "dish_name": "String",
-      "reason": "String"
-    }}
-  ],
-  "updated_menu": [
-    {{
-      "dish_name": "String",
-      "price": Integer,
-      "quantity": Integer,
-      "category": "String",
-      "tag": "String",
-      "reason": "String"
-    }}
-  ],
-  "final_adjustment_note": "String (Explain the overall budget strategy and outcome)"
-}}
-"""
-
-        try:
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt,
-                generation_config={"response_mime_type": "application/json"}
-            )
-            data = json.loads(response.text)
-
-            updated_menu = data.get("updated_menu", current_menu)
-            # Recalculate total
-            new_total = sum(
-                (d.get('price') or 0) *
-                d.get(
-                    'quantity',
-                    1) for d in updated_menu)
-            new_util = new_total / budget_amount if budget_amount > 0 else 0
-
-            action_taken = data.get("action", "NO_ACTION")
-            justification = data.get("final_adjustment_note", "")
-
-            print(f"✓ Action: {action_taken}")
-            print(f"  New Total: ${new_total} ({new_util:.1%})")
-
-            # Check if optimization was successful
-            # Allow authorized overspend
-            approved = (
-                0.8 <= new_util <= 1.0) or (
-                action_taken == "AUTHORIZED_OVERSPEND" and new_util <= 1.2)
-
-            return AgentDecision(
-                agent_name="BudgetOptimizer",
-                approved=approved,
-                data=updated_menu,
-                metadata={
-                    "modifications": data.get("modifications", []),
-                    "total": new_total,
-                    "utilization": new_util,
-                    "action": action_taken,
-                    "justification": justification
-                }
-            )
-
-        except Exception as e:
-            print(f"❌ BudgetOptimizerAgent Error: {e}")
-            import traceback
-            traceback.print_exc()
-            return AgentDecision(
-                agent_name="BudgetOptimizer",
-                approved=False,
-                data=current_menu,
-                issues=[str(e)]
-            )
 
 
 class BalanceCheckerAgent(RecommendationAgentBase):
@@ -632,12 +498,16 @@ You are the **"Restaurant Manager"** performing the final sanity check before pr
     - If "Solo": Is there too much food?
 3.  **Constraint Validation:**
     - Double check Dietary Restrictions (e.g., "No Beef" but "Beef Soup" is present) -> FATAL ERROR.
+4.  **Over-ordering Check (Gluttony Protocol):**
+    - IF `occasion` == 'all_signatures': Allow more dishes (up to N+4).
+    - ELSE: If dish count > N + 3, issue a WARNING (but do not reject unless absurd).
 
 # Output Format (JSON)
 {{
   "approved": Boolean,
   "critique": "String (If rejected, explain EXACTLY what to fix. This will be sent to the DishSelector. e.g., 'Rejected because desserts are insufficient for 4 people.')",
-  "fatal_error": Boolean
+  "fatal_error": Boolean,
+  "warning": "String (Optional warning for frontend display, e.g., 'This menu is quite large for 2 people.')"
 }}
 """
 
@@ -659,59 +529,45 @@ You are the **"Restaurant Manager"** performing the final sanity check before pr
 
     async def consolidate(self,
                           base_menu: List[Dict[str, Any]],
-                          budget_decision: AgentDecision,
                           balance_decision: AgentDecision,
                           user_input: UserInputV2) -> AgentDecision:
         """
-        Consolidates feedback from Budget and Balance agents to produce the final menu.
-        This is the 'Aggregator' role in the parallel architecture.
+        Consolidates feedback from Balance agent to produce the final menu.
+        This is the 'Aggregator' role.
         """
-        print("✅ QualityAssuranceAgent: Consolidating parallel feedback...")
-
-        # Prepare context for the LLM
-        budget_feedback = "None"
-        if not budget_decision.approved:
-            budget_feedback = f"Action: {budget_decision.metadata.get('action')}. Justification: {budget_decision.metadata.get('justification')}. Modified Menu Provided."
+        print("✅ QualityAssuranceAgent: Consolidating feedback...")
 
         balance_feedback = "None"
         if not balance_decision.approved:
             balance_feedback = f"Issues: {balance_decision.issues}. Suggestions: {balance_decision.suggestions}"
 
-        # If both approved, just return base menu (or budget optimized menu if
-        # it was just a minor tweak)
-        if budget_decision.approved and balance_decision.approved:
-            print("   Both Budget and Balance approved. Returning optimized menu.")
+        # If approved, just return base menu
+        if balance_decision.approved:
+            print("   Balance approved. Returning menu.")
             return AgentDecision(
                 agent_name="QualityAssurance",
                 approved=True,
-                data=budget_decision.data,
-                # Use budget's version as it might have minor optimizations
+                data=base_menu,
                 metadata={"source": "auto-approval"}
             )
 
         prompt = f"""
 # Role
 You are the **"Final Decision Maker"** (Restaurant Manager).
-You have received a draft menu and feedback from two specialists:
-1.  **Budget Manager:** Focused on price.
-2.  **Executive Chef (Balance):** Focused on variety and taste.
+You have received a draft menu and feedback from the Executive Chef (Balance).
 
 # Inputs
 - **Original Draft:** {json.dumps(base_menu, ensure_ascii=False, indent=2, default=str)}
-- **Budget Feedback:** {budget_feedback}
-- **Budget's Proposed Menu:** {json.dumps(budget_decision.data, ensure_ascii=False, indent=2, default=str)}
 - **Balance Feedback:** {balance_feedback}
 
 # User Context
 - Party Size: {user_input.party_size}
 - Occasion: {user_input.occasion}
-- Budget: ${user_input.budget.amount}
 
 # Task
 Synthesize a **FINAL MENU** that resolves conflicts.
-- If Budget cut a dish that Balance wants, try to find a cheaper alternative.
-- If Balance added a dish that breaks Budget, try to remove something else.
-- **Priority:** Budget > Dietary Restrictions > Balance > Flavor.
+- If Balance added a dish, ensure it fits the flow.
+- **Priority:** Dietary Restrictions > Balance > Flavor.
 
 # Output Format (JSON)
 {{
@@ -781,7 +637,7 @@ class OrchestratorAgent:
 
     def __init__(self):
         self.dish_selector = DishSelectorAgent()
-        self.budget_optimizer = BudgetOptimizerAgent()
+        # self.budget_optimizer = BudgetOptimizerAgent() # Removed
         self.balance_checker = BalanceCheckerAgent()
         self.qa_agent = QualityAssuranceAgent()
 
@@ -812,16 +668,16 @@ class OrchestratorAgent:
             score += 25  # Increased from 20
 
         # Budget utilization bonus (increased)
-        total = sum((dish.get('price') or 0) * dish.get('quantity', 1)
-                    for dish in menu)
-        utilization = total / user_input.budget.amount if user_input.budget.amount > 0 else 0
-        if 0.8 <= utilization <= 1.0:
-            score += 15  # Increased from 10
-        elif 0.7 <= utilization < 0.8 or 1.0 < utilization <= 1.1:
-            score += 10  # Increased from 5
-        elif utilization > 0:
-            score += 5  # Any budget usage gets some points
-
+        # total = sum((dish.get('price') or 0) * dish.get('quantity', 1)
+        #             for dish in menu)
+        # utilization = total / user_input.budget.amount if user_input.budget.amount > 0 else 0
+        # if 0.8 <= utilization <= 1.0:
+        #     score += 15  # Increased from 10
+        # elif 0.7 <= utilization < 0.8 or 1.0 < utilization <= 1.1:
+        #     score += 10  # Increased from 5
+        # elif utilization > 0:
+        #     score += 5  # Any budget usage gets some points
+        
         # Bonus: has signature dish (but not required)
         if hard_checks.get('has_signature', False):
             score += 5  # Bonus points, not critical
@@ -867,28 +723,28 @@ class OrchestratorAgent:
             else:
                 current_menu = decision.data
 
-            # Step 2: Speculative Parallelism (Budget & Balance)
-            print("⚡️ Running Budget & Balance Agents in Parallel...")
-
-            budget_task = asyncio.create_task(self.budget_optimizer.run(
-                current_menu,
-                user_input.budget.amount,
-                candidates,
-                user_input
-            ))
-
+            # Step 2: Speculative Parallelism (Balance only now)
+            print("⚡️ Running Balance Agent...")
+            
+            # budget_task = asyncio.create_task(self.budget_optimizer.run(
+            #     current_menu,
+            #     user_input.budget.amount,
+            #     candidates,
+            #     user_input
+            # ))
+            
             balance_task = asyncio.create_task(self.balance_checker.run(
                 current_menu,
                 user_input.dining_style,
                 user_input.party_size
             ))
-
-            budget_decision, balance_decision = await asyncio.gather(budget_task, balance_task)
-
+            
+            # budget_decision, balance_decision = await asyncio.gather(budget_task, balance_task)
+            balance_decision = await balance_task
+            
             # Step 3: Consolidation (QA)
             qa_result = await self.qa_agent.consolidate(
                 current_menu,
-                budget_decision,
                 balance_decision,
                 user_input
             )

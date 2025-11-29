@@ -71,7 +71,7 @@ class DiningAgent:
                 if "quantity" not in item_data: item_data["quantity"] = 1
                 
                 # Handle price
-                price = item_data.get("price", 0)
+                price = item_data.get("price") or 0
                 if isinstance(price, str):
                     import re
                     nums = re.findall(r'\d+', price)
@@ -102,7 +102,7 @@ class DiningAgent:
                         # Clean candidate data
                         cand_copy = cand.copy()
                         if "quantity" not in cand_copy: cand_copy["quantity"] = 1
-                        c_price = cand_copy.get("price", 0)
+                        c_price = cand_copy.get("price") or 0
                         if isinstance(c_price, str):
                             import re
                             nums = re.findall(r'\d+', c_price)

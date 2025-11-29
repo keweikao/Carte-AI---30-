@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
+import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync } from "@/lib/api";
@@ -130,8 +130,7 @@ function RecommendationPageContent() {
     const [showEmptyPoolDialog, setShowEmptyPoolDialog] = useState(false);
     const [emptyPoolCategory, setEmptyPoolCategory] = useState<string>("");
     const [emptyPoolSlotIndex, setEmptyPoolSlotIndex] = useState<number>(-1);
-    const [showBudgetWarning, setShowBudgetWarning] = useState(false);
-    const [budgetExceedPercentage, setBudgetExceedPercentage] = useState<number>(0);
+
 
     // Track swapped dishes for "view previously swapped" feature
     const [swappedDishes, setSwappedDishes] = useState<Map<string, MenuItem[]>>(new Map());
@@ -164,10 +163,7 @@ function RecommendationPageContent() {
                     place_id,
                     party_size,
                     dining_style,
-                    budget: {
-                        type: dining_style === "Shared" ? "Total" : "Per_Person",
-                        amount: budgetAmount,
-                    },
+                    budget: undefined,
                     dish_count_target: dish_count_str ? parseInt(dish_count_str) : null,
                     preferences: searchParams.get("dietary")?.split(",").filter(p => p) || [],
                     occasion,
@@ -199,26 +195,21 @@ function RecommendationPageContent() {
         startJob();
     }, [searchParams, session, jobId]);
 
-    const perPerson = Math.round(totalPrice / (parseInt(searchParams.get("people") || "2")));
-    // Get budget type from URL params, fallback to "person" as default (matching input page default)
-    const budgetType = searchParams.get("budget_type") || "person";
-
-    // Determine the value to compare against the budget
-    const comparisonPrice = budgetType === "person" ? perPerson : totalPrice;
-    const budgetAmount = parseInt(searchParams.get("budget") || "0"); // Get raw budget amount
-
-    // FE-040: Check budget and show warning if exceeded by 20%
-    useEffect(() => {
-        if (!data || comparisonPrice === 0 || budgetAmount === 0) return;
-
-        if (comparisonPrice > budgetAmount) {
-            const exceedPercentage = ((comparisonPrice - budgetAmount) / budgetAmount) * 100;
-            if (exceedPercentage >= 20) {
-                setBudgetExceedPercentage(Math.round(exceedPercentage));
-                setShowBudgetWarning(true);
+    // Calculate dynamic totals based on SELECTED items
+    const selectedTotalPrice = useMemo(() => {
+        return dishSlots.reduce((total, slot) => {
+            const status = slotStatus.get(slot.display.dish_name);
+            if (status === 'selected') {
+                return total + (slot.display.price * slot.display.quantity);
             }
-        }
-    }, [comparisonPrice, budgetAmount, data, searchParams]);
+            return total;
+        }, 0);
+    }, [dishSlots, slotStatus]);
+
+    const perPerson = Math.round(selectedTotalPrice / (parseInt(searchParams.get("people") || "2")));
+
+    // Check if "All Signatures" mode
+    const isAllSignaturesMode = searchParams.get("occasion") === "all_signatures";
 
     // Trigger confetti when all dishes are confirmed
     const prevAllDecidedRef = useRef(false);
@@ -274,28 +265,12 @@ function RecommendationPageContent() {
             const currentStatus = newStatus.get(dishName);
 
             if (currentStatus === 'selected') {
-                // Unselect
+                // Toggle to unselected (pending)
                 newStatus.set(dishName, 'pending');
             } else {
-                // Select and scroll to next pending dish
+                // Toggle to selected
                 newStatus.set(dishName, 'selected');
-
-                // Find next pending dish
-                setTimeout(() => {
-                    const nextPendingIndex = dishSlots.findIndex((slot, idx) =>
-                        idx > slotIndex && newStatus.get(slot.display.dish_name) === 'pending'
-                    );
-
-                    if (nextPendingIndex !== -1) {
-                        // Scroll to next pending dish
-                        const element = document.querySelector(`[data-slot-index="${nextPendingIndex}"]`);
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }
-                }, 300);
             }
-
             return newStatus;
         });
     };
@@ -460,13 +435,8 @@ function RecommendationPageContent() {
         }
     };
 
-    // FE-040: Handle budget warning actions
-    const handleContinueOverBudget = () => {
-        setShowBudgetWarning(false);
-    };
-
     const handleAdjustBudget = () => {
-        setShowBudgetWarning(false);
+        // setShowBudgetWarning(false);
         router.push(`/input?${searchParams.toString()}`);
     };
 
@@ -507,7 +477,8 @@ function RecommendationPageContent() {
                     setDishSlots(result.items);
                     setTotalPrice(result.total_price);
                     const initialStatus = new Map<string, 'pending' | 'selected'>();
-                    result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'pending'));
+                    // Default ALL to selected
+                    result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'selected'));
                     setSlotStatus(initialStatus);
                     setInitialLoading(false);
                 }}
@@ -539,7 +510,7 @@ function RecommendationPageContent() {
                     <div className="flex justify-between items-end mb-2">
                         <div>
                             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">菜單總價</p>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-mono transition-colors duration-300" aria-live="polite">{data.currency || 'NT$'} {totalPrice.toLocaleString()}</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-mono transition-colors duration-300" aria-live="polite">{data.currency || 'NT$'} {selectedTotalPrice.toLocaleString()}</h1>
                         </div>
                         <div className="text-right">
                             <p className="text-xs text-muted-foreground mb-1">人均約</p>
@@ -554,6 +525,14 @@ function RecommendationPageContent() {
                         totalDishes={dishSlots.length}
                         categorySummary={data.category_summary}
                     />
+
+                    {/* Mode Badge */}
+                    {isAllSignaturesMode && (
+                        <div className="flex items-center justify-center gap-2 mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded-full shadow-sm">
+                            <Crown className="w-5 h-5 fill-yellow-500 text-yellow-600" />
+                            <span className="font-bold">招牌全制霸模式</span>
+                        </div>
+                    )}
 
                     {/* Category Sections */}
                     {orderedCategories.map((category) => {
@@ -604,13 +583,22 @@ function RecommendationPageContent() {
                                                             <div className="flex items-center gap-2 mt-4" role="group" aria-label="菜品操作">
                                                                 <Button
                                                                     size="sm"
-                                                                    className={`flex-1 h-9 rounded-full ${status === 'selected' ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'} text-primary-foreground`}
+                                                                    className={`flex-1 h-9 rounded-full ${status === 'selected' ? 'bg-green-600 hover:bg-green-700' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'} transition-colors`}
                                                                     onClick={() => handleSelect(slot.display.dish_name, index)}
-                                                                    aria-label={status === 'selected' ? `取消選擇 ${slot.display.dish_name}` : `確認要點 ${slot.display.dish_name}`}
+                                                                    aria-label={status === 'selected' ? `移除 ${slot.display.dish_name}` : `加入 ${slot.display.dish_name}`}
                                                                     aria-pressed={status === 'selected'}
                                                                 >
-                                                                    <CheckCircle2 className="w-4 h-4 mr-1.5" aria-hidden="true" />
-                                                                    {status === 'selected' ? '已選擇' : '我要點'}
+                                                                    {status === 'selected' ? (
+                                                                        <>
+                                                                            <CheckCircle2 className="w-4 h-4 mr-1.5" aria-hidden="true" />
+                                                                            已選擇
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <span className="mr-1.5 text-lg leading-none">+</span>
+                                                                            加入
+                                                                        </>
+                                                                    )}
                                                                 </Button>
                                                                 <Button
                                                                     variant="outline"
@@ -648,22 +636,22 @@ function RecommendationPageContent() {
                 <div className="container max-w-4xl mx-auto">
                     <Button
                         onClick={async () => {
-                            if (allDecided) {
+                            if (selectedTotalPrice > 0) {
                                 try {
                                     // Calculate session duration
                                     const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
 
+                                    // Filter only SELECTED dishes
+                                    const selectedSlots = dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected');
+
                                     // Track finalization
                                     await finalizeOrder(data.recommendation_id, {
-                                        final_selections: dishSlots.map(slot => ({
+                                        final_selections: selectedSlots.map(slot => ({
                                             dish_name: slot.display.dish_name,
                                             category: slot.category,
                                             price: slot.display.price,
-                                            // We don't track swap count per dish in frontend state yet, 
-                                            // but we can infer was_swapped if we had initial state.
-                                            // For now, let's keep it simple.
                                         })),
-                                        total_price: totalPrice,
+                                        total_price: selectedTotalPrice,
                                         session_duration_seconds: duration
                                     });
                                 } catch (e) {
@@ -671,25 +659,25 @@ function RecommendationPageContent() {
                                     // Proceed anyway
                                 }
 
+                                const selectedSlots = dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected');
                                 const finalMenu = {
                                     recommendation_id: data.recommendation_id,
                                     restaurant_name: data.restaurant_name,
                                     cuisine_type: data.cuisine_type,
-                                    dishes: dishSlots.map(slot => slot.display),
-                                    total_price: totalPrice,
+                                    dishes: selectedSlots.map(slot => slot.display),
+                                    total_price: selectedTotalPrice,
                                     party_size: parseInt(searchParams.get("people") || "2")
                                 };
                                 localStorage.setItem('final_menu', JSON.stringify(finalMenu));
                                 router.push('/menu');
                             }
                         }}
-                        disabled={!allDecided}
+                        disabled={selectedTotalPrice === 0}
                         className="w-full h-12 text-lg font-bold gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
-                        aria-label={allDecided ? "產出最終點餐菜單" : "請先確認所有菜品"}
-                        aria-disabled={!allDecided}
+                        aria-label="產出最終點餐菜單"
                     >
                         <Check className="w-5 h-5" aria-hidden="true" />
-                        {allDecided ? "產出點餐菜單" : `還有 ${Array.from(slotStatus.values()).filter(s => s === 'pending').length} 道菜未確認`}
+                        產出點餐菜單 ({dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected').length} 道)
                     </Button>
                 </div>
             </div>
@@ -734,36 +722,7 @@ function RecommendationPageContent() {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* FE-040: Over Budget Warning Dialog */}
-            <AlertDialog open={showBudgetWarning} onOpenChange={setShowBudgetWarning}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="w-5 h-5 text-orange-600" />
-                            <AlertDialogTitle className="text-foreground">超出預算警告</AlertDialogTitle>
-                        </div>
-                        <AlertDialogDescription className="text-muted-foreground space-y-3">
-                            <p>
-                                {budgetType === "person" ? "目前人均價格" : "目前菜單總價"} <span className="font-bold text-orange-600">{data?.currency || 'NT$'} {comparisonPrice.toLocaleString()}</span> 已超出您的{budgetType === "person" ? "每人預算" : "總預算"} <span className="font-semibold text-foreground">{data?.currency || 'NT$'} {budgetAmount.toLocaleString()}</span>
-                            </p>
-                            <p className="text-sm">
-                                超出預算約 <span className="font-bold text-orange-600">{budgetExceedPercentage}%</span>，建議您返回調整預算或重新選擇菜品。
-                            </p>
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                        <AlertDialogCancel onClick={handleAdjustBudget} className="w-full sm:w-auto">
-                            返回修改偏好
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleContinueOverBudget}
-                            className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700"
-                        >
-                            繼續（不調整預算）
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+
         </div>
     );
 }

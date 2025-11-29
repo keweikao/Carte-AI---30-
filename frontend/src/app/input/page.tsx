@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home, Zap, Compass } from "lucide-react";
+import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home, Zap, Compass, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 // import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
@@ -29,22 +29,19 @@ function InputPageContents() {
         restaurant_name: string;
         place_id?: string;
         people: number;
-        budget: string;
         dietary_restrictions: string;
         mode: "sharing" | "individual";
-        occasion: "business" | "date" | "family" | "friends" | "fitness";
+        occasion: "business" | "date" | "family" | "friends" | "fitness" | "all_signatures";
         dish_count: number | null;
     }>({
         restaurant_name: "",
         place_id: undefined,
         people: 2,
-        budget: "200",
         dietary_restrictions: "",
         mode: "sharing",
         occasion: "friends",
         dish_count: null
     });
-    const [budgetType, setBudgetType] = useState<"person" | "total">("person");
     const [dishCountWarning, setDishCountWarning] = useState<string | null>(null);
 
     // --- FUNCTIONS ---
@@ -91,17 +88,15 @@ function InputPageContents() {
             const params = new URLSearchParams({
                 restaurant: formData.restaurant_name,
                 people: formData.people.toString(),
-                budget: formData.budget,
                 dietary: formData.dietary_restrictions,
                 mode: formData.mode,
                 occasion: formData.occasion, // Add occasion here
-                budget_type: budgetType,
                 ...(formData.dish_count && { dish_count: formData.dish_count.toString() }),
                 ...(formData.place_id && { place_id: formData.place_id })
             });
             router.push(`/recommendation?${params.toString()}`);
         }
-    }, [step, formData, router, budgetType]);
+    }, [step, formData, router]);
 
     // --- EFFECTS ---
     useEffect(() => {
@@ -140,7 +135,6 @@ function InputPageContents() {
                 setFormData({
                     restaurant_name: restaurant || "",
                     people: adjustedPeople,
-                    budget: budget || "",
                     dietary_restrictions: dietary || "",
                     mode: parsedMode,
                     occasion: "friends", // Default to friends if not specified
@@ -351,6 +345,7 @@ function InputPageContents() {
                                             { id: "family", label: "家庭聚餐", icon: Home },
                                             { id: "date", label: "約會慶祝", icon: Heart },
                                             { id: "business", label: "商務聚餐", icon: Briefcase },
+                                            { id: "all_signatures", label: "招牌全制霸", icon: Crown },
                                         ]).map((item) => (
                                             <div key={item.id}>
                                                 <RadioGroupItem value={item.id} id={`occasion-${item.id}`} className="peer sr-only" />
@@ -396,65 +391,7 @@ function InputPageContents() {
                                     </div>
                                 </div>
 
-                                {/* Budget */}
-                                <div className="space-y-3">
-                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                                        <Label htmlFor="budget" className="text-base">
-                                            {budgetType === "person" ? "每人預算 (客單價)" : "總預算"}
-                                        </Label>
-                                        <div className="flex bg-secondary/50 rounded-lg p-1" role="group" aria-label="預算計算方式">
-                                            <button
-                                                type="button"
-                                                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition-all cursor-pointer ${budgetType === "person" ? "bg-white shadow-md text-foreground font-semibold border-2 border-primary" : "text-muted-foreground hover:bg-white/50 hover:text-foreground border-2 border-transparent"}`}
-                                                onClick={() => setBudgetType("person")}
-                                                aria-label="選擇每人預算模式"
-                                                aria-pressed={budgetType === "person"}
-                                            >
-                                                <User className="w-4 h-4" />
-                                                每人(客單)
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition-all cursor-pointer ${budgetType === "total" ? "bg-white shadow-md text-foreground font-semibold border-2 border-primary" : "text-muted-foreground hover:bg-white/50 hover:text-foreground border-2 border-transparent"}`}
-                                                onClick={() => setBudgetType("total")}
-                                                aria-label="選擇總預算模式"
-                                                aria-pressed={budgetType === "total"}
-                                            >
-                                                <Users className="w-4 h-4" />
-                                                總預算
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3 pt-2">
-                                        <div className="px-1">
-                                            <Slider
-                                                id="budget"
-                                                value={[Number(formData.budget) || (budgetType === 'person' ? 500 : 2000)]}
-                                                onValueChange={(value) => updateData("budget", String(value[0]))}
-                                                max={budgetType === 'person' ? 3000 : 10000}
-                                                step={budgetType === 'person' ? 50 : 250}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-xs text-muted-foreground px-1 items-center">
-                                            <span>NT$ 0</span>
-                                            <div className="flex items-center gap-1">
-                                                <span className="font-mono text-sm font-semibold text-primary">NT$</span>
-                                                <Input
-                                                    type="number"
-                                                    value={formData.budget}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        // Allow empty string for typing, otherwise parse
-                                                        updateData("budget", val);
-                                                    }}
-                                                    className="h-8 w-24 text-center font-mono font-semibold text-primary bg-primary/10 border-none focus:ring-1 focus:ring-primary"
-                                                    placeholder="例如：500"
-                                                />
-                                            </div>
-                                            <span>NT$ {budgetType === 'person' ? "3,000+" : "10,000+"}</span>
-                                        </div>
-                                    </div>
-                                </div>
+
 
                                 {/* Dish Count (Optional) */}
                                 <div className="space-y-3">
@@ -502,7 +439,6 @@ function InputPageContents() {
                                 <Button
                                     className="w-full py-6 text-lg bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-xl"
                                     onClick={handleNext}
-                                    disabled={!formData.budget}
                                     aria-label="完成設定並開始生成推薦菜單"
                                 >
                                     開始生成推薦 <Check className="ml-2 w-5 h-5" aria-hidden="true" />
@@ -539,11 +475,8 @@ function InputPageContents() {
                                 const params = new URLSearchParams({
                                     restaurant: formData.restaurant_name,
                                     people: formData.people.toString(),
-                                    budget: formData.budget,
                                     dietary: formData.dietary_restrictions,
                                     mode: formData.mode,
-                                    budget_type: budgetType, // Add budget_type here
-
                                     ...(formData.dish_count && { dish_count: formData.dish_count.toString() })
                                 });
                                 router.push(`/recommendation?${params.toString()}`);

@@ -14,7 +14,7 @@ export interface UserInputV2 {
     place_id?: string;
     dining_style: "Shared" | "Individual";
     party_size: number;
-    budget: BudgetV2;
+    budget?: BudgetV2;
     dish_count_target?: number | null;
     preferences?: string[];
     occasion?: string;
