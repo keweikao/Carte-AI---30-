@@ -477,8 +477,8 @@ function RecommendationPageContent() {
                     setDishSlots(result.items);
                     setTotalPrice(result.total_price);
                     const initialStatus = new Map<string, 'pending' | 'selected'>();
-                    // Default ALL to selected
-                    result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'selected'));
+                    // Default to pending (let user select)
+                    result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'pending'));
                     setSlotStatus(initialStatus);
                     setInitialLoading(false);
                 }}
