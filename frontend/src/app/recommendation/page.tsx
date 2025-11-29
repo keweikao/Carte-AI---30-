@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync, pollJobStatus } from "@/lib/api";
+import { getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync } from "@/lib/api";
 import { DishCardSkeleton } from "@/components/dish-card-skeleton";
 // import { CategoryHeader } from "@/components/category-header";
 import { RecommendationSummary } from "@/components/recommendation-summary";
@@ -46,7 +46,7 @@ interface RecommendationData {
 }
 
 // Define interfaces for component props for type safety
-import { GamifiedLoadingState } from "@/components/gamified-loading-state";
+import { AgentFocusLoader } from "@/components/agent-focus-loader";
 
 interface ErrorStateProps {
     error: string | null;
@@ -65,16 +65,6 @@ function ErrorState({ error }: ErrorStateProps) {
         </div>
     );
 }
-
-// Helper for generating analysis steps
-const generateAnalysisSteps = (restaurantName: string) => {
-    return [
-        { text: `搜尋 ${restaurantName} 的最新評論`, icon: "spinner" },
-        { text: "AI 視覺分析菜單照片與價格", icon: "spinner" },
-        { text: "根據您的偏好篩選候選菜品", icon: "spinner" },
-        { text: "在預算內優化CP值最高的組合", icon: "spinner" }
-    ];
-};
 
 // Skeleton state for when recommendations are being prepared
 function RecommendationSkeleton() {
@@ -125,19 +115,15 @@ function RecommendationPageContent() {
     const startTimeRef = useRef(Date.now());
 
     // Core states
-    const [initialLoading, setInitialLoading] = useState(true); // Only true for the very first load
+    const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<RecommendationData | null>(null);
+    const [jobId, setJobId] = useState<string | null>(null);
 
     // V3 states
     const [dishSlots, setDishSlots] = useState<DishSlot[]>([]);
     const [totalPrice, setTotalPrice] = useState<number>(0);
     const [slotStatus, setSlotStatus] = useState<Map<string, 'pending' | 'selected'>>(new Map());
-
-    // Animation states
-    const [analysisStep, setAnalysisStep] = useState(0);
-    const [reviewCount, setReviewCount] = useState(0);
-    const analysisSteps = generateAnalysisSteps(searchParams.get("restaurant") || "此餐廳");
     const [swappingSlots, setSwappingSlots] = useState<Set<number>>(new Set());
 
     // Dialog states for FE-039 and FE-040
@@ -153,34 +139,22 @@ function RecommendationPageContent() {
     // Track add-on operation
     const [isAddingDish, setIsAddingDish] = useState(false);
 
-    // Fetch V3 Data
+    // Start async job
     useEffect(() => {
-        if (!session) return;
+        if (!session || jobId) return; // Only start once
 
-        const fetchData = async () => {
-            let interval: NodeJS.Timeout | null = null;
+        const startJob = async () => {
             try {
-                if (!data) { // Initial load
-                    setInitialLoading(true);
-                }
                 setError(null);
+                setInitialLoading(true);
 
-                const targetReviews = Math.floor(Math.random() * 800) + 300;
-                interval = setInterval(() => {
-                    setAnalysisStep(prev => Math.min(prev + 1, analysisSteps.length));
-                    setReviewCount(prev => Math.min(prev + Math.floor(Math.random() * 80) + 40, targetReviews));
-                }, 800);
-                // --- Build V2 Request from URL Search Params ---
+                // Build request from URL params
                 const restaurant_name = searchParams.get("restaurant") || "";
                 const place_id = searchParams.get("place_id") || undefined;
                 const party_size = parseInt(searchParams.get("people") || "2");
-
                 const rawMode = searchParams.get("mode");
                 const dining_style = (rawMode === "Shared" || rawMode === "sharing") ? "Shared" : "Individual";
-
                 const dish_count_str = searchParams.get("dish_count");
-
-                // Parse budget - now it's a number from the slider
                 const budgetStr = searchParams.get("budget") || "";
                 const budgetAmount = parseInt(budgetStr) || (dining_style === "Shared" ? 2000 : 500);
                 const occasion = searchParams.get("occasion") || undefined;
@@ -207,55 +181,23 @@ function RecommendationPageContent() {
                 // @ts-expect-error - id_token exists on session but not in type definition
                 const token = session?.id_token;
 
-                // Start Async Job
+                // Start async job
                 const jobResponse = await getRecommendationsAsync(requestData, token);
-                const jobId = jobResponse.job_id;
-
-                // Poll loop
-                while (true) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    const statusData = await pollJobStatus(jobId, token);
-
-                    if (statusData.status === 'completed') {
-                        const result: RecommendationData = statusData.result;
-
-                        // --- Set V3 State ---
-                        setData(result);
-                        setDishSlots(result.items);
-                        setTotalPrice(result.total_price);
-
-                        const initialStatus = new Map<string, 'pending' | 'selected'>();
-                        result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'pending'));
-                        setSlotStatus(initialStatus);
-                        break;
-                    } else if (statusData.status === 'failed') {
-                        throw new Error(statusData.error || "Analysis failed");
-                    }
-                }
-
-                if (interval) clearInterval(interval);
-                setInitialLoading(false);
+                setJobId(jobResponse.job_id);
 
             } catch (err) {
                 const error = err as Error;
-                console.error("Fetch error:", error);
-                if (interval) clearInterval(interval);
-
-                // Extract useful message
-                let message = error.message || "無法取得推薦，請稍後再試";
-                if (message.includes("504")) message = "伺服器回應逾時，請稍後再試或減少菜品數量";
+                console.error("Job start error:", error);
+                let message = error.message || "無法啟動推薦任務，請稍後再試";
+                if (message.includes("504")) message = "伺服器回應逾時，請稍後再試";
                 if (message.includes("500")) message = "伺服器發生錯誤，請稍後再試";
-
-                // Redirect to input page on error
-                // alert(`發生錯誤: ${message}\n即將返回搜尋頁面。`); // Optional: Alert is annoying, maybe just toast?
-                // Using a simple alert for now as requested "jump back" implies immediate action
-                // But let's just redirect.
-                router.push('/input');
+                setError(message);
+                setInitialLoading(false);
             }
         };
 
-        fetchData();
-    }, [searchParams, session]); // eslint-disable-line react-hooks/exhaustive-deps
+        startJob();
+    }, [searchParams, session, jobId]);
 
     const perPerson = Math.round(totalPrice / (parseInt(searchParams.get("people") || "2")));
     // Get budget type from URL params, fallback to "person" as default (matching input page default)
@@ -556,7 +498,27 @@ function RecommendationPageContent() {
         return getSortedCategories(categories, data.cuisine_type);
     }, [groupedByCategory, data]);
 
-    if (initialLoading) return <GamifiedLoadingState reviewCount={reviewCount} restaurantName={searchParams.get("restaurant") || ""} analysisSteps={analysisSteps} analysisStep={analysisStep} />;
+    if (initialLoading && jobId) {
+        return (
+            <AgentFocusLoader
+                jobId={jobId}
+                onComplete={(result: RecommendationData) => {
+                    setData(result);
+                    setDishSlots(result.items);
+                    setTotalPrice(result.total_price);
+                    const initialStatus = new Map<string, 'pending' | 'selected'>();
+                    result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'pending'));
+                    setSlotStatus(initialStatus);
+                    setInitialLoading(false);
+                }}
+                onError={(errorMsg: string) => {
+                    setError(errorMsg);
+                    setInitialLoading(false);
+                }}
+            />
+        );
+    }
+    if (initialLoading) return <RecommendationSkeleton />;
     if (error) return <ErrorState error={error} />;
     if (!data) return null;
 

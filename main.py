@@ -1,5 +1,8 @@
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
-from fastapi import FastAPI, Depends, HTTPException, status, Query, BackgroundTasks
+from fastapi import (
+    FastAPI, HTTPException, Depends, BackgroundTasks, Request, Query, status
+)
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from schemas.recommendation import UserInputV2, RecommendationResponseV2, RecommendationRequest, FullRecommendationResponse, MenuItemV2, AddOnRequest, AddOnResponse, DishSlotResponse
 from schemas.feedback import FeedbackRequest
@@ -22,14 +25,19 @@ from services.firestore_service import (
 import uvicorn
 import os
 import uuid
+import asyncio
 from datetime import datetime
 
-USE_MOCK_EXTERNAL = os.getenv("USE_MOCK_EXTERNAL", "").lower() in ("1", "true", "yes")
+USE_MOCK_EXTERNAL = os.getenv(
+    "USE_MOCK_EXTERNAL",
+    "").lower() in (
+        "1",
+        "true",
+    "yes")
 
 app = FastAPI(title="AI Dining Agent API", version="2.0")
 
 # CORS Configuration
-from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -47,15 +55,21 @@ security = HTTPBearer(auto_error=not USE_MOCK_EXTERNAL)
 
 
 def _mock_user():
-    return {"sub": "mock-user", "email": "mock@example.com", "name": "Mock User"}
+    return {
+        "sub": "mock-user",
+        "email": "mock@example.com",
+        "name": "Mock User"}
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_user(
+        credentials: HTTPAuthorizationCredentials = Depends(security)):
     if USE_MOCK_EXTERNAL:
         return _mock_user()
 
     if not credentials:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
+        raise HTTPException(
+            status_code=401,
+            detail="Missing Authorization header")
 
     token = credentials.credentials
     return verify_google_token(token)
@@ -67,10 +81,15 @@ _mock_candidates = {}
 
 
 async def mock_fetch_place_autocomplete(input: str):
-    return [
-        {"description": f"{input} Mock 餐廳", "place_id": "mock-place-1", "main_text": f"{input} Mock", "secondary_text": "台北市"},
-        {"description": f"{input} Mock Bistro", "place_id": "mock-place-2", "main_text": f"{input} Bistro", "secondary_text": "新北市"},
-    ]
+    return [{"description": f"{input} Mock 餐廳",
+             "place_id": "mock-place-1",
+             "main_text": f"{input} Mock",
+             "secondary_text": "台北市"},
+            {"description": f"{input} Mock Bistro",
+             "place_id": "mock-place-2",
+             "main_text": f"{input} Bistro",
+             "secondary_text": "新北市"},
+            ]
 
 
 class MockDiningAgent:
@@ -79,14 +98,31 @@ class MockDiningAgent:
         items = [
             DishSlotResponse(
                 category="熱菜",
-                display=MenuItemV2(dish_name="宮保雞丁", price=250, quantity=1, reason="人氣招牌", category="熱菜", review_count=120),
+                display=MenuItemV2(
+                    dish_name="宮保雞丁",
+                    price=250,
+                    quantity=1,
+                    reason="人氣招牌",
+                    category="熱菜",
+                    review_count=120),
                 alternatives=[
-                    MenuItemV2(dish_name="左宗棠雞", price=260, quantity=1, reason="口味相似", category="熱菜", review_count=80)
-                ],
+                    MenuItemV2(
+                        dish_name="左宗棠雞",
+                        price=260,
+                        quantity=1,
+                        reason="口味相似",
+                        category="熱菜",
+                        review_count=80)],
             ),
             DishSlotResponse(
                 category="主食",
-                display=MenuItemV2(dish_name="蛋炒飯", price=120, quantity=request.party_size, reason="填飽肚子", category="主食", review_count=60),
+                display=MenuItemV2(
+                    dish_name="蛋炒飯",
+                    price=120,
+                    quantity=request.party_size,
+                    reason="填飽肚子",
+                    category="主食",
+                    review_count=60),
                 alternatives=[],
             ),
         ]
@@ -106,13 +142,16 @@ class MockDiningAgent:
         )
         # 保存候選池（簡化）
         _mock_candidates[rid] = {
-            "candidates": [slot.display.model_dump() for slot in items] + [alt.model_dump() for slot in items for alt in slot.alternatives],
+            "candidates": [
+                slot.display.model_dump() for slot in items] + [
+                alt.model_dump() for slot in items for alt in slot.alternatives],
             "cuisine_type": "中式餐館",
         }
         _mock_sessions[rid] = {
             "restaurant_name": request.restaurant_name,
             "restaurant_cuisine_type": "中式餐館",
-            "initial_recommendations": [slot.display.model_dump() for slot in items],
+            "initial_recommendations": [
+                slot.display.model_dump() for slot in items],
             "initial_total_price": total_price,
             "swap_history": [],
             "total_swap_count": 0,
@@ -125,7 +164,8 @@ def mock_save_user_activity(*args, **kwargs):
 
 
 def mock_create_recommendation_session(session_data):
-    rid = session_data.get("recommendation_id") or f"mock-{uuid.uuid4().hex[:8]}"
+    rid = session_data.get(
+        "recommendation_id") or f"mock-{uuid.uuid4().hex[:8]}"
     _mock_sessions[rid] = session_data
     return True
 
@@ -143,7 +183,8 @@ def mock_add_swap_to_session(user_id, recommendation_id, swap_data):
     return True
 
 
-def mock_finalize_recommendation_session(user_id, recommendation_id, finalize_data):
+def mock_finalize_recommendation_session(
+        user_id, recommendation_id, finalize_data):
     session = _mock_sessions.get(recommendation_id)
     if not session:
         return False
@@ -155,7 +196,10 @@ def mock_get_recommendation_candidates(recommendation_id):
     return _mock_candidates.get(recommendation_id)
 
 
-def mock_save_recommendation_candidates(recommendation_id, candidates_data, cuisine_type):
+def mock_save_recommendation_candidates(
+        recommendation_id,
+        candidates_data,
+        cuisine_type):
     _mock_candidates[recommendation_id] = {
         "candidates": candidates_data,
         "cuisine_type": cuisine_type,
@@ -181,6 +225,7 @@ if USE_MOCK_EXTERNAL:
 else:
     agent = DiningAgent()
 
+
 @app.get("/places/autocomplete")
 async def get_place_autocomplete(
     input: str = Query(..., min_length=1),
@@ -200,6 +245,41 @@ async def get_place_autocomplete(
     suggestions = await fetch_place_autocomplete(input)
     return {"suggestions": suggestions}
 
+
+@app.post("/v2/prefetch_restaurant")
+async def prefetch_restaurant(
+    request: dict,
+    background_tasks: BackgroundTasks,
+    user_info: dict = Depends(get_current_user)
+):
+    """
+    Triggers the restaurant profile analysis in the background.
+    This is called when the user selects a restaurant, before they finish the form.
+    """
+    restaurant_name = request.get("restaurant_name")
+    place_id = request.get("place_id")
+
+    if not restaurant_name:
+        raise HTTPException(
+            status_code=400,
+            detail="restaurant_name is required")
+
+    print(f"🚀 Prefetching data for {restaurant_name}...")
+
+    async def run_prefetch():
+        try:
+            from agent.profile_agent import RestaurantProfileAgent
+            profiler = RestaurantProfileAgent()
+            # This will fetch and cache the data
+            await profiler.analyze(restaurant_name, place_id)
+            print(f"✓ Prefetch complete for {restaurant_name}")
+        except Exception as e:
+            print(f"❌ Prefetch failed for {restaurant_name}: {e}")
+
+    background_tasks.add_task(run_prefetch)
+    return {"status": "prefetching", "restaurant": restaurant_name}
+
+
 @app.post("/v2/recommendations", response_model=RecommendationResponseV2)
 async def get_recommendations_v2(
     request: UserInputV2,
@@ -216,8 +296,11 @@ async def get_recommendations_v2(
 
         response = await agent.get_recommendations_v2(request)
 
-        # User info is already added in the agent method, but we can ensure it here if needed.
-        response.user_info = {"email": user_info.get("email"), "name": user_info.get("name")}
+        # User info is already added in the agent method, but we can ensure it
+        # here if needed.
+        response.user_info = {
+            "email": user_info.get("email"),
+            "name": user_info.get("name")}
 
         # Create recommendation session for tracking
         try:
@@ -227,7 +310,8 @@ async def get_recommendations_v2(
                 "restaurant_name": response.restaurant_name,
                 "restaurant_cuisine_type": response.cuisine_type,
                 "user_input": request.dict(),
-                "initial_recommendations": [slot.display.dict() for slot in response.items],
+                "initial_recommendations": [
+                    slot.display.dict() for slot in response.items],
                 "initial_total_price": response.total_price,
                 "swap_history": [],
                 "final_selections": None,
@@ -235,8 +319,7 @@ async def get_recommendations_v2(
                 "created_at": datetime.now(),
                 "finalized_at": None,
                 "session_duration_seconds": None,
-                "total_swap_count": 0
-            }
+                "total_swap_count": 0}
             create_recommendation_session(session_data)
         except Exception as session_error:
             print(f"Warning: Failed to create session: {session_error}")
@@ -249,9 +332,13 @@ async def get_recommendations_v2(
     except Exception as e:
         print(f"Unexpected error in /v2/recommendations: {e}")
         # Enhanced error reporting for debugging
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500,
+                            detail=f"Internal server error: {str(e)}")
 
-@app.post("/recommendations", response_model=FullRecommendationResponse, deprecated=True)
+
+@app.post("/recommendations",
+          response_model=FullRecommendationResponse,
+          deprecated=True)
 async def get_recommendations_v1(
     request: RecommendationRequest,
     user_info: dict = Depends(get_current_user)
@@ -264,6 +351,7 @@ async def get_recommendations_v1(
         status_code=status.HTTP_410_GONE,
         detail="This endpoint is deprecated. Please use /v2/recommendations."
     )
+
 
 @app.post("/feedback")
 async def submit_feedback(
@@ -282,7 +370,8 @@ async def get_alternatives(
     recommendation_id: str,
     category: str,
     exclude: List[str] = Query(...),
-    user_info: dict = Depends(get_current_user) # Ensures endpoint is protected
+    # Ensures endpoint is protected
+    user_info: dict = Depends(get_current_user)
 ):
     """
     Retrieves alternative dishes for a specific category within a recommendation session.
@@ -295,24 +384,25 @@ async def get_alternatives(
         )
 
     all_candidates = candidate_data.get("candidates", [])
-    
+
     # Filter by category and exclude already seen/used dishes
-    alternatives = [
-        item for item in all_candidates
-        if item.get("category") == category and item.get("dish_name") not in exclude
-    ]
-    
+    alternatives = [item for item in all_candidates if item.get(
+        "category") == category and item.get("dish_name") not in exclude]
+
     # Convert dicts to MenuItemV2 objects
     try:
-        validated_alternatives = [MenuItemV2.model_validate(alt) for alt in alternatives]
+        validated_alternatives = [
+            MenuItemV2.model_validate(alt) for alt in alternatives]
     except Exception as e:
         print(f"Error validating alternatives for {recommendation_id}: {e}")
-        raise HTTPException(status_code=500, detail="Error processing alternative dishes.")
+        raise HTTPException(status_code=500,
+                            detail="Error processing alternative dishes.")
 
     return validated_alternatives
 
 
-@app.post("/v2/recommendations/{recommendation_id}/swap", response_model=SwapResponse)
+@app.post("/v2/recommendations/{recommendation_id}/swap",
+          response_model=SwapResponse)
 async def record_swap(
     recommendation_id: str,
     swap: SwapRequest,
@@ -358,15 +448,18 @@ async def record_swap(
 
     # 取得更新後的 swap count
     updated_session = get_recommendation_session(user_id, recommendation_id)
-    swap_count = updated_session.get("total_swap_count", 0) if updated_session else 0
+    swap_count = updated_session.get(
+        "total_swap_count",
+        0) if updated_session else 0
 
     return SwapResponse(
         status="success",
         message=f"Swap recorded: {swap.original_dish.dish_name} → {swap.new_dish.dish_name}",
-        swap_count=swap_count
-    )
+        swap_count=swap_count)
 
-@app.post("/v2/recommendations/{recommendation_id}/add-on", response_model=AddOnResponse)
+
+@app.post("/v2/recommendations/{recommendation_id}/add-on",
+          response_model=AddOnResponse)
 async def request_add_on(
     recommendation_id: str,
     request: AddOnRequest,
@@ -377,68 +470,70 @@ async def request_add_on(
     從候選菜品池中尋找符合類別的額外菜品。
     """
     user_id = user_info.get("sub")
-    
+
     # 1. 驗證 Session
     session = get_recommendation_session(user_id, recommendation_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-        
+
     # 2. 取得候選菜品池
     candidates_data = get_recommendation_candidates(recommendation_id)
     if not candidates_data or "candidates" not in candidates_data:
         # 如果沒有候選池，回傳空列表（前端會顯示提示）
         return AddOnResponse(new_dishes=[])
-        
+
     all_candidates = candidates_data["candidates"]
-    
+
     # 3. 找出已推薦的菜品（避免重複）
     recommended_names = set()
-    
+
     # 包含初始推薦
     if "initial_recommendations" in session:
         for item in session["initial_recommendations"]:
             recommended_names.add(item.get("dish_name"))
-            
+
     # 包含換過的菜
     if "swap_history" in session:
         for swap in session["swap_history"]:
             if "new_dish" in swap:
                 recommended_names.add(swap["new_dish"].get("dish_name"))
-                
+
     # 4. 篩選符合類別且未重複的菜品
     available_dishes = []
     target_category = request.category
-    
+
     for dish in all_candidates:
         # 檢查是否已推薦
         if dish.get("dish_name") in recommended_names:
             continue
-            
+
         # 檢查類別 (模糊匹配)
         dish_category = dish.get("category", "")
         if target_category in dish_category or dish_category in target_category:
             available_dishes.append(dish)
-            
+
     # 5. 選擇前 N 個
     selected_dishes = available_dishes[:request.count]
-    
+
     # 6. 轉換格式並回傳
     result_dishes = []
     for dish in selected_dishes:
         # 確保 quantity 存在，預設為 1
         if "quantity" not in dish:
             dish["quantity"] = 1
-            
+
         try:
             menu_item = MenuItemV2(**dish)
             result_dishes.append(menu_item)
         except Exception as e:
             print(f"Error converting dish to MenuItemV2: {e}")
             continue
-        
+
     return AddOnResponse(new_dishes=result_dishes)
 
-@app.post("/v2/recommendations/{recommendation_id}/finalize", response_model=FinalizeResponse)
+
+@app.post("/v2/recommendations/{recommendation_id}/finalize",
+          response_model=FinalizeResponse)
 async def finalize_order(
     recommendation_id: str,
     finalize: FinalizeRequest,
@@ -470,29 +565,31 @@ async def finalize_order(
 
     # 記錄最終選擇
     finalize_data = {
-        "final_selections": [item.dict() for item in finalize.final_selections],
+        "final_selections": [
+            item.dict() for item in finalize.final_selections],
         "final_total_price": finalize.total_price,
-        "session_duration_seconds": finalize.session_duration_seconds
-    }
+        "session_duration_seconds": finalize.session_duration_seconds}
 
-    success = finalize_recommendation_session(user_id, recommendation_id, finalize_data)
+    success = finalize_recommendation_session(
+        user_id, recommendation_id, finalize_data)
 
     if not success:
         raise HTTPException(
             status_code=500,
             detail="Failed to finalize order"
         )
-    
+
     # --- NEW: Record restaurant visit and feedback in Memory System ---
     try:
         from agent.memory_agent import MemoryAgent
         memory_agent = MemoryAgent()
-        
+
         # Get user input from session
         user_input = session.get("user_input", {})
-        
+
         # Record restaurant visit
-        selected_dish_names = [item.dish_name for item in finalize.final_selections]
+        selected_dish_names = [
+            item.dish_name for item in finalize.final_selections]
         await memory_agent.record_restaurant_visit(
             user_id=user_id,
             restaurant_name=session.get("restaurant_name"),
@@ -503,24 +600,25 @@ async def finalize_order(
             selected_dishes=selected_dish_names,
             rating=finalize.rating if hasattr(finalize, 'rating') else None
         )
-        
+
         # Save dish feedback if provided
         if hasattr(finalize, 'dish_feedback') and finalize.dish_feedback:
             selected_dishes = []
             rejected_dishes = []
-            
+
             for feedback in finalize.dish_feedback:
                 dish_data = {
                     "dish_name": feedback.get("dish_name"),
                     "category": feedback.get("category")
                 }
-                
+
                 if feedback.get("liked"):
                     selected_dishes.append(dish_data)
                 elif feedback.get("rejected"):
-                    dish_data["reason"] = feedback.get("reason", "Not specified")
+                    dish_data["reason"] = feedback.get(
+                        "reason", "Not specified")
                     rejected_dishes.append(dish_data)
-            
+
             if selected_dishes or rejected_dishes:
                 await memory_agent.save_feedback(
                     user_id=user_id,
@@ -529,9 +627,9 @@ async def finalize_order(
                     rejected_dishes=rejected_dishes,
                     occasion=user_input.get("occasion")
                 )
-        
+
         print(f"  💾 Recorded restaurant visit and feedback for user {user_id}")
-        
+
     except Exception as e:
         print(f"  ⚠️  Could not save to memory system: {e}")
         # Don't fail the request if memory save fails
@@ -563,34 +661,97 @@ async def finalize_order(
         status="success",
         message=f"Order finalized with {len(finalize.final_selections)} dishes",
         order_id=order_id,
-        summary=summary
-    )
+        summary=summary)
+
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
+
 async def process_recommendation_async(job_id: str, request: UserInputV2, token: str):
+    """
+    處理推薦請求的非同步任務，並推送進度更新
+    """
     try:
-        save_job_status(job_id, "processing")
-        
-        # Initialize agent
+        # 定義 Agent 配置
+        AGENT_CONFIGS = [
+            {
+                "name": "VisualAgent",
+                "step": 1,
+                "logs": [
+                    f"開始掃描 {request.restaurant_name} 的菜單照片...",
+                    "正在使用 OCR 辨識菜品名稱與價格...",
+                    "已辨識菜單結構，正在提取資訊..."
+                ]
+            },
+            {
+                "name": "ReviewAgent",
+                "step": 2,
+                "logs": [
+                    "正在分析 Google 評論中的真實聲音...",
+                    "正在過濾疑似業配的評論...",
+                    "正在標記高評價菜品..."
+                ]
+            },
+            {
+                "name": "SearchAgent",
+                "step": 3,
+                "logs": [
+                    "正在交叉比對食記與部落格推薦...",
+                    "正在尋找隱藏版吃法與招牌菜...",
+                    "正在過濾廣告內容..."
+                ]
+            },
+            {
+                "name": "Orchestrator",
+                "step": 4,
+                "logs": [
+                    f"正在為您的 {request.party_size} 人聚餐計算最佳組合...",
+                    "正在優化預算分配...",
+                    "正在平衡口味與營養..."
+                ]
+            }
+        ]
+
+        # 初始化狀態
+        save_job_status(job_id, "processing", total_steps=4)
+
+        # 模擬 Agent 執行過程
+        for config in AGENT_CONFIGS:
+            # 更新當前 Agent
+            save_job_status(
+                job_id,
+                "processing",
+                current_agent=config["name"],
+                current_step=config["step"],
+                total_steps=4,
+                logs=config["logs"]
+            )
+
+            # 模擬處理時間（實際上這裡會執行真正的 Agent）
+            await asyncio.sleep(0.5)  # 給前端時間看到這個 Agent
+
+        # 執行真正的推薦邏輯
         agent = DiningAgent()
-        
-        # Run recommendation logic
         result = await agent.get_recommendations_v2(request)
-        
-        # Serialize result
+
+        # 序列化結果
         result_dict = result.model_dump()
-        
+
+        # 標記為完成
         save_job_status(job_id, "completed", result=result_dict)
-        
+
     except Exception as e:
         print(f"Async Job Error: {e}")
+        import traceback
+        traceback.print_exc()
         save_job_status(job_id, "failed", error=str(e))
+
 
 @app.post("/v2/recommendations/async")
 async def create_recommendation_job(
@@ -599,13 +760,18 @@ async def create_recommendation_job(
     authorization: HTTPAuthorizationCredentials = Depends(security)
 ):
     verify_google_token(authorization.credentials)
-    
+
     job_id = str(uuid.uuid4())
     save_job_status(job_id, "pending")
-    
-    background_tasks.add_task(process_recommendation_async, job_id, request, authorization.credentials)
-    
+
+    background_tasks.add_task(
+        process_recommendation_async,
+        job_id,
+        request,
+        authorization.credentials)
+
     return {"job_id": job_id, "status": "pending"}
+
 
 @app.get("/v2/recommendations/status/{job_id}")
 async def get_recommendation_job_status(job_id: str):

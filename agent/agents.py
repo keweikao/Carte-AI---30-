@@ -187,6 +187,12 @@ Return a JSON object with the following structure:
 }}
 
 **CRITICAL RULES:**
+Lint and Test
+Process completed with exit code 1.
+Lint and Test: frontend/src/app/recommendation/page.tsx#L228
+Unexpected any. Specify a different type
+Lint and Test: frontend/src/app/recommendation/page.tsx#L11
+'getRecommendations' is defined but never used
 1. Only include dishes that are EXPLICITLY mentioned in the search results
 2. Confidence = "High" only if mentioned 3+ times across different sources
 3. If no clear signature dishes found, return empty array for signature_dishes

@@ -7,16 +7,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize Firestore Client
-# Assumes GOOGLE_APPLICATION_CREDENTIALS is set in env or default credentials are available
+# Assumes GOOGLE_APPLICATION_CREDENTIALS is set in env or default
+# credentials are available
 try:
     # Initialize with specific database ID
     db = firestore.Client(database="carted-data")
 except Exception as e:
-    print(f"Warning: Firestore client could not be initialized. Caching will be disabled. Error: {e}")
+    print(
+        f"Warning: Firestore client could not be initialized. Caching will be disabled. Error: {e}")
     db = None
 
 COLLECTION_NAME = "restaurants"
 CACHE_DURATION_DAYS = 180  # Changed from 30 to 180 days (6 months)
+
 
 def _get_doc_id(place_id: str = None, restaurant_name: str = None) -> str:
     """
@@ -24,13 +27,17 @@ def _get_doc_id(place_id: str = None, restaurant_name: str = None) -> str:
     Prioritizes place_id if available, falls back to restaurant_name for backward compatibility.
     """
     if place_id:
-        # Use place_id directly as the document ID (cleaner and guaranteed unique by Google)
-        return place_id.replace("/", "_")  # Replace any slashes to make it Firestore-safe
+        # Use place_id directly as the document ID (cleaner and guaranteed
+        # unique by Google)
+        # Replace any slashes to make it Firestore-safe
+        return place_id.replace("/", "_")
     elif restaurant_name:
         # Fallback to old MD5 hash method for backward compatibility
-        return hashlib.md5(restaurant_name.lower().strip().encode()).hexdigest()
+        return hashlib.md5(
+            restaurant_name.lower().strip().encode()).hexdigest()
     else:
         raise ValueError("Either place_id or restaurant_name must be provided")
+
 
 def get_cached_data(place_id: str = None, restaurant_name: str = None) -> dict:
     """
@@ -60,17 +67,20 @@ def get_cached_data(place_id: str = None, restaurant_name: str = None) -> dict:
 
                 # Ensure timezone awareness compatibility (naive vs aware)
                 if updated_at.tzinfo is None:
-                    updated_at = updated_at.replace(tzinfo=datetime.timezone.utc)
+                    updated_at = updated_at.replace(
+                        tzinfo=datetime.timezone.utc)
 
                 now = datetime.datetime.now(datetime.timezone.utc)
 
                 if (now - updated_at).days < CACHE_DURATION_DAYS:
-                    print(f"Cache HIT for {identifier} (age: {(now - updated_at).days} days)")
+                    print(
+                        f"Cache HIT for {identifier} (age: {(now - updated_at).days} days)")
                     return data
                 else:
-                    print(f"Cache EXPIRED for {identifier} (age: {(now - updated_at).days} days, TTL: {CACHE_DURATION_DAYS} days)")
+                    print(
+                        f"Cache EXPIRED for {identifier} (age: {(now - updated_at).days} days, TTL: {CACHE_DURATION_DAYS} days)")
             else:
-                 print(f"Cache INVALID (no timestamp) for {identifier}")
+                print(f"Cache INVALID (no timestamp) for {identifier}")
         else:
             print(f"Cache MISS for {identifier}")
 
@@ -79,7 +89,12 @@ def get_cached_data(place_id: str = None, restaurant_name: str = None) -> dict:
 
     return None
 
-def save_restaurant_data(place_id: str = None, restaurant_name: str = None, reviews_data: dict = None, menu_text: str = None):
+
+def save_restaurant_data(
+        place_id: str = None,
+        restaurant_name: str = None,
+        reviews_data: dict = None,
+        menu_text: str = None):
     """
     Saves restaurant data to Firestore.
     Prioritizes place_id as the key, falls back to restaurant_name for backward compatibility.
@@ -102,9 +117,11 @@ def save_restaurant_data(place_id: str = None, restaurant_name: str = None, revi
 
     try:
         doc_ref.set(data)
-        print(f"Saved data for {identifier} to Firestore (using {'place_id' if place_id else 'restaurant_name'} as key).")
+        print(
+            f"Saved data for {identifier} to Firestore (using {'place_id' if place_id else 'restaurant_name'} as key).")
     except Exception as e:
         print(f"Error writing to Firestore: {e}")
+
 
 def get_user_profile(user_id: str) -> dict:
     """
@@ -119,8 +136,9 @@ def get_user_profile(user_id: str) -> dict:
             return doc.to_dict()
     except Exception as e:
         print(f"Error getting user profile: {e}")
-    
+
     return {}
+
 
 def update_user_profile(user_id: str, feedback_data: dict):
     """
@@ -145,6 +163,7 @@ def update_user_profile(user_id: str, feedback_data: dict):
 
 # ----- Session Tracking Functions -----
 
+
 def create_recommendation_session(session_data: dict) -> bool:
     """
     建立新的推薦 session 記錄
@@ -166,7 +185,8 @@ def create_recommendation_session(session_data: dict) -> bool:
         print("Error: Missing user_id or recommendation_id")
         return False
 
-    doc_ref = db.collection("users").document(user_id).collection("sessions").document(recommendation_id)
+    doc_ref = db.collection("users").document(user_id).collection(
+        "sessions").document(recommendation_id)
 
     try:
         doc_ref.set(session_data)
@@ -175,6 +195,7 @@ def create_recommendation_session(session_data: dict) -> bool:
     except Exception as e:
         print(f"Error creating session: {e}")
         return False
+
 
 def get_recommendation_session(user_id: str, recommendation_id: str) -> dict:
     """
@@ -190,7 +211,8 @@ def get_recommendation_session(user_id: str, recommendation_id: str) -> dict:
     if not db:
         return None
 
-    doc_ref = db.collection("users").document(user_id).collection("sessions").document(recommendation_id)
+    doc_ref = db.collection("users").document(user_id).collection(
+        "sessions").document(recommendation_id)
 
     try:
         doc = doc_ref.get()
@@ -201,7 +223,11 @@ def get_recommendation_session(user_id: str, recommendation_id: str) -> dict:
 
     return None
 
-def add_swap_to_session(user_id: str, recommendation_id: str, swap_data: dict) -> bool:
+
+def add_swap_to_session(
+        user_id: str,
+        recommendation_id: str,
+        swap_data: dict) -> bool:
     """
     將換菜記錄加入 session
 
@@ -217,7 +243,8 @@ def add_swap_to_session(user_id: str, recommendation_id: str, swap_data: dict) -
         print("Warning: Firestore not available, swap not recorded.")
         return False
 
-    doc_ref = db.collection("users").document(user_id).collection("sessions").document(recommendation_id)
+    doc_ref = db.collection("users").document(user_id).collection(
+        "sessions").document(recommendation_id)
 
     try:
         # 使用 Firestore transaction 確保資料一致性
@@ -231,7 +258,11 @@ def add_swap_to_session(user_id: str, recommendation_id: str, swap_data: dict) -
         print(f"Error adding swap to session: {e}")
         return False
 
-def finalize_recommendation_session(user_id: str, recommendation_id: str, finalize_data: dict) -> bool:
+
+def finalize_recommendation_session(
+        user_id: str,
+        recommendation_id: str,
+        finalize_data: dict) -> bool:
     """
     完成推薦 session，記錄最終選擇
 
@@ -247,7 +278,8 @@ def finalize_recommendation_session(user_id: str, recommendation_id: str, finali
         print("Warning: Firestore not available, finalization not recorded.")
         return False
 
-    doc_ref = db.collection("users").document(user_id).collection("sessions").document(recommendation_id)
+    doc_ref = db.collection("users").document(user_id).collection(
+        "sessions").document(recommendation_id)
 
     try:
         # 更新最終資料
@@ -262,6 +294,7 @@ def finalize_recommendation_session(user_id: str, recommendation_id: str, finali
     except Exception as e:
         print(f"Error finalizing session: {e}")
         return False
+
 
 def get_user_sessions(user_id: str, limit: int = 10) -> list:
     """
@@ -278,8 +311,11 @@ def get_user_sessions(user_id: str, limit: int = 10) -> list:
         return []
 
     try:
-        sessions_ref = db.collection("users").document(user_id).collection("sessions")
-        docs = sessions_ref.order_by("created_at", direction=firestore.Query.DESCENDING).limit(limit).stream()
+        sessions_ref = db.collection("users").document(
+            user_id).collection("sessions")
+        docs = sessions_ref.order_by(
+            "created_at",
+            direction=firestore.Query.DESCENDING).limit(limit).stream()
 
         sessions = []
         for doc in docs:
@@ -292,9 +328,14 @@ def get_user_sessions(user_id: str, limit: int = 10) -> list:
 
 # ----- Recommendation Candidate Pool Functions -----
 
+
 CANDIDATES_COLLECTION_NAME = "recommendation_candidates"
 
-def save_recommendation_candidates(recommendation_id: str, candidates_data: list, cuisine_type: str) -> bool:
+
+def save_recommendation_candidates(
+        recommendation_id: str,
+        candidates_data: list,
+        cuisine_type: str) -> bool:
     """
     Saves the full candidate pool for a recommendation session.
 
@@ -310,8 +351,9 @@ def save_recommendation_candidates(recommendation_id: str, candidates_data: list
         print("Warning: Firestore not available, candidate pool not saved.")
         return False
 
-    doc_ref = db.collection(CANDIDATES_COLLECTION_NAME).document(recommendation_id)
-    
+    doc_ref = db.collection(
+        CANDIDATES_COLLECTION_NAME).document(recommendation_id)
+
     data = {
         "recommendation_id": recommendation_id,
         "cuisine_type": cuisine_type,
@@ -327,6 +369,7 @@ def save_recommendation_candidates(recommendation_id: str, candidates_data: list
         print(f"Error saving recommendation candidates: {e}")
         return False
 
+
 def get_recommendation_candidates(recommendation_id: str) -> dict:
     """
     Retrieves the full candidate pool for a recommendation session.
@@ -340,7 +383,8 @@ def get_recommendation_candidates(recommendation_id: str) -> dict:
     if not db:
         return None
 
-    doc_ref = db.collection(CANDIDATES_COLLECTION_NAME).document(recommendation_id)
+    doc_ref = db.collection(
+        CANDIDATES_COLLECTION_NAME).document(recommendation_id)
 
     try:
         doc = doc_ref.get()
@@ -348,8 +392,10 @@ def get_recommendation_candidates(recommendation_id: str) -> dict:
             return doc.to_dict()
     except Exception as e:
         print(f"Error getting recommendation candidates: {e}")
-    
+
     return None
+
+
 def save_user_activity(user_id: str, activity_type: str, data: dict) -> bool:
     """
     Saves a user activity (e.g., search, generate_menu) to Firestore.
@@ -367,14 +413,15 @@ def save_user_activity(user_id: str, activity_type: str, data: dict) -> bool:
         return False
 
     try:
-        activity_ref = db.collection("users").document(user_id).collection("activities").document()
+        activity_ref = db.collection("users").document(
+            user_id).collection("activities").document()
         activity_data = {
             "type": activity_type,
             "timestamp": datetime.datetime.now(datetime.timezone.utc),
             **data
         }
         activity_ref.set(activity_data)
-        
+
         # Update user's aggregate stats
         user_ref = db.collection("users").document(user_id)
         user_ref.set({
@@ -390,9 +437,28 @@ def save_user_activity(user_id: str, activity_type: str, data: dict) -> bool:
         print(f"Error saving user activity: {e}")
         return False
 
-def save_job_status(job_id: str, status: str, result: dict = None, error: str = None):
+
+def save_job_status(
+        job_id: str,
+        status: str,
+        result: dict = None,
+        error: str = None,
+        current_agent: str = None,
+        current_step: int = None,
+        total_steps: int = None,
+        logs: list = None):
     """
-    Saves the status of an async job.
+    Saves the status of an async job with optional progress information.
+
+    Args:
+        job_id: Unique job identifier
+        status: Job status ('pending', 'processing', 'completed', 'failed')
+        result: Final result (when completed)
+        error: Error message (when failed)
+        current_agent: Name of currently executing agent
+        current_step: Current step number (1-indexed)
+        total_steps: Total number of steps
+        logs: List of log messages from current agent
     """
     if not db:
         return
@@ -406,11 +472,20 @@ def save_job_status(job_id: str, status: str, result: dict = None, error: str = 
         data["result"] = result
     if error:
         data["error"] = error
-        
+    if current_agent:
+        data["current_agent"] = current_agent
+    if current_step is not None:
+        data["current_step"] = current_step
+    if total_steps is not None:
+        data["total_steps"] = total_steps
+    if logs is not None:
+        data["logs"] = logs
+
     try:
         doc_ref.set(data, merge=True)
     except Exception as e:
         print(f"Error saving job status: {e}")
+
 
 def get_job_status(job_id: str) -> dict:
     """
@@ -425,5 +500,5 @@ def get_job_status(job_id: str) -> dict:
             return doc.to_dict()
     except Exception as e:
         print(f"Error getting job status: {e}")
-    
+
     return None

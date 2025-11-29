@@ -20,6 +20,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from schemas.recommendation import UserInputV2, MenuItemV2
 
+
 @dataclass
 class AgentDecision:
     """Represents a decision made by an agent"""
@@ -31,45 +32,51 @@ class AgentDecision:
     metadata: Dict[str, Any] = None
     critique: str = None  # For feedback loop
 
+
 class RecommendationAgentBase:
     """Base class for all recommendation agents"""
+
     def __init__(self, model_name: str = 'gemini-2.5-flash'):
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
             genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(model_name)
-        
+
     async def run(self, *args, **kwargs) -> AgentDecision:
         raise NotImplementedError
+
 
 class DishSelectorAgent(RecommendationAgentBase):
     """
     菜品選擇專家 (Menu Architect)
-    
+
     Enhanced with:
     - Centerpiece concept
     - Occasion protocols
     - Custom scenario handling
     - Feedback loop support
     """
-    
-    async def run(self, 
-                  candidates: List[Dict[str, Any]], 
+
+    def __init__(self):
+        super().__init__(model_name='gemini-2.5-pro')
+
+    async def run(self,
+                  candidates: List[Dict[str, Any]],
                   user_input: UserInputV2,
                   aggregated_data: List[Dict[str, Any]],
                   previous_critique: Optional[str] = None) -> AgentDecision:
-        
+
         print("🍽️  DishSelectorAgent: Selecting optimal dishes...")
-        
+
         # Build context about verified dishes
         verified_dishes = "\n".join([
             f"- {item.get('dish_name')} (Status: {item.get('status', 'Unknown')}, Source: {item.get('source', 'Unknown')})"
             for item in aggregated_data
         ])
-        
+
         # Extract user note for custom scenario handling
         user_note = getattr(user_input, 'natural_input', None) or ""
-        
+
         # NEW: Fetch enriched personal memory (includes restaurant history)
         memory_context = ""
         user_id = getattr(user_input, 'user_id', None)
@@ -86,7 +93,7 @@ class DishSelectorAgent(RecommendationAgentBase):
                     print(f"  📚 Loaded enriched memory for user {user_id}")
             except Exception as e:
                 print(f"  ⚠️  Could not load memory: {e}")
-        
+
         # Build previous critique section
         critique_section = ""
         if previous_critique:
@@ -97,7 +104,7 @@ The previous menu was rejected for the following reason:
 
 **CRITICAL**: Address this issue in your new selection.
 """
-        
+
         # Build memory section for prompt
         memory_section = ""
         if memory_context:
@@ -105,7 +112,7 @@ The previous menu was rejected for the following reason:
 # 🔒 Personal Memory (HIGHEST PRIORITY - Never Ignore)
 {memory_context}
 """
-        
+
         prompt = f"""
 # Role
 You are the **"Menu Architect,"** an expert dining concierge. Your goal is to curate the INITIAL menu draft.
@@ -149,7 +156,7 @@ You are the **"Menu Architect,"** an expert dining concierge. Your goal is to cu
   "rationale": "String (Brief strategy explanation)"
 }}
 """
-        
+
         try:
             response = await asyncio.to_thread(
                 self.model.generate_content,
@@ -157,19 +164,19 @@ You are the **"Menu Architect,"** an expert dining concierge. Your goal is to cu
                 generation_config={"response_mime_type": "application/json"}
             )
             data = json.loads(response.text)
-            
+
             selected = data.get("selected_dishes", [])
             rationale = data.get("rationale", "")
             print(f"✓ Selected {len(selected)} dishes")
             print(f"  Strategy: {rationale[:100]}...")
-            
+
             return AgentDecision(
                 agent_name="DishSelector",
                 approved=True,
                 data=selected,
                 metadata={"rationale": rationale}
             )
-            
+
         except Exception as e:
             print(f"❌ DishSelectorAgent Error: {e}")
             import traceback
@@ -181,32 +188,50 @@ You are the **"Menu Architect,"** an expert dining concierge. Your goal is to cu
                 issues=[str(e)]
             )
 
+
 class BudgetOptimizerAgent(RecommendationAgentBase):
     """
     預算優化專家 (Strategic Upselling Expert)
-    
+
     Enhanced with:
     - Authorized overspend for special occasions
     - Quality upgrade priority
     - Portion adjustment
     """
-    
+
     async def run(self,
                   current_menu: List[Dict[str, Any]],
                   budget_amount: int,
                   candidate_pool: List[Dict[str, Any]],
                   user_input: UserInputV2) -> AgentDecision:
-        
+
         print("💰 BudgetOptimizerAgent: Optimizing budget utilization...")
-        
+
         # Calculate current total
-        total = sum(dish.get('price', 0) * dish.get('quantity', 1) for dish in current_menu)
+        total = sum((dish.get('price') or 0) * dish.get('quantity', 1)
+                    for dish in current_menu)
         utilization = total / budget_amount if budget_amount > 0 else 0
-        
+
         print(f"   Current: ${total} / ${budget_amount} = {utilization:.1%}")
-        
+
+        # --- Strategy 3: Python Pre-check (Hybrid Logic) ---
+        # If budget is within optimal range (80% - 100%), skip LLM
+        if 0.8 <= utilization <= 1.0:
+            print(f"✓ Budget perfect ({utilization:.1%}), skipping LLM.")
+            return AgentDecision(
+                agent_name="BudgetOptimizer",
+                approved=True,
+                data=current_menu,
+                metadata={
+                    "modifications": [],
+                    "total": total,
+                    "utilization": utilization,
+                    "action": "NO_ACTION",
+                    "justification": "Budget is already within optimal range (80-100%)."})
+        # ---------------------------------------------------
+
         occasion = user_input.occasion or 'casual'
-        
+
         # Refactored to use a single prompt for all budget scenarios
         prompt = f"""
 # Role
@@ -260,7 +285,7 @@ You are the **"Value-First Budget Manager."** Your goal is to optimize the menu 
   "final_adjustment_note": "String (Explain the overall budget strategy and outcome)"
 }}
 """
-        
+
         try:
             response = await asyncio.to_thread(
                 self.model.generate_content,
@@ -268,22 +293,28 @@ You are the **"Value-First Budget Manager."** Your goal is to optimize the menu 
                 generation_config={"response_mime_type": "application/json"}
             )
             data = json.loads(response.text)
-            
+
             updated_menu = data.get("updated_menu", current_menu)
             # Recalculate total
-            new_total = sum(d.get('price', 0) * d.get('quantity', 1) for d in updated_menu)
+            new_total = sum(
+                (d.get('price') or 0) *
+                d.get(
+                    'quantity',
+                    1) for d in updated_menu)
             new_util = new_total / budget_amount if budget_amount > 0 else 0
-            
+
             action_taken = data.get("action", "NO_ACTION")
             justification = data.get("final_adjustment_note", "")
-            
+
             print(f"✓ Action: {action_taken}")
             print(f"  New Total: ${new_total} ({new_util:.1%})")
-            
+
             # Check if optimization was successful
             # Allow authorized overspend
-            approved = (0.8 <= new_util <= 1.0) or (action_taken == "AUTHORIZED_OVERSPEND" and new_util <= 1.2)
-            
+            approved = (
+                0.8 <= new_util <= 1.0) or (
+                action_taken == "AUTHORIZED_OVERSPEND" and new_util <= 1.2)
+
             return AgentDecision(
                 agent_name="BudgetOptimizer",
                 approved=approved,
@@ -296,7 +327,7 @@ You are the **"Value-First Budget Manager."** Your goal is to optimize the menu 
                     "justification": justification
                 }
             )
-            
+
         except Exception as e:
             print(f"❌ BudgetOptimizerAgent Error: {e}")
             import traceback
@@ -308,27 +339,28 @@ You are the **"Value-First Budget Manager."** Your goal is to optimize the menu 
                 issues=[str(e)]
             )
 
+
 class BalanceCheckerAgent(RecommendationAgentBase):
     """
     平衡檢查專家 (Executive Chef)
-    
+
     Enhanced with:
     - Grease control
     - Texture contrast
     - Temperature balance
     - Flavor profile diversity
     """
-    
+
     def _analyze_menu(self, menu: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze menu composition"""
         categories = {}
         cooking_methods = []
         has_fried = 0
-        
+
         for dish in menu:
             cat = dish.get('category', 'Unknown')
             categories[cat] = categories.get(cat, 0) + 1
-            
+
             dish_name = dish.get('dish_name', '').lower()
             # Detect cooking methods
             if any(word in dish_name for word in ['炸', 'fried', '酥']):
@@ -340,29 +372,43 @@ class BalanceCheckerAgent(RecommendationAgentBase):
                 cooking_methods.append('grilled')
             elif any(word in dish_name for word in ['炒', 'stir-fry']):
                 cooking_methods.append('stir-fried')
-        
+
         greasy_ratio = has_fried / len(menu) if menu else 0
-        
+
         return {
             "categories": categories,
             "dish_count": len(menu),
-            "has_vegetable": any('蔬菜' in dish.get('category', '') or '青菜' in dish.get('dish_name', '') for dish in menu),
-            "has_soup": any('湯' in dish.get('category', '') for dish in menu),
-            "has_staple": any('主食' in dish.get('category', '') or '飯' in dish.get('dish_name', '') or '麵' in dish.get('dish_name', '') for dish in menu),
+            "has_vegetable": any(
+                '蔬菜' in dish.get(
+                    'category',
+                    '') or '青菜' in dish.get(
+                    'dish_name',
+                    '') for dish in menu),
+            "has_soup": any(
+                '湯' in dish.get(
+                    'category',
+                    '') for dish in menu),
+            "has_staple": any(
+                '主食' in dish.get(
+                    'category',
+                    '') or '飯' in dish.get(
+                    'dish_name',
+                    '') or '麵' in dish.get(
+                    'dish_name',
+                    '') for dish in menu),
             "cooking_methods": cooking_methods,
-            "greasy_ratio": greasy_ratio
-        }
-    
+            "greasy_ratio": greasy_ratio}
+
     async def run(self,
                   current_menu: List[Dict[str, Any]],
                   dining_style: str,
                   party_size: int) -> AgentDecision:
-        
+
         print("⚖️  BalanceCheckerAgent: Checking menu balance...")
-        
+
         analysis = self._analyze_menu(current_menu)
         issues = []
-        
+
         # Check for shared dining requirements
         if dining_style == "Shared":
             if not analysis['has_vegetable']:
@@ -373,7 +419,7 @@ class BalanceCheckerAgent(RecommendationAgentBase):
                 issues.append(f"菜數不足（建議至少 {party_size + 1} 道）")
             if analysis['greasy_ratio'] > 0.5:
                 issues.append("油炸/油膩菜品比例過高（> 50%），建議加入清爽/酸味菜品")
-        
+
         # If balanced, approve
         if not issues:
             print(f"✓ Menu is well-balanced")
@@ -383,10 +429,10 @@ class BalanceCheckerAgent(RecommendationAgentBase):
                 data=current_menu,
                 metadata=analysis
             )
-        
+
         # Need adjustment
         print(f"⚠️  Balance issues: {issues}")
-        
+
         prompt = f"""
 # Role
 You are the **"Executive Chef"** responsible for Menu Flow & Harmony.
@@ -416,7 +462,7 @@ If balance is poor, suggest a **SWAP** (Replace X with Y) to fix the issue witho
   ]
 }}
 """
-        
+
         try:
             response = await asyncio.to_thread(
                 self.model.generate_content,
@@ -424,10 +470,10 @@ If balance is poor, suggest a **SWAP** (Replace X with Y) to fix the issue witho
                 generation_config={"response_mime_type": "application/json"}
             )
             data = json.loads(response.text)
-            
+
             adjustments = data.get("adjustments", [])
             print(f"  Suggested {len(adjustments)} adjustments")
-            
+
             return AgentDecision(
                 agent_name="BalanceChecker",
                 approved=data.get("is_balanced", False),
@@ -436,7 +482,7 @@ If balance is poor, suggest a **SWAP** (Replace X with Y) to fix the issue witho
                 suggestions=[adj.get("suggestion") for adj in adjustments],
                 metadata=analysis
             )
-            
+
         except Exception as e:
             print(f"❌ BalanceCheckerAgent Error: {e}")
             return AgentDecision(
@@ -446,26 +492,27 @@ If balance is poor, suggest a **SWAP** (Replace X with Y) to fix the issue witho
                 issues=issues + [str(e)]
             )
 
+
 class QualityAssuranceAgent(RecommendationAgentBase):
     """
     品質保證專家 (Restaurant Manager)
-    
+
     Enhanced with:
     - LLM-based semantic checks
     - Social appropriateness validation
     - Price sanity check
     """
-    
+
     async def run(self,
                   final_menu: List[Dict[str, Any]],
                   user_input: UserInputV2,
                   aggregated_data: List[Dict[str, Any]]) -> AgentDecision:
-        
+
         print("✅ QualityAssuranceAgent: Final quality check...")
-        
+
         # Hard checks (code-based)
         hard_checks = self._perform_hard_checks(final_menu, user_input)
-        
+
         # If hard checks fail (e.g., dietary violation), reject immediately
         if hard_checks.get('fatal_error'):
             print(f"❌ FATAL ERROR: {hard_checks.get('critique')}")
@@ -477,48 +524,56 @@ class QualityAssuranceAgent(RecommendationAgentBase):
                 metadata={"checks": hard_checks},
                 critique=hard_checks.get('critique')
             )
-        
+
         # Soft checks (LLM-based semantic validation)
         soft_checks = await self._perform_soft_checks(final_menu, user_input)
-        
-        all_passed = hard_checks['all_passed'] and soft_checks.get('approved', False)
-        
+
+        all_passed = hard_checks['all_passed'] and soft_checks.get(
+            'approved', False)
+
         if all_passed:
             print(f"✓ All quality checks passed!")
             return AgentDecision(
                 agent_name="QualityAssurance",
                 approved=True,
                 data=final_menu,
-                metadata={"hard_checks": hard_checks, "soft_checks": soft_checks}
-            )
+                metadata={
+                    "hard_checks": hard_checks,
+                    "soft_checks": soft_checks})
         else:
             failed_items = []
             if not hard_checks['all_passed']:
-                failed_items.extend([k for k, v in hard_checks.items() if k != 'all_passed' and k != 'fatal_error' and not v])
+                failed_items.extend([k for k, v in hard_checks.items(
+                ) if k != 'all_passed' and k != 'fatal_error' and not v])
             if not soft_checks.get('approved'):
                 failed_items.append("Semantic check failed")
-            
+
             critique = soft_checks.get('critique', 'Quality checks failed')
             print(f"⚠️  Failed checks: {failed_items}")
             print(f"   Critique: {critique}")
-            
+
             return AgentDecision(
                 agent_name="QualityAssurance",
                 approved=False,
                 data=final_menu,
                 issues=failed_items,
-                metadata={"hard_checks": hard_checks, "soft_checks": soft_checks},
-                critique=critique
-            )
-    
+                metadata={
+                    "hard_checks": hard_checks,
+                    "soft_checks": soft_checks},
+                critique=critique)
+
     def _perform_hard_checks(self, final_menu, user_input) -> Dict[str, Any]:
         """Code-based hard constraint checks"""
         checks = {}
-        
+
         # 1. Has signature dish?
-        has_signature = any(dish.get('tag') in ['必點', '招牌', '主秀'] for dish in final_menu)
+        has_signature = any(
+            dish.get('tag') in [
+                '必點',
+                '招牌',
+                '主秀'] for dish in final_menu)
         checks['has_signature'] = has_signature
-        
+
         # 2. Dietary restrictions respected? (CRITICAL)
         dietary_safe = True
         violation_details = []
@@ -527,30 +582,38 @@ class QualityAssuranceAgent(RecommendationAgentBase):
             for pref in (user_input.preferences or []):
                 if '不吃牛' in pref and ('牛' in dish_name or 'beef' in dish_name):
                     dietary_safe = False
-                    violation_details.append(f"Found beef in '{dish.get('dish_name')}' but user has 'No Beef' restriction")
+                    violation_details.append(
+                        f"Found beef in '{dish.get('dish_name')}' but user has 'No Beef' restriction")
                 if '不吃豬' in pref and ('豬' in dish_name or 'pork' in dish_name):
                     dietary_safe = False
-                    violation_details.append(f"Found pork in '{dish.get('dish_name')}' but user has 'No Pork' restriction")
-                if '素食' in pref and any(meat in dish_name for meat in ['肉', '雞', '魚', '蝦', '牛', '豬']):
+                    violation_details.append(
+                        f"Found pork in '{dish.get('dish_name')}' but user has 'No Pork' restriction")
+                if '素食' in pref and any(
+                    meat in dish_name for meat in [
+                        '肉', '雞', '魚', '蝦', '牛', '豬']):
                     dietary_safe = False
-                    violation_details.append(f"Found meat in '{dish.get('dish_name')}' but user is vegetarian")
-        
+                    violation_details.append(
+                        f"Found meat in '{dish.get('dish_name')}' but user is vegetarian")
+
         checks['dietary_safe'] = dietary_safe
         checks['fatal_error'] = not dietary_safe
         if not dietary_safe:
-            checks['critique'] = "Dietary restriction violated: " + "; ".join(violation_details)
-        
+            checks['critique'] = "Dietary restriction violated: " + \
+                "; ".join(violation_details)
+
         # 3. Quantity logic correct?
-        quantity_correct = all(dish.get('quantity', 0) > 0 for dish in final_menu)
+        quantity_correct = all(dish.get('quantity', 0) >
+                               0 for dish in final_menu)
         checks['quantity_logic'] = quantity_correct
-        
-        checks['all_passed'] = all([has_signature, dietary_safe, quantity_correct])
-        
+
+        checks['all_passed'] = all(
+            [has_signature, dietary_safe, quantity_correct])
+
         return checks
-    
+
     async def _perform_soft_checks(self, final_menu, user_input) -> Dict[str, Any]:
         """LLM-based semantic validation"""
-        
+
         prompt = f"""
 # Role
 You are the **"Restaurant Manager"** performing the final sanity check before presenting the menu to the guest.
@@ -577,7 +640,7 @@ You are the **"Restaurant Manager"** performing the final sanity check before pr
   "fatal_error": Boolean
 }}
 """
-        
+
         try:
             response = await asyncio.to_thread(
                 self.model.generate_content,
@@ -586,147 +649,292 @@ You are the **"Restaurant Manager"** performing the final sanity check before pr
             )
             data = json.loads(response.text)
             return data
-            
+
         except Exception as e:
             print(f"⚠️  Soft check failed: {e}")
             # Fallback: approve if hard checks passed
-            return {"approved": True, "critique": "Soft check unavailable, relying on hard checks"}
+            return {
+                "approved": True,
+                "critique": "Soft check unavailable, relying on hard checks"}
+
+    async def consolidate(self,
+                          base_menu: List[Dict[str, Any]],
+                          budget_decision: AgentDecision,
+                          balance_decision: AgentDecision,
+                          user_input: UserInputV2) -> AgentDecision:
+        """
+        Consolidates feedback from Budget and Balance agents to produce the final menu.
+        This is the 'Aggregator' role in the parallel architecture.
+        """
+        print("✅ QualityAssuranceAgent: Consolidating parallel feedback...")
+
+        # Prepare context for the LLM
+        budget_feedback = "None"
+        if not budget_decision.approved:
+            budget_feedback = f"Action: {budget_decision.metadata.get('action')}. Justification: {budget_decision.metadata.get('justification')}. Modified Menu Provided."
+
+        balance_feedback = "None"
+        if not balance_decision.approved:
+            balance_feedback = f"Issues: {balance_decision.issues}. Suggestions: {balance_decision.suggestions}"
+
+        # If both approved, just return base menu (or budget optimized menu if
+        # it was just a minor tweak)
+        if budget_decision.approved and balance_decision.approved:
+            print("   Both Budget and Balance approved. Returning optimized menu.")
+            return AgentDecision(
+                agent_name="QualityAssurance",
+                approved=True,
+                data=budget_decision.data,
+                # Use budget's version as it might have minor optimizations
+                metadata={"source": "auto-approval"}
+            )
+
+        prompt = f"""
+# Role
+You are the **"Final Decision Maker"** (Restaurant Manager).
+You have received a draft menu and feedback from two specialists:
+1.  **Budget Manager:** Focused on price.
+2.  **Executive Chef (Balance):** Focused on variety and taste.
+
+# Inputs
+- **Original Draft:** {json.dumps(base_menu, ensure_ascii=False, indent=2, default=str)}
+- **Budget Feedback:** {budget_feedback}
+- **Budget's Proposed Menu:** {json.dumps(budget_decision.data, ensure_ascii=False, indent=2, default=str)}
+- **Balance Feedback:** {balance_feedback}
+
+# User Context
+- Party Size: {user_input.party_size}
+- Occasion: {user_input.occasion}
+- Budget: ${user_input.budget.amount}
+
+# Task
+Synthesize a **FINAL MENU** that resolves conflicts.
+- If Budget cut a dish that Balance wants, try to find a cheaper alternative.
+- If Balance added a dish that breaks Budget, try to remove something else.
+- **Priority:** Budget > Dietary Restrictions > Balance > Flavor.
+
+# Output Format (JSON)
+{{
+  "final_menu": [
+    {{
+      "dish_name": "String",
+      "price": Integer,
+      "quantity": Integer,
+      "category": "String",
+      "tag": "String",
+      "reason": "String"
+    }}
+  ],
+  "resolution_notes": "String (Explain how you resolved the conflict)"
+}}
+"""
+        try:
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            data = json.loads(response.text)
+            final_menu = data.get("final_menu", base_menu)
+
+            # Final sanity check (hard checks only)
+            hard_checks = self._perform_hard_checks(final_menu, user_input)
+            if hard_checks.get('fatal_error'):
+                print(
+                    f"❌ Final consolidation failed fatal check: {hard_checks.get('critique')}")
+                return AgentDecision(
+                    agent_name="QualityAssurance",
+                    approved=False,
+                    data=final_menu,
+                    issues=[hard_checks.get('critique')],
+                    critique=hard_checks.get('critique')
+                )
+
+            return AgentDecision(
+                agent_name="QualityAssurance",
+                approved=True,
+                data=final_menu,
+                metadata={"resolution": data.get("resolution_notes")}
+            )
+
+        except Exception as e:
+            print(f"❌ Consolidation failed: {e}")
+            return AgentDecision(
+                agent_name="QualityAssurance",
+                approved=False,
+                data=base_menu,
+                issues=[str(e)]
+            )
+
 
 class OrchestratorAgent:
     """
     協調者 - 管理整個 Multi-Agent 推薦流程
-    
+
     Enhanced with:
     - Feedback loop (critique passing)
     - Early stopping
     - Scoring mechanism for best fallback
     - Adaptive iteration
+    - Speculative Parallelism (Strategy 4)
     """
-    
+
     def __init__(self):
         self.dish_selector = DishSelectorAgent()
         self.budget_optimizer = BudgetOptimizerAgent()
         self.balance_checker = BalanceCheckerAgent()
         self.qa_agent = QualityAssuranceAgent()
-    
-    def _calculate_menu_score(self, qa_result: AgentDecision, menu: List[Dict], user_input: UserInputV2) -> float:
+
+    def _calculate_menu_score(
+            self,
+            qa_result: AgentDecision,
+            menu: List[Dict],
+            user_input: UserInputV2) -> float:
         """Calculate menu quality score for fallback selection"""
         score = 0.0
-        
+
         # Get checks from metadata
         hard_checks = qa_result.metadata.get('hard_checks', {})
         soft_checks = qa_result.metadata.get('soft_checks', {})
-        
+
         # Critical checks (high weight)
         if hard_checks.get('dietary_safe', False):
-            score += 40  # Dietary safety is paramount
-        if hard_checks.get('has_signature', False):
-            score += 20
+            score += 50  # Dietary safety is paramount (increased from 40)
+        else:
+            # Fatal error, return very low score
+            return 0.0
+
         if hard_checks.get('quantity_logic', False):
-            score += 10
-        
-        # Soft checks
+            score += 15  # Increased from 10
+
+        # Soft checks (increased weight)
         if soft_checks.get('approved', False):
-            score += 20
-        
-        # Budget utilization bonus
-        total = sum(dish.get('price', 0) * dish.get('quantity', 1) for dish in menu)
+            score += 25  # Increased from 20
+
+        # Budget utilization bonus (increased)
+        total = sum((dish.get('price') or 0) * dish.get('quantity', 1)
+                    for dish in menu)
         utilization = total / user_input.budget.amount if user_input.budget.amount > 0 else 0
         if 0.8 <= utilization <= 1.0:
-            score += 10
+            score += 15  # Increased from 10
         elif 0.7 <= utilization < 0.8 or 1.0 < utilization <= 1.1:
-            score += 5  # Close enough
-        
+            score += 10  # Increased from 5
+        elif utilization > 0:
+            score += 5  # Any budget usage gets some points
+
+        # Bonus: has signature dish (but not required)
+        if hard_checks.get('has_signature', False):
+            score += 5  # Bonus points, not critical
+
         return score
-    
+
     async def run(self,
                   user_input: UserInputV2,
                   candidates: List[Dict[str, Any]],
                   aggregated_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        
-        print("\n" + "="*80)
-        print("🤖 Multi-Agent Recommendation System (Enhanced) Starting...")
-        print("="*80 + "\n")
-        
-        max_iterations = 3
+
+        print("\n" + "=" * 80)
+        print("🤖 Multi-Agent Recommendation System (Parallel) Starting...")
+        print("=" * 80 + "\n")
+
+        max_iterations = 2  # Reduced from 3 for speed
         current_menu = []
         previous_critique = None
         best_menu = None
         best_score = 0.0
-        
+        target_score = 80.0  # Target score for early stopping
+
         for iteration in range(max_iterations):
             print(f"\n{'─'*80}")
             print(f"🔄 Iteration {iteration + 1}/{max_iterations}")
             print(f"{'─'*80}\n")
-            
-            # Step 1: Dish Selection (with feedback loop)
+
+            # Step 1: Dish Selection (Serial)
             if iteration == 0 or not current_menu:
                 decision = await self.dish_selector.run(
                     candidates, user_input, aggregated_data
                 )
             else:
-                # Pass previous critique for improvement
                 print(f"📝 Applying feedback from previous iteration...")
                 decision = await self.dish_selector.run(
                     candidates, user_input, aggregated_data,
                     previous_critique=previous_critique
                 )
-            
+
             if not decision.approved:
                 print("❌ Dish selection failed, using candidates as fallback")
                 current_menu = candidates[:10]
             else:
                 current_menu = decision.data
-            
-            # Step 2: Budget Optimization
-            decision = await self.budget_optimizer.run(
+
+            # Step 2: Speculative Parallelism (Budget & Balance)
+            print("⚡️ Running Budget & Balance Agents in Parallel...")
+
+            budget_task = asyncio.create_task(self.budget_optimizer.run(
                 current_menu,
                 user_input.budget.amount,
                 candidates,
                 user_input
-            )
-            if decision.approved:
-                current_menu = decision.data
-            else:
-                print("⚠️  Budget optimization not perfect, but continuing...")
-                current_menu = decision.data  # Use best effort
-            
-            # Step 3: Balance Check
-            decision = await self.balance_checker.run(
+            ))
+
+            balance_task = asyncio.create_task(self.balance_checker.run(
                 current_menu,
                 user_input.dining_style,
                 user_input.party_size
+            ))
+
+            budget_decision, balance_decision = await asyncio.gather(budget_task, balance_task)
+
+            # Step 3: Consolidation (QA)
+            qa_result = await self.qa_agent.consolidate(
+                current_menu,
+                budget_decision,
+                balance_decision,
+                user_input
             )
-            if not decision.approved and decision.suggestions:
-                print(f"💡 Balance suggestions: {decision.suggestions}")
-                # Note: In a full implementation, we could loop back to DishSelector with these suggestions
-            
-            # Step 4: Quality Assurance
-            qa_result = await self.qa_agent.run(current_menu, user_input, aggregated_data)
-            
-            # Calculate score for this attempt
-            score = self._calculate_menu_score(qa_result, current_menu, user_input)
+
+            # Check result
+            final_menu = qa_result.data
+
+            # Only run full QA check on final iteration or if consolidation failed
+            # This saves time by avoiding redundant checks
+            if not qa_result.approved or iteration == max_iterations - 1:
+                qa_check_result = await self.qa_agent.run(final_menu, user_input, aggregated_data)
+            else:
+                # Use consolidation result for approved menus
+                qa_check_result = qa_result
+
+            score = self._calculate_menu_score(
+                qa_check_result, final_menu, user_input)
+
             print(f"📊 Menu Score: {score:.1f}/100")
-            
+
             if score > best_score:
-                best_menu = current_menu.copy()
+                best_menu = final_menu.copy()
                 best_score = score
                 print(f"   ⭐ New best menu!")
-            
-            # Early stopping if approved
-            if qa_result.approved:
+
+            # Early stopping: if score >= target, return immediately
+            if score >= target_score:
                 print(f"\n{'='*80}")
-                print(f"✅ Menu approved in iteration {iteration + 1}! (Score: {score:.1f}/100)")
+                print(
+                    f"🎯 Target score reached in iteration {iteration + 1}! (Score: {score:.1f}/100)")
                 print(f"{'='*80}\n")
-                return current_menu
+                return final_menu
+
+            # Also stop if both QA checks approved (even if score < 80)
+            if qa_result.approved and qa_check_result.approved:
+                print(f"\n{'='*80}")
+                print(
+                    f"✅ Menu approved in iteration {iteration + 1}! (Score: {score:.1f}/100)")
+                print(f"{'='*80}\n")
+                return final_menu
             else:
-                # Store critique for next iteration
-                previous_critique = qa_result.critique
-                print(f"⚠️  QA issues: {qa_result.issues}")
+                previous_critique = qa_check_result.critique or qa_result.critique
+                print(f"⚠️  Issues: {qa_check_result.issues}")
                 if previous_critique:
                     print(f"💬 Critique: {previous_critique[:150]}...")
-        
-        # If we exhausted iterations, return best attempt
+
         print(f"\n{'='*80}")
         print(f"⚠️  Max iterations reached. Returning best attempt.")
         print(f"   Best Score: {best_score:.1f}/100")

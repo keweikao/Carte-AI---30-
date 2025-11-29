@@ -228,6 +228,23 @@ function InputPageContents() {
                                                 setFormData(prev => ({ ...prev, place_id }));
                                             }
                                             if (name) {
+                                                // Trigger prefetch immediately
+                                                // @ts-expect-error - session type definition might be incomplete
+                                                const token = session?.id_token;
+                                                if (token) {
+                                                    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v2/prefetch_restaurant`, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            'Authorization': `Bearer ${token}`
+                                                        },
+                                                        body: JSON.stringify({
+                                                            restaurant_name: name,
+                                                            place_id: place_id
+                                                        })
+                                                    }).catch(err => console.error("Prefetch failed:", err));
+                                                }
+
                                                 setStep(2);
                                             }
                                         }}
@@ -236,9 +253,11 @@ function InputPageContents() {
                                         }}
                                         defaultValue={formData.restaurant_name}
                                     />
-                                    <p className="text-xs text-muted-foreground mt-2 text-center" id="restaurant-search-hint">
-                                        💡 請等待 Google Maps 自動帶出餐廳建議後點選，以獲得最精準的菜單資訊
-                                    </p>
+                                    <div className="flex justify-between items-start mt-2">
+                                        <p className="text-xs text-muted-foreground" id="restaurant-search-hint">
+                                            💡 請等待 Google Maps 自動帶出餐廳建議後點選，以獲得最精準的菜單資訊
+                                        </p>
+                                    </div>
                                 </div>
                                 <Button
                                     className="w-full py-6 text-lg bg-primary hover:bg-primary/90"
