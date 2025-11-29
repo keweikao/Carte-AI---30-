@@ -43,7 +43,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://dining-frontend-1045148759148.asia-east1.run.app",
-        "https://dining-frontend-u33peegeaa-de.a.run.app",  # 新增自動生成的 URL
+        "https://dining-frontend-u33peegeaa-de.a.run.app",
+        "https://dining-frontend-staging-1045148759148.asia-east1.run.app",
         "https://www.carte.tw"
     ],
     allow_credentials=True,
