@@ -314,6 +314,7 @@ Produce a single JSON object analyzing the restaurant:
   "signature_dishes": [
     {{
       "name": "String",
+      "category": "String (e.g., 'Appetizer', 'Main', 'Dessert', 'Drink')",
       "price": "String (From OCR, or 'Unknown')",
       "status": "Must Order / Hidden Gem / Controversial",
       "reasoning": "String (e.g., 'Official recommendation validated by 50+ positive reviews, specifically for the truffle sauce.')"
@@ -358,6 +359,7 @@ Produce a single JSON object analyzing the restaurant:
                 for dish in data["signature_dishes"]:
                     final_pool.append({
                         "dish_name": dish.get("name"),
+                        "category": dish.get("category", "其他"),
                         "price": dish.get("price"), # Might be a string like "$100" or "Unknown"
                         "reason": dish.get("reasoning"),
                         "source": "aggregator",

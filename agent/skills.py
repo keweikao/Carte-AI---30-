@@ -34,7 +34,7 @@ class MenuExtractionSkill:
         - Extract a JSON list of items found on the identified menu pages.
         - Format:
         [
-            {"dish_name": "Name", "price": 100, "description": "visible text"}
+            {"dish_name": "Name", "price": 100, "category": "Category Name", "description": "visible text"}
         ]
         
         Rules:
