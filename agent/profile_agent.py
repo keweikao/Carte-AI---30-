@@ -88,24 +88,8 @@ class RestaurantProfileAgent:
                 golden_profile = cached_data["golden_profile"]
                 agent_results_dict = cached_data.get("agent_results", {})
                 
-                # Reconstruct candidates from agent_results to ensure full pool availability
-                candidates = []
-                if agent_results_dict:
-                    # Visual Data
-                    if "visual" in agent_results_dict:
-                        vis_data = agent_results_dict["visual"].get("data", [])
-                        if vis_data:
-                            candidates.extend(vis_data)
-                    
-                    # Search Data
-                    if "search" in agent_results_dict:
-                        search_data = agent_results_dict["search"].get("data", [])
-                        if search_data:
-                            candidates.extend(search_data)
-                
-                # Fallback to golden profile if no candidates found in agent results
-                if not candidates:
-                    candidates = golden_profile
+                # Trust the Golden Profile as it now contains the consolidated full menu
+                candidates = golden_profile
                 
                 return {
                     "golden_profile": golden_profile,

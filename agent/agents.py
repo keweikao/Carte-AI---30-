@@ -311,19 +311,19 @@ Produce a single JSON object analyzing the restaurant:
   "restaurant_name": "String",
   "overall_verdict": "String (One sentence executive summary, e.g., 'Visual stunner with average food, best for photos not foodies.')",
   "dining_scenario": ["Date Night", "Group Gathering", "Solo"],
-  "signature_dishes": [
+  "consolidated_menu": [
     {{
       "name": "String",
       "category": "String (e.g., 'Appetizer', 'Main', 'Dessert', 'Drink')",
       "price": "String (From OCR, or 'Unknown')",
-      "status": "Must Order / Hidden Gem / Controversial",
-      "reasoning": "String (e.g., 'Official recommendation validated by 50+ positive reviews, specifically for the truffle sauce.')"
+      "status": "Must Order / Recommended / Standard / Avoid",
+      "reasoning": "String (Briefly explain status or popularity)"
     }}
   ],
   "avoid_items": [
     {{
       "name": "String",
-      "reason": "String (e.g., 'High blog buzz but consistent complaints about being undercooked in recent reviews.')"
+      "reason": "String"
     }}
   ],
   "price_analysis": {{
@@ -355,17 +355,25 @@ Produce a single JSON object analyzing the restaurant:
             
             # Transform to standard format for the main agent
             final_pool = []
-            if "signature_dishes" in data:
-                for dish in data["signature_dishes"]:
-                    final_pool.append({
-                        "dish_name": dish.get("name"),
-                        "category": dish.get("category", "其他"),
-                        "price": dish.get("price"), # Might be a string like "$100" or "Unknown"
-                        "reason": dish.get("reasoning"),
-                        "source": "aggregator",
-                        "status": dish.get("status"),
-                        "confidence_score": 95 if dish.get("status") == "Must Order" else 85
-                    })
+            # Extract the consolidated menu (which now contains ALL dishes)
+            final_pool = data.get("consolidated_menu", [])
+            
+            # Fallback for backward compatibility or hallucination
+            if not final_pool:
+                 final_pool = data.get("signature_dishes", [])
+
+            # Ensure category exists and add other standard fields
+            processed_pool = []
+            for dish in final_pool:
+                processed_pool.append({
+                    "dish_name": dish.get("name", dish.get("dish_name")), # Handle both 'name' and 'dish_name'
+                    "category": dish.get("category", "其他"),
+                    "price": dish.get("price"), # Might be a string like "$100" or "Unknown"
+                    "reason": dish.get("reasoning", dish.get("reason")), # Handle both 'reasoning' and 'reason'
+                    "source": "aggregator",
+                    "status": dish.get("status"),
+                    "confidence_score": 95 if dish.get("status") == "Must Order" else 85
+                })
             
             # We can also return the full analysis in a special way if needed, 
             # but the interface expects List[Dict].
