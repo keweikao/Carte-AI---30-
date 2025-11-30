@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Noto_Sans_TC, Caveat } from "next/font/google";
-import "./globals.css";
+import "../../app/globals.css";
 
 const display = Cormorant_Garamond({
   subsets: ["latin"],
@@ -104,11 +104,12 @@ import { getMessages } from 'next-intl/server';
 
 export default async function LocaleLayout({
   children,
-  params: { locale }
+  params
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
   // Read directly from process.env to ensure we get the runtime value from Cloud Run
   const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 

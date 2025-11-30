@@ -38,8 +38,8 @@ class VisualAgent(BaseAgent):
         if not photos_data:
             return AgentResult(source="visual", data=[], confidence=0.0)
 
-        # Fetch photos (limit to top 5 to save time/cost)
-        target_photos = photos_data[:5]
+        # Fetch photos (limit to top 10 to increase chance of finding menu)
+        target_photos = photos_data[:10]
         photo_tasks = [fetch_place_photo(photo["photo_reference"]) for photo in target_photos]
         photo_blobs = await asyncio.gather(*photo_tasks)
         

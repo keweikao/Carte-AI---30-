@@ -23,9 +23,16 @@ class MenuExtractionSkill:
 
         prompt = """
         You are a Menu Transcription Expert. 
-        Analyze these restaurant images. Identify ANY menu pages or food items with visible prices.
-        
-        Extract a JSON list of items found. Format:
+        Analyze these restaurant images. Your task is to identifying MENU PAGES and extracting prices.
+
+        Step 1: Smart Filtering
+        - Scan all images.
+        - Ignore images that are just food photos, selfies, or interior shots WITHOUT text/prices.
+        - Focus ONLY on images that look like a Menu, Bill, or Price List.
+
+        Step 2: Extraction
+        - Extract a JSON list of items found on the identified menu pages.
+        - Format:
         [
             {"dish_name": "Name", "price": 100, "description": "visible text"}
         ]
@@ -34,6 +41,7 @@ class MenuExtractionSkill:
         1. Only extract text that is clearly visible. Do NOT hallucinate.
         2. If price is missing, set price to null.
         3. Ignore non-food text (like phone numbers, addresses).
+        4. If an image contains a list of dishes with prices, capture as many as possible.
         """
 
         try:

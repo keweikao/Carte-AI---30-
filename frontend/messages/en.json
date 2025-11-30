@@ -58,7 +58,8 @@
         "empty_pool_swapped_desc": "You previously swapped {count} dishes, you can review them.",
         "keep_current": "Keep Current",
         "view_swapped": "View Swapped",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "price_on_site": "Price on Site"
     },
     "MenuPage": {
         "title": "Recommended Dishes",

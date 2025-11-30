@@ -581,7 +581,9 @@ function RecommendationPageContent() {
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                <span className="text-lg font-mono font-semibold text-foreground" aria-label={`價格 ${slot.display.price} 元`}>{data.currency || 'NT$'} {slot.display.price}</span>
+                                                                <span className="text-lg font-mono font-semibold text-foreground" aria-label={`價格 ${slot.display.price} 元`}>
+                                                                    {slot.display.price > 0 ? `${data.currency || 'NT$'} ${slot.display.price}` : t('price_on_site')}
+                                                                </span>
                                                             </div>
                                                             <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">&ldquo;{slot.display.reason}&rdquo;</p>
 

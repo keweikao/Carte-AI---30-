@@ -161,10 +161,11 @@ class RestaurantProfileAgent:
             
         # Save Analysis Results to Cache (Update the doc)
         try:
+            # Convert AgentResult objects to dicts for Firestore
             agent_results_map = {
-                "visual": visual_result,
-                "review": review_result,
-                "search": search_result
+                "visual": visual_result.to_dict() if hasattr(visual_result, 'to_dict') else visual_result.__dict__,
+                "review": review_result.to_dict() if hasattr(review_result, 'to_dict') else review_result.__dict__,
+                "search": search_result.to_dict() if hasattr(search_result, 'to_dict') else search_result.__dict__
             }
             save_restaurant_data(
                 place_id=place_id,

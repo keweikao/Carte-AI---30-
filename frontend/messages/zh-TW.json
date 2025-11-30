@@ -58,7 +58,8 @@
         "empty_pool_swapped_desc": "您之前換掉了 {count} 道菜，可以查看並重新考慮。",
         "keep_current": "保留當前菜品",
         "view_swapped": "查看之前換掉的菜品",
-        "confirm": "確定"
+        "confirm": "確定",
+        "price_on_site": "依現場為主"
     },
     "MenuPage": {
         "title": "推薦菜色",
