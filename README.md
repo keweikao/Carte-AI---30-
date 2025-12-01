@@ -1,160 +1,112 @@
-# Carte AI - 智慧餐廳點餐助手
+# OderWhat - AI 點餐推薦代理
 
-<div align="center">
+本專案旨在提供一個由大型語言模型 (LLM) 驅動的智慧點餐服務。它能夠根據使用者輸入的餐廳、人數、預算和偏好，自動分析餐廳資訊並生成一份客製化的推薦菜單。
 
-![Carte AI](https://img.shields.io/badge/Carte-AI%20Dining%20Agent-D4A574?style=for-the-badge)
-![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js)
-![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?style=for-the-badge&logo=fastapi)
-![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Run-4285F4?style=for-the-badge&logo=google-cloud)
+## 🚀 架構總覽 (Architecture Overview)
 
-**30 秒快速決定吃什麼 | AI 分析 Google 評論 | 智慧推薦菜色**
+本系統的核心架構主要分為兩個階段：**資料分析 (Profiler)** 與 **菜單推薦 (Orchestrator)**。
 
-[🌐 線上體驗](https://dining-frontend-u33peegeaa-de.a.run.app) | [📖 文檔](./docs) | [🐛 回報問題](https://github.com/keweikao/oderwhat_carte/issues)
+### 1. 資料分析階段 (Profiler Stage)
 
-</div>
+此階段負責處理一家餐廳的「冷啟動」(Cold Start)，將網路上的非結構化資料轉換為一份精煉、可信的「黃金檔案」(Golden Profile)。這個過程僅在系統首次遇到一家新餐廳時執行一次，結果會被快取至 Firestore。
 
----
+- **觸發時機**: 首次分析一家新餐廳時。
+- **核心產出**: `Golden Profile` (一份包含已驗證菜色、價格、標籤的結構化資料)。
+- **主要代理 (Agents)**:
+  - `VisualAgent`: 分析餐廳照片，識別用餐氛圍與推薦菜色。
+  - `ReviewAgent`: 分析大量使用者評論，抓取必點菜色與顧客回饋。
+  - `SearchAgent`: 從網路上搜尋菜單與補充資訊。
+  - `AggregationAgent`: **(主要瓶頸之一)** 綜合以上所有來源的資訊，進行交叉比對與去偽存真，生成最終的黃金檔案。
 
-## ✨ 功能特色
+### 2. 菜單推薦階段 (Orchestrator Stage)
 
-- 🎯 **精準避雷**: 分析數千則 Google 評論，過濾地雷菜色
-- 💰 **預算控制**: 精準控制每人預算，不超支
-- 🍽️ **智慧推薦**: AI 根據用餐人數、預算、偏好推薦菜色
-- 🔄 **即時換菜**: 不喜歡？一鍵換成其他推薦
-- 📱 **分享菜單**: 生成精美分享卡片，發給朋友
-- 🖨️ **列印友善**: 優化的列印樣式，方便點餐
+當餐廳的黃金檔案準備就緒後 (無論是即時生成還是從快取讀取)，此階段會根據使用者的即時請求來生成菜單。
 
-## 🏗️ 技術架構
-
-### 前端
-- **框架**: Next.js 16 (React 19)
-- **樣式**: Tailwind CSS 4
-- **動畫**: Framer Motion
-- **UI 組件**: Radix UI
-- **認證**: NextAuth.js (Google OAuth)
-
-### 後端
-- **框架**: FastAPI (Python)
-- **AI**: Google Gemini API
-- **搜尋**: Google Places API
-- **部署**: Google Cloud Run
-
-## 🚀 快速開始
-
-### 前置需求
-
-- Node.js >= 18.x
-- Python >= 3.11
-- Google Cloud 帳號
-
-### 本地開發
-
-#### 1. 克隆專案
-
-```bash
-git clone https://github.com/keweikao/oderwhat_carte.git
-cd oderwhat_carte
-```
-
-#### 2. 設置環境變數
-
-```bash
-# 從 Google Secret Manager 獲取環境變數
-./setup_local_env.sh
-```
-
-#### 3. 啟動前端
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-前端將在 `http://localhost:3000` 啟動
-
-#### 4. 啟動後端
-
-```bash
-cd ..
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-後端將在 `http://localhost:8000` 啟動
-
-## 📁 專案結構
-
-```
-oderwhat_carte/
-├── frontend/               # Next.js 前端應用
-│   ├── src/
-│   │   ├── app/           # App Router 頁面
-│   │   ├── components/    # React 組件
-│   │   ├── lib/           # 工具函數
-│   │   └── types/         # TypeScript 類型
-│   └── public/            # 靜態資源
-├── main.py                # FastAPI 後端主程式
-├── schemas/               # Pydantic 資料模型
-├── services/              # 業務邏輯服務
-├── docs/                  # 文檔
-└── specs/                 # 規格文件
-```
-
-## 🎨 設計系統
-
-Carte 使用雜誌風格的設計語言：
-
-- **主色調**: Caramel (#D4A574) - 溫暖、親切
-- **強調色**: Terracotta (#C85A54) - 熱情、活力
-- **輔助色**: Sage (#8B9D83) - 自然、平衡
-- **背景色**: Cream (#FFF8F0) - 柔和、舒適
-
-## 📝 開發任務
-
-查看 [DEVELOPMENT_TASKS.md](./frontend/DEVELOPMENT_TASKS.md) 了解開發進度和待辦事項。
-
-## 🚢 部署
-
-### 前端部署到 Cloud Run
-
-```bash
-cd frontend
-gcloud run deploy dining-frontend \
-  --source . \
-  --region=asia-east1 \
-  --allow-unauthenticated
-```
-
-### 後端部署到 Cloud Run
-
-```bash
-gcloud run deploy dining-backend \
-  --source . \
-  --region=asia-east1 \
-  --allow-unauthenticated
-```
-
-詳細部署指南請參考 [deployment_guide.md](./docs/deployment_guide.md)
-
-## 🤝 貢獻
-
-歡迎提交 Pull Request 或開 Issue！
-
-## 📄 授權
-
-MIT License
-
-## 👨‍💻 作者
-
-**Kewei Kao** - [@keweikao](https://github.com/keweikao)
+- **觸發時機**: 每次使用者發起推薦請求時。
+- **核心產出**: 一份為使用者量身打造的推薦菜單。
+- **主要代理 (Agents)**:
+  - `DishSelectorAgent`: **(主要瓶頸之一)** 作為核心選菜專家，根據使用者偏好和黃金檔案挑選菜色。
+  - `BalanceCheckerAgent`: 審視菜單的均衡性 (如蔬菜比例、油膩度)。
+  - `QualityAssuranceAgent`: 進行最終的品質確認與修正。
 
 ---
 
-<div align="center">
+## 📊 效能分析與瓶頸 (Performance Analysis & Bottlenecks)
 
-**由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️**
+根據最新的效能測試，我們對系統的啟動時間有了量化的了解。
 
-Made with ❤️ in Taiwan
+### 測量效能
 
-</div>
+| 狀態 | 平均耗時 | 說明 |
+| :--- | :--- | :--- |
+| **冷啟動 (Cold Start)** | **~104.1 秒** (約 1.7 分鐘) | 包含完整的 Profiler + Orchestrator 階段。 |
+| **暖啟動 (Warm Start)** | **~52.4 秒** | 已快取黃金檔案，僅執行 Orchestrator 階段。 |
+
+**結論**: 「快取預熱」策略能有效將延遲降低約 **50%**，但 **52 秒**的暖啟動時間對於使用者體驗而言依然過長，顯示 Orchestrator 階段本身也存在瓶頸。
+
+### 冷啟動代理執行時間細目
+
+以下是冷啟動過程中，各個主要代理的平均耗時分析，以找出時間瓶頸。
+
+| 代理 / 階段 (Agent / Stage) | 平均耗時 (秒) | 備註 |
+| :--- | :--- | :--- |
+| **--- ① 資料分析 (Profiler) ---** | | |
+| `[PROFILER]` 資料獲取 (Data Fetching) | 0.81 | 速度極快 |
+| `[PROFILER]` 平行代理 (Visual/Review/Search) | 21.60 | 三個代理中最慢者的時間 |
+| `[PROFILER]` **`AggregationAgent`** (整合分析) | **25.49** | **主要瓶頸 #1** |
+| **--- ② 菜單推薦 (Orchestrator) ---**| | |
+| `[ORCHESTRATOR]` **`DishSelectorAgent`** (菜色選擇) | **22.92** | **主要瓶頸 #2** (使用較慢的 Pro 模型) |
+| `[ORCHESTRATOR]` `BalanceCheckerAgent` (平衡檢查) | 10.33 | 次要瓶頸 |
+| `[ORCHESTRATOR]` `QA Agent` (品質整合) | 7.31 | - |
+| **測量總耗時** | **~88.45** | - |
+
+### 已識別的瓶頸
+
+1.  **`AggregationAgent` (25.5 秒)**: 最大的單一瓶頸。將多方來源的雜亂資訊整合成「黃金檔案」的過程極度耗時。
+2.  **`DishSelectorAgent` (22.9 秒)**: 第二大瓶頸。作為核心推薦引擎，它使用了更強大但也更慢的 `gemini-2.5-pro` 模型，並處理非常複雜的邏輯。
+3.  **平行代理群 (21.6 秒)**: 雖然是平行處理，但整個階段仍需等待最慢的那個代理完成，總耗時也超過 20 秒。
+
+---
+
+## 💡 優化路線圖 (Optimization Roadmap)
+
+基於以上分析，我們規劃了以下優化路徑以提升系統回應速度。
+
+### Tier 1: 快取預熱策略 (Cache Pre-warming)
+
+此策略旨在將「冷啟動」轉換為「暖啟動」，可直接省下約 50% 的時間。
+- **做法**: 開發一個批次處理腳本，針對特定區域 (如「大安區」) 的餐廳預先執行「資料分析」階段。
+- **進階過濾**: 為了最大化 ROI，此腳本應過濾掉效益低的目標 (如「麥當勞」等大型連鎖店)，專注於最能體現 AI 價值的獨立或特色餐廳。
+
+### Tier 2: Orchestrator 效率提升
+
+此策略旨在將「暖啟動」時間從 `~52` 秒壓縮至更合理的範圍。
+1.  **高優先 (Low-hanging Fruit)**:
+    - **將 `BalanceCheckerAgent` 無 LLM 化**: 將其檢查邏輯改為 Python 規則判斷，預計可穩定節省 **~10 秒**。
+2.  **中期實驗**:
+    - **為 `DishSelectorAgent` 更換模型**: 實驗性地將其模型從 `pro` 更換為 `flash`，並建立 A/B 測試以評估對推薦品質的影響。
+3.  **長期架構**:
+    - **快取最終推薦結果**: 針對高頻率的請求組合 (如「兩人、預算2000元」) 直接快取最終菜單，可將回應時間降至 1 秒內。
+
+---
+
+## 🛠️ 設定與已知問題 (Setup & Known Issues)
+
+-   **Firestore 索引**:
+    - 為了查詢使用者活動，`activities` 集合需要一個複合索引。若無此索引，相關查詢將會失敗。
+    - **請在 Firestore 中手動建立**:
+        - **集合 ID**: `activities`
+        - **欄位**: `type` (Ascending), `timestamp` (Ascending)
+
+-   **使用者註冊日期**:
+    - 目前 `users` 集合中的文件**沒有** `created_at` 欄位，因此無法準確追蹤新使用者註冊的數量。
+
+---
+
+## 🧪 如何運行測試 (How to Run Tests)
+
+- **效能與計時測試**:
+  - 使用以下腳本來測量冷啟動與暖啟動的時間。
+  ```bash
+  python3 test_cold_start_timing.py
+  ```
