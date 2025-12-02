@@ -107,11 +107,9 @@ class ReviewAnalyzer:
         """
 
         try:
-            async with genai.get_default_async_client(api_key=GEMINI_API_KEY) as aclient:
-                response = await aclient.models.generate_content(
-                    model='models/gemini-2.5-flash',
-                    contents=prompt
-                )
+            genai.configure(api_key=GEMINI_API_KEY)
+            model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            response = await model.generate_content_async(prompt)
             
             analysis_raw = response.text
             if analysis_raw.startswith("```json"):
