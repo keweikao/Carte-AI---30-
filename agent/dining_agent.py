@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from schemas.recommendation import UserInputV2, RecommendationResponseV2, MenuItemV2, DishSlotResponse, RecommendationRequest, FullRecommendationResponse
 from agent.data_fetcher import fetch_place_details, fetch_menu_from_search, fetch_place_photo
 from agent.prompt_builder import create_prompt_for_gemini_v2
-from services.firestore_service import get_cached_data, save_restaurant_data, get_user_profile, save_recommendation_candidates, save_user_activity
+# from services.firestore_service import get_cached_data, save_restaurant_data, get_user_profile, save_recommendation_candidates, save_user_activity
 
 load_dotenv()
 
@@ -46,23 +46,23 @@ class DiningAgent:
         candidates = profile_data["candidates"]
         reviews_data = profile_data["reviews_data"]
         
-        # 2. User Profiling & Activity Logging
+        # 2. User Profiling & Activity Logging (Temporarily disabled for MVP focus)
         user_profile = {}
-        if request.user_id:
-            try:
-                user_profile = get_user_profile(request.user_id)
-                save_user_activity(request.user_id, "search", {
-                    "restaurant_name": request.restaurant_name,
-                    "place_id": request.place_id,
-                    "dining_style": request.dining_style,
-                    "party_size": request.party_size,
-                    "budget": request.budget.model_dump(),
-                    "occasion": request.occasion,
-                    "preferences": request.preferences
-                })
-            except Exception as e:
-                print(f"Warning: Failed to get user profile or save activity. Error: {e}")
-
+        # if request.user_id:
+        #     try:
+        #         user_profile = get_user_profile(request.user_id)
+        #         save_user_activity(request.user_id, "search", {
+        #             "restaurant_name": request.restaurant_name,
+        #             "place_id": request.place_id,
+        #             "dining_style": request.dining_style,
+        #             "party_size": request.party_size,
+        #             "budget": request.budget.model_dump(),
+        #             "occasion": request.occasion,
+        #             "preferences": request.preferences
+        #         })
+        #     except Exception as e:
+        #         print(f"Warning: Failed to get user profile or save activity. Error: {e}")
+        
         # 3. Strategy Layer: Generate Menu
         # This runs DishSelector, BudgetOptimizer, BalanceChecker, QA agents
         final_menu_dicts = await self.orchestrator.run(request, candidates, golden_profile)
@@ -147,33 +147,33 @@ class DiningAgent:
             "nutritional_balance_note": "由 AI 智慧主廚為您精心調配的均衡菜單。",
             "recommendation_id": recommendation_id,
             "restaurant_name": request.restaurant_name,
-            "user_info": user_profile.get("user_info", {}),
+            "user_info": {}, # Temporarily disabled
             "cuisine_type": cuisine_type,
             "category_summary": dict(category_summary),
             "currency": "TWD", # Default for now
         }
 
         # 8. Background Tasks (Memory & Cache)
-        # Save candidates for alternatives/add-ons
-        try:
-            asyncio.create_task(asyncio.to_thread(save_recommendation_candidates, recommendation_id, candidates, cuisine_type))
-        except Exception as e:
-            print(f"Warning: Failed to save candidates. Error: {e}")
+        # Save candidates for alternatives/add-ons (Temporarily disabled)
+        # try:
+        #     asyncio.create_task(asyncio.to_thread(save_recommendation_candidates, recommendation_id, candidates, cuisine_type))
+        # except Exception as e:
+        #     print(f"Warning: Failed to save candidates. Error: {e}")
 
-        # Update Memory
-        user_id = getattr(request, 'user_id', None)
-        if user_id:
-            try:
-                from agent.memory_agent import MemoryAgent
-                memory_agent = MemoryAgent()
-                asyncio.create_task(memory_agent.update_dining_patterns(
-                    user_id=user_id,
-                    party_size=request.party_size,
-                    dining_style=request.dining_style,
-                    occasion=request.occasion or 'casual'
-                ))
-            except Exception as e:
-                print(f"Warning: Failed to update memory. Error: {e}")
+        # Update Memory (Temporarily disabled)
+        # user_id = getattr(request, 'user_id', None)
+        # if user_id:
+        #     try:
+        #         from agent.memory_agent import MemoryAgent
+        #         memory_agent = MemoryAgent()
+        #         asyncio.create_task(memory_agent.update_dining_patterns(
+        #             user_id=user_id,
+        #             party_size=request.party_size,
+        #             dining_style=request.dining_style,
+        #             occasion=request.occasion or 'casual'
+        #         ))
+        #     except Exception as e:
+        #         print(f"Warning: Failed to update memory. Error: {e}")
 
         print(f"✓ Recommendation Process Complete. ID: {recommendation_id}")
         return RecommendationResponseV2.model_validate(response_data)

@@ -1,0 +1,44 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/oderwhat-staging:$BUILD_ID'
+      - '.'
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push
+    args:
+      - 'push'
+      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/oderwhat-staging:$BUILD_ID'
+
+  # Deploy the container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: Deploy
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'oderwhat-staging'
+      - '--image'
+      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/oderwhat-staging:$BUILD_ID'
+      - '--region'
+      - 'asia-east1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated' # Adjust based on your needs
+      - '--service-account'
+      - '1045148759148-compute@developer.gserviceaccount.com' # As per user's instruction
+      - '--update-secrets'
+      - 'GEMINI_API_KEY=GEMINI_API_KEY:latest'
+      - '--update-secrets'
+      - 'APIFY_API_TOKEN=APIFY_API_TOKEN:latest'
+
+images:
+  - 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/oderwhat-staging:$BUILD_ID'
+tags:
+  - 'cloud-run-deployment'
+  - 'oderwhat-staging'

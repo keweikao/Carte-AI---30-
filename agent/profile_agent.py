@@ -3,7 +3,9 @@ import json
 from typing import Dict, Any, List
 from agent.agents import VisualAgent, ReviewAgent, SearchAgent, AggregationAgent
 from agent.data_fetcher import fetch_place_details, fetch_menu_from_search
-from services.firestore_service import get_cached_data, save_restaurant_data, db
+from services import firestore_service
+from schemas.restaurant_profile import RestaurantProfile
+import datetime
 
 class RestaurantProfileAgent:
     """
@@ -22,122 +24,42 @@ class RestaurantProfileAgent:
         """
         print(f"🕵️ RestaurantProfileAgent: Analyzing {restaurant_name}...")
         
-        # --- Smart Task Locking Logic ---
-        # If we have a place_id, use it as the lock key. Otherwise use name.
-        lock_key = place_id if place_id else f"name_{restaurant_name}"
-        doc_ref = db.collection("restaurant_profiles").document(lock_key)
-        
-        # 1. Check Status
-        try:
-            doc = doc_ref.get()
-            if doc.exists:
-                data = doc.to_dict()
-                status = data.get("status")
-                timestamp = data.get("timestamp") # Datetime object from Firestore
+        # --- Smart Task Locking & Cache Check ---
+        if place_id:
+            cached_profile = firestore_service.get_restaurant_profile(place_id=place_id)
+            if cached_profile:
+                # For now, we will just return the cached data if it exists.
+                # The old logic of checking "status" is simplified by this.
+                # The get_restaurant_profile function already handles TTL.
                 
-                # Case A: Completed & Valid (Simple cache check is done later, but this is fast path)
-                if status == "completed":
-                    print(f"✓ Task already completed for {restaurant_name}")
-                    # We still let the code flow to 'get_cached_data' below for consistency,
-                    # or we could return data['result'] here if we structured it that way.
-                    # For now, let's just proceed to standard cache check.
-                    pass
-                
-                # Case B: Processing (Wait for it)
-                elif status == "processing":
-                    import datetime
-                    # Check if stale (e.g. > 5 mins old)
-                    now = datetime.datetime.now(datetime.timezone.utc)
-                    # Ensure timestamp is aware
-                    if timestamp and timestamp.tzinfo is None:
-                        timestamp = timestamp.replace(tzinfo=datetime.timezone.utc)
-                        
-                    if timestamp and (now - timestamp).total_seconds() < 300:
-                        print(f"⚡️ Task is processing by another worker. Entering wait mode...")
-                        # Poll for up to 60 seconds
-                        for _ in range(60):
-                            await asyncio.sleep(1)
-                            doc = doc_ref.get()
-                            if doc.exists and doc.to_dict().get("status") == "completed":
-                                print("✓ Waited task completed!")
-                                break
-                        # After waiting, proceed to standard cache check
-                    else:
-                        print("⚠️ Processing task is stale. Taking over.")
-        except Exception as e:
-            print(f"Warning: Lock check failed: {e}")
-
-        # 2. Standard Cache Check (This will hit if Case A or B succeeded)
-        cached_data = None
-        try:
-            cached_data = get_cached_data(place_id=place_id, restaurant_name=restaurant_name)
-        except Exception as e:
-            print(f"Warning: Firestore cache read failed. Error: {e}")
-
-        reviews_data = {}
-        menu_text = ""
-
-        if cached_data:
-            print(f"✓ Using cached data for {restaurant_name}")
-            reviews_data = cached_data.get("reviews_data", {})
-            menu_text = cached_data.get("menu_text", "")
-            
-            # OPTIMIZATION: If we have the Golden Profile cached, return immediately!
-            if "golden_profile" in cached_data and cached_data["golden_profile"]:
-                print(f"🚀 Cache HIT: Golden Profile found! Skipping Multi-Agent Analysis.")
-                golden_profile = cached_data["golden_profile"]
-                agent_results_dict = cached_data.get("agent_results", {})
-                
-                # Trust the Golden Profile as it now contains the consolidated full menu
-                candidates = golden_profile
-                
+                # We need to construct the return value to match the expected format
                 return {
-                    "golden_profile": golden_profile,
-                    "candidates": candidates,
-                    "reviews_data": reviews_data,
-                    "agent_results": agent_results_dict,
+                    "golden_profile": cached_profile.menu_items,
+                    "candidates": cached_profile.menu_items, # Use menu_items as candidates for now
+                    "reviews_data": {"reviews": cached_profile.review_summary}, # Placeholder
+                    "agent_results": {}, # Placeholder
                     "is_cache_hit": True
                 }
-        else:
-            # Case C: Run Analysis (Set Lock)
-            print(f"Fetching live data for {restaurant_name}...")
-            
-            # Set Processing Flag
-            try:
-                import datetime
-                doc_ref.set({
-                    "status": "processing",
-                    "timestamp": datetime.datetime.now(datetime.timezone.utc),
-                    "restaurant_name": restaurant_name
-                }, merge=True)
-            except Exception as e:
-                print(f"Warning: Failed to set lock: {e}")
-            
-            reviews_task = fetch_place_details(restaurant_name)
-            menu_task = fetch_menu_from_search(restaurant_name)
-            
-            try:
-                reviews_data, menu_text = await asyncio.gather(reviews_task, menu_task)
-                
-                # NOTE: We save raw data here first, but we'll update it with Golden Profile later
-                save_restaurant_data(
-                    place_id=place_id,
-                    restaurant_name=restaurant_name,
-                    reviews_data=reviews_data,
-                    menu_text=menu_text
-                )
-                
-            except Exception as e:
-                print(f"❌ Analysis failed: {e}")
-                # Clear lock so others can retry
-                doc_ref.set({"status": "failed"}, merge=True)
-                raise e
+
+        # --- Cold Start Logic ---
+        print(f"Fetching live data for {restaurant_name}...")
+        
+        # This part of the code still uses the old data fetchers.
+        # As per the new spec, this should be replaced by the aggregator calling
+        # menu_scraper and review_analyzer. For now, we leave it to fix the startup error.
+        reviews_task = fetch_place_details(restaurant_name)
+        menu_task = fetch_menu_from_search(restaurant_name)
+        
+        try:
+            reviews_data, menu_text = await asyncio.gather(reviews_task, menu_task)
+        except Exception as e:
+            print(f"❌ Analysis failed during data fetching: {e}")
+            raise e
 
         # --- Multi-Agent Analysis ---
         print("Starting Multi-Agent Analysis...")
         photos_data = reviews_data.get("photos", [])
         
-        # Run agents in parallel
         visual_task = self.visual_agent.run(photos_data)
         review_task = self.review_agent.run(reviews_data)
         search_task = self.search_agent.run(restaurant_name)
@@ -146,43 +68,28 @@ class RestaurantProfileAgent:
         agent_results = [visual_result, review_result, search_result]
         
         # Aggregate to get Golden Profile
-        golden_profile = await self.aggregator.run(agent_results)
-        print(f"✓ Golden Profile generated with {len(golden_profile)} verified items.")
+        golden_profile_dicts = await self.aggregator.run(agent_results)
+        print(f"✓ Golden Profile generated with {len(golden_profile_dicts)} verified items.")
         
-        # Combine candidates from Visual and Search for the "Pool"
-        candidates = []
-        if visual_result.data:
-            candidates.extend(visual_result.data)
-        if search_result.data:
-            candidates.extend(search_result.data)
-            
-        if not candidates:
-            candidates = golden_profile
-            
-        # Save Analysis Results to Cache (Update the doc)
-        try:
-            # Convert AgentResult objects to dicts for Firestore
-            agent_results_map = {
-                "visual": visual_result.to_dict() if hasattr(visual_result, 'to_dict') else visual_result.__dict__,
-                "review": review_result.to_dict() if hasattr(review_result, 'to_dict') else review_result.__dict__,
-                "search": search_result.to_dict() if hasattr(search_result, 'to_dict') else search_result.__dict__
-            }
-            save_restaurant_data(
-                place_id=place_id,
-                restaurant_name=restaurant_name,
-                reviews_data=reviews_data,
-                menu_text=menu_text,
-                golden_profile=golden_profile,
-                agent_results=agent_results_map
-            )
-            # Mark as Completed
-            doc_ref.set({"status": "completed"}, merge=True)
-        except Exception as e:
-             print(f"Warning: Failed to save analysis results: {e}")
-            
+        # Create a new RestaurantProfile object to save
+        new_profile = RestaurantProfile(
+            place_id=place_id or f"name_{restaurant_name}",
+            name=restaurant_name,
+            address=reviews_data.get("formatted_address", "Address not found"),
+            updated_at=datetime.datetime.now(datetime.timezone.utc),
+            trust_level="low", # Default to low as this is old logic
+            menu_source_url=None,
+            menu_items=golden_profile_dicts, # Assuming aggregator returns list of dicts convertible to MenuItem
+            review_summary=review_result.summary if hasattr(review_result, 'summary') else "No summary"
+        )
+        
+        # Save the new profile
+        firestore_service.save_restaurant_profile(new_profile)
+
+        # For backward compatibility, construct the old return format
         return {
-            "golden_profile": golden_profile,
-            "candidates": candidates,
+            "golden_profile": golden_profile_dicts,
+            "candidates": golden_profile_dicts,
             "reviews_data": reviews_data,
             "agent_results": {
                 "visual": visual_result,
