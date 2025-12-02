@@ -54,8 +54,8 @@ async def get_restaurant_data(place_id: str, name: str) -> Optional[RestaurantPr
     reviews_from_apify = await analyzer.fetch_reviews_apify(place_id=place_id, restaurant_name=name)
     
     final_menu_items, review_summary = await analyzer.analyze_and_fuse_reviews(
-        reviews=reviews_from_apify, 
-        standard_menu_list=menu_items
+        reviews=reviews_from_apify,
+        menu_items=menu_items
     )
 
     # Step 3: Create final profile and persist
