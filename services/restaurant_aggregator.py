@@ -20,39 +20,46 @@ async def get_restaurant_data(place_id: str, name: str) -> Optional[RestaurantPr
 
     # 2. Cold Start Logic
     print(f"--- Aggregator: Cache miss. Starting Cold Start for {name} ---")
-    
+
     # Initialize services
     scraper = MenuScraper()
     analyzer = ReviewAnalyzer()
 
     # --- Ingestion and Processing ---
-    
+
     # Step 1: Get Menu
     menu_url = await scraper.search_menu_url(name)
     menu_items = []
     trust_level = "low"
-    
+    restaurant_address = "Address not available"  # Default
+
     if menu_url:
         menu_text = await scraper.fetch_and_parse_with_jina(menu_url)
         if menu_text:
             menu_items = await scraper.extract_menu_with_gemini(menu_text)
             trust_level = "high" if menu_items else "low"
-    
+
     # Fallback if text-based scraping fails
     if not menu_items:
         print("Text-based scraping failed or yielded no results. Using Vision API fallback.")
-        # NOTE: The Apify call to get image URLs should be integrated here.
-        # For now, we continue to use the placeholder Vision fallback.
-        menu_items = await scraper.vision_api_fallback(place_id)
+        menu_items = await scraper.vision_api_fallback(place_id, name)
         trust_level = "medium"
 
     if not menu_items:
         print(f"Could not generate a menu for {name}. Aborting.")
         return None
 
-    # Step 2: Get Reviews and Fuse
+    # Step 2: Get Reviews and Fuse (also fetch address from Apify)
     reviews_from_apify = await analyzer.fetch_reviews_apify(place_id=place_id, restaurant_name=name)
-    
+
+    # Try to get address from the reviews fetch (which uses Apify)
+    # We need to modify fetch_reviews_apify to return address too, but for now use a helper
+    try:
+        restaurant_address = await _fetch_restaurant_address(place_id, name)
+    except Exception as e:
+        print(f"Could not fetch restaurant address: {e}")
+        restaurant_address = "Address not available"
+
     final_menu_items, review_summary = await analyzer.analyze_and_fuse_reviews(
         reviews=reviews_from_apify,
         menu_items=menu_items
@@ -62,7 +69,7 @@ async def get_restaurant_data(place_id: str, name: str) -> Optional[RestaurantPr
     new_profile = RestaurantProfile(
         place_id=place_id,
         name=name,
-        address="Address placeholder", # This should come from Apify/Serper
+        address=restaurant_address,
         updated_at=datetime.datetime.now(datetime.timezone.utc),
         trust_level=trust_level,
         menu_source_url=menu_url,
@@ -74,3 +81,39 @@ async def get_restaurant_data(place_id: str, name: str) -> Optional[RestaurantPr
     firestore_service.save_restaurant_profile(new_profile)
 
     return new_profile
+
+async def _fetch_restaurant_address(place_id: str, restaurant_name: str) -> str:
+    """
+    Helper function to fetch restaurant address from Apify.
+    """
+    from apify_client import ApifyClientAsync
+    import os
+
+    APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN")
+    if not APIFY_API_TOKEN:
+        return "Address not available"
+
+    try:
+        client = ApifyClientAsync(APIFY_API_TOKEN)
+        actor_call = await client.actor("compass~crawler-google-places").call(
+            run_input={
+                "searchStringsArray": [restaurant_name],
+                "maxImages": 0,
+                "maxReviews": 0,
+                "language": "zh-TW",
+            }
+        )
+
+        list_items = []
+        async for item in client.dataset(actor_call["defaultDatasetId"]).iterate_items():
+            list_items.append(item)
+
+        if list_items and "address" in list_items[0]:
+            address = list_items[0]["address"]
+            print(f"Fetched address from Apify: {address}")
+            return address
+
+        return "Address not available"
+    except Exception as e:
+        print(f"Error fetching address from Apify: {e}")
+        return "Address not available"

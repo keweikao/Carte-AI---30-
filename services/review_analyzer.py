@@ -6,7 +6,7 @@ from apify_client import ApifyClientAsync
 from dotenv import load_dotenv
 from typing import List, Tuple, Dict
 
-from schemas.restaurant_profile import MenuItem
+from schemas.restaurant_profile import MenuItem, MenuItemAnalysis
 
 load_dotenv()
 
@@ -131,11 +131,12 @@ class ReviewAnalyzer:
                     analysis = analysis_map[menu_item.name]
                     menu_item.is_popular = True # If it's mentioned, it's popular
                     menu_item.is_risky = analysis.get("is_risky", False)
-                    menu_item.ai_insight = {
-                        "sentiment": analysis.get("sentiment", "neutral"),
-                        "summary": analysis.get("summary", ""),
-                        "mention_count": analysis.get("mention_count", 0)
-                    }
+                    # Create MenuItemAnalysis object instead of dict
+                    menu_item.ai_insight = MenuItemAnalysis(
+                        sentiment=analysis.get("sentiment", "neutral"),
+                        summary=analysis.get("summary", ""),
+                        mention_count=analysis.get("mention_count", 0)
+                    )
             
             print("Successfully analyzed reviews and fused insights into menu.")
             return menu_items, overall_summary
