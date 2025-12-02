@@ -2,7 +2,7 @@ import os
 import asyncio
 import json
 import google.generativeai as genai
-# from google.generativeai.client import Client # Removed incorrect import
+from apify_client import ApifyClientAsync
 from dotenv import load_dotenv
 from typing import List, Tuple, Dict
 
