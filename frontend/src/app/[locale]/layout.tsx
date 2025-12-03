@@ -95,6 +95,7 @@ import { Analytics } from "@/lib/analytics";
 import Script from "next/script";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { PWAInstaller } from "@/components/pwa-installer";
+import { PWAProvider } from "@/contexts/PWAContext";
 
 import { InAppBrowserGuard } from "@/components/InAppBrowserGuard";
 
@@ -165,16 +166,18 @@ export default async function LocaleLayout({
         ].join(" ")}
       >
         <NextIntlClientProvider messages={messages}>
-          <InAppBrowserGuard />
-          <AuthProvider>
-            <Header />
-            {children}
-            <Toaster />
-            <NetworkStatus />
-            <PWAInstaller />
-            <Analytics gaId={GA_MEASUREMENT_ID} />
-            <WebVitalsReporter />
-          </AuthProvider>
+          <PWAProvider>
+            <InAppBrowserGuard />
+            <AuthProvider>
+              <Header />
+              {children}
+              <Toaster />
+              <NetworkStatus />
+              <PWAInstaller />
+              <Analytics gaId={GA_MEASUREMENT_ID} />
+              <WebVitalsReporter />
+            </AuthProvider>
+          </PWAProvider>
         </NextIntlClientProvider>
       </body>
     </html>

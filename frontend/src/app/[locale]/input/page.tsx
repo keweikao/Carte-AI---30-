@@ -152,6 +152,9 @@ function InputPageContents() {
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6 font-sans relative overflow-hidden">
             {/* Background Decoration */}
             <div className="w-full max-w-md">
+                <div className="flex justify-end mb-4">
+                    <InstallButton />
+                </div>
                 <AnimatePresence mode="wait">
                     {/* Step 1: Restaurant Name */}
                     {step === 1 && (

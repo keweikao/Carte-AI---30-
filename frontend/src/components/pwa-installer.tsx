@@ -1,71 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
-}
+import { usePWA } from '@/contexts/PWAContext';
 
 export function PWAInstaller() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-
-  useEffect(() => {
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('[PWA] Service Worker registered:', registration.scope);
-
-            // Check for updates periodically
-            setInterval(() => {
-              registration.update();
-            }, 60000); // Check every minute
-          })
-          .catch((error) => {
-            console.error('[PWA] Service Worker registration failed:', error);
-          });
-      });
-    }
-
-    // Listen for beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('[PWA] beforeinstallprompt event fired');
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setIsInstallable(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Listen for app installed event
-    window.addEventListener('appinstalled', () => {
-      console.log('[PWA] App installed');
-      setDeferredPrompt(null);
-      setIsInstallable(false);
-    });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    console.log(`[PWA] User response: ${outcome}`);
-
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      setIsInstallable(false);
-    }
-  };
+  const { isInstallable, install, ignore } = usePWA();
 
   // Show install button only if installable
   if (!isInstallable) {
@@ -100,13 +38,13 @@ export function PWAInstaller() {
             </p>
             <div className="flex gap-2">
               <button
-                onClick={handleInstallClick}
+                onClick={install}
                 className="px-4 py-2 bg-sage-600 text-white rounded-md text-sm font-medium hover:bg-sage-700 transition-colors"
               >
                 安裝
               </button>
               <button
-                onClick={() => setIsInstallable(false)}
+                onClick={ignore}
                 className="px-4 py-2 bg-cream-200 text-charcoal rounded-md text-sm font-medium hover:bg-cream-300 transition-colors"
               >
                 稍後
@@ -118,3 +56,4 @@ export function PWAInstaller() {
     </div>
   );
 }
+

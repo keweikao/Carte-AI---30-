@@ -6,7 +6,8 @@ import { useSession } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, Info, Crown } from "lucide-react";
+import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, Info } from "lucide-react";
+import { InstallButton } from "@/components/install-button";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync } from "@/lib/api";
@@ -158,7 +159,7 @@ function RecommendationPageContent() {
                 const rawMode = searchParams.get("mode");
                 const dining_style = (rawMode === "Shared" || rawMode === "sharing") ? "Shared" : "Individual";
                 const dish_count_str = searchParams.get("dish_count");
-                const budgetStr = searchParams.get("budget") || "";
+                const dish_count_str = searchParams.get("dish_count");
                 const occasion = searchParams.get("occasion") || undefined;
 
                 const requestData: UserInputV2 = {
@@ -262,7 +263,7 @@ function RecommendationPageContent() {
         prevAllDecidedRef.current = allDecided;
     }, [slotStatus, dishSlots.length]);
 
-    const handleSelect = (dishName: string, _: number) => {
+    const handleSelect = (dishName: string) => {
         setSlotStatus(prev => {
             const newStatus = new Map(prev);
             const currentStatus = newStatus.get(dishName);
@@ -500,7 +501,7 @@ function RecommendationPageContent() {
                 <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur" role="banner">
                     <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
                         <Button variant="ghost" onClick={handleBackToSettings} className="gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4" aria-label={t('back_button')}><ArrowLeft className="w-4 h-4" aria-hidden="true" />{t('back_button')}</Button>
-
+                        <InstallButton />
                     </div>
                 </div>
 
@@ -584,7 +585,7 @@ function RecommendationPageContent() {
                                                                 <Button
                                                                     size="sm"
                                                                     className={`flex-1 h-9 rounded-full ${status === 'selected' ? 'bg-green-600 hover:bg-green-700' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'} transition-colors`}
-                                                                    onClick={() => handleSelect(slot.display.dish_name, index)}
+                                                                    onClick={() => handleSelect(slot.display.dish_name)}
                                                                     aria-label={status === 'selected' ? `移除 ${slot.display.dish_name}` : `加入 ${slot.display.dish_name}`}
                                                                     aria-pressed={status === 'selected'}
                                                                 >
