@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, User, Briefcase, Heart, Dumbbell, Home, Zap, Compass, Crown } from "lucide-react";
+import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, Briefcase, Heart, Dumbbell, Home, Zap, Compass, Crown } from "lucide-react";
 // import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
 import { TagInput } from "@/components/tag-input"; // New import

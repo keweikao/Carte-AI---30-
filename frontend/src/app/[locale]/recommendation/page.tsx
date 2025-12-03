@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, AlertTriangle, Info, Crown } from "lucide-react";
+import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, Info, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { getAlternatives, finalizeOrder, requestAddOn, UserInputV2, getRecommendationsAsync } from "@/lib/api";
@@ -127,7 +127,6 @@ function RecommendationPageContent() {
 
     // V3 states
     const [dishSlots, setDishSlots] = useState<DishSlot[]>([]);
-    const [totalPrice, setTotalPrice] = useState<number>(0);
     const [slotStatus, setSlotStatus] = useState<Map<string, 'pending' | 'selected'>>(new Map());
     const [swappingSlots, setSwappingSlots] = useState<Set<number>>(new Set());
 
@@ -160,7 +159,6 @@ function RecommendationPageContent() {
                 const dining_style = (rawMode === "Shared" || rawMode === "sharing") ? "Shared" : "Individual";
                 const dish_count_str = searchParams.get("dish_count");
                 const budgetStr = searchParams.get("budget") || "";
-                const budgetAmount = parseInt(budgetStr) || (dining_style === "Shared" ? 2000 : 500);
                 const occasion = searchParams.get("occasion") || undefined;
 
                 const requestData: UserInputV2 = {
@@ -264,7 +262,7 @@ function RecommendationPageContent() {
         prevAllDecidedRef.current = allDecided;
     }, [slotStatus, dishSlots.length]);
 
-    const handleSelect = (dishName: string, slotIndex: number) => {
+    const handleSelect = (dishName: string, _: number) => {
         setSlotStatus(prev => {
             const newStatus = new Map(prev);
             const currentStatus = newStatus.get(dishName);
@@ -340,7 +338,6 @@ function RecommendationPageContent() {
 
             currentSlot.display = newDish;
             setDishSlots(newSlots); // Update the slots state
-            setTotalPrice(prev => prev - oldDish.price + (newDish as MenuItem).price);
 
             setSlotStatus(prev => {
                 const newMap = new Map(prev);
@@ -427,7 +424,7 @@ function RecommendationPageContent() {
                 });
 
                 // Update total price
-                setTotalPrice(prev => prev + (newDish.price * newDish.quantity));
+                // setTotalPrice(prev => prev + (newDish.price * newDish.quantity));
 
                 // Show success message (you can add a toast here)
                 console.log(`${t('add_success')}${newDish.dish_name}`);
@@ -440,10 +437,7 @@ function RecommendationPageContent() {
         }
     };
 
-    const handleAdjustBudget = () => {
-        // setShowBudgetWarning(false);
-        router.push(`/input?${searchParams.toString()}`);
-    };
+
 
     const handleBackToSettings = () => {
         router.push(`/input?${searchParams.toString()}`);
@@ -480,7 +474,6 @@ function RecommendationPageContent() {
                 onComplete={(result: RecommendationData) => {
                     setData(result);
                     setDishSlots(result.items);
-                    setTotalPrice(result.total_price);
                     const initialStatus = new Map<string, 'pending' | 'selected'>();
                     // Default to pending (let user select)
                     result.items.forEach((slot: DishSlot) => initialStatus.set(slot.display.dish_name, 'pending'));
@@ -498,7 +491,7 @@ function RecommendationPageContent() {
     if (error) return <ErrorState error={error} />;
     if (!data) return null;
 
-    const allDecided = Array.from(slotStatus.values()).every(status => status === 'selected');
+
 
 
     return (
