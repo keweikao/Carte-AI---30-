@@ -24,23 +24,23 @@
 ## 2. 待驗證項目 (Validation Required)
 
 ### 2.1 功能驗證
-- [ ] **跨國搜尋測試**: 找一家日本餐廳 (如: Afuri Ramen) 和韓國餐廳測試搜尋結果。
-- [ ] **Serper 403 修復**: 確認 API Key 是否有效，以及 403 錯誤是否解決。
+- [x] **跨國搜尋測試**: 找一家日本餐廳 (如: Afuri Ramen) 和韓國餐廳測試搜尋結果。
+- [x] **Serper 403 修復**: 確認 API Key 是否有效，以及 403 錯誤是否解決。
 - [ ] **Review Extraction 品質**: 確認 50 則評論是否能穩定提取出高品質菜單。
 
 ### 2.2 部署驗證
-- [ ] **Production Deployment**: 部署到 Cloud Run 並監控日誌。
+- [ ] **Production Deployment**: 部署中...
 - [ ] **Cold Start 速度**: 確認是否達到預期的 50-60 秒目標。
 
 ## 3. 後續優化規劃 (Future Improvements)
 
 ### 3.1 穩定性提升 (Stability)
-- [ ] **Gemini 結構化輸出**: 使用 `response_schema` 強制 Gemini 輸出 Pydantic 物件，解決 JSON 解析錯誤。
-- [ ] **Firestore 快取**: 實作 Web Search 結果的快取，避免重複搜尋 (節省 Serper 費用)。
+- [x] **Gemini 結構化輸出**: 使用 `response_schema` 強制 Gemini 輸出 Pydantic 物件，解決 JSON 解析錯誤。
+- [x] **Firestore 快取**: 實作 Web Search 結果的快取，避免重複搜尋 (節省 Serper 費用)。
 
 ### 3.2 使用者體驗 (UX)
-- [ ] **Polling 機制**: 前端改為輪詢 `/v2/recommendations/status/{job_id}`，解決瀏覽器 Timeout。
-- [ ] **漸進式載入**: 先顯示圖片和評論摘要，再顯示詳細菜單。
+- [x] **Polling 機制**: 後端已實作非同步 API 和 Job Manager。
+- [x] **等待畫面**: 前端已開發 `WaitingScreen` 組件。
 
 ### 3.3 成本控制 (Cost)
 - [ ] **監控 Serper 用量**: 設定預算警報，避免意外高額費用。
