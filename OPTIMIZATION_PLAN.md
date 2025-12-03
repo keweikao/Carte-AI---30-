@@ -29,7 +29,7 @@
 - [ ] **Review Extraction 品質**: 確認 50 則評論是否能穩定提取出高品質菜單。
 
 ### 2.2 部署驗證
-- [ ] **Production Deployment**: 部署中...
+- [ ] **Production Deployment**: 部署中 (修正 Secret 配置後重試)...
 - [ ] **Cold Start 速度**: 確認是否達到預期的 50-60 秒目標。
 
 ## 3. 後續優化規劃 (Future Improvements)
@@ -37,6 +37,7 @@
 ### 3.1 穩定性提升 (Stability)
 - [x] **Gemini 結構化輸出**: 使用 `response_schema` 強制 Gemini 輸出 Pydantic 物件，解決 JSON 解析錯誤。
 - [x] **Firestore 快取**: 實作 Web Search 結果的快取，避免重複搜尋 (節省 Serper 費用)。
+- [x] **模型升級**: 全面升級至 `gemini-2.5-flash`，兼顧速度與穩定性。
 
 ### 3.2 使用者體驗 (UX)
 - [x] **Polling 機制**: 後端已實作非同步 API 和 Job Manager。

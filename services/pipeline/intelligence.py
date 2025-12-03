@@ -40,7 +40,7 @@ class MenuParser:
             print(f"[MenuParser] Parsing menu from text ({len(content)} chars)")
 
             # Use stable text model
-            model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
             prompt = f"""
 你是一個專業的菜單分析助手。請從以下文字中提取菜單資訊，並以 JSON 格式回傳。
@@ -525,7 +525,7 @@ class InsightEngine:
             # Filter out reviews with None text and use first 15 valid reviews
             review_texts = [f"({r.rating}★) {r.text}" for r in reviews if r.text][:15]
 
-            model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            model = genai.GenerativeModel('gemini-2.5-pro')
 
             prompt = f"""
 你是一個專業的餐廳評價分析師。請分析顧客評論，並將評論中提到的菜色與標準菜單進行對應。
@@ -681,7 +681,7 @@ class MenuIntelligence:
                 return []
 
             # Use stable text model
-            model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
             # Build menu data for analysis
             menu_data = []
