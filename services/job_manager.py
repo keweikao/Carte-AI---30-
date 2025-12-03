@@ -12,8 +12,13 @@ class JobStatus(Enum):
 
 class JobManager:
     def __init__(self):
-        self.db = firestore.client()
-        self.collection = self.db.collection('recommendation_jobs')
+        try:
+            self.db = firestore.client()
+            self.collection = self.db.collection('recommendation_jobs')
+        except Exception as e:
+            print(f"Warning: JobManager failed to connect to Firestore: {e}")
+            self.db = None
+            self.collection = None
 
     def create_job(self, user_input: Dict[str, Any]) -> str:
         job_id = str(uuid.uuid4())
