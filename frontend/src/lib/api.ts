@@ -30,7 +30,7 @@ export async function getRecommendations(
 
     console.log("[API DEBUG] Sending V2 request with payload:", data);
 
-    const response = await fetch(`${API_BASE_URL}/v2/recommendations`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/recommend/v2`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -89,7 +89,7 @@ export async function getAlternatives(
 
     console.log(`[API DEBUG] Fetching alternatives with params: ${queryParams.toString()}`);
 
-    const response = await fetch(`${API_BASE_URL}/v2/recommendations/alternatives?${queryParams.toString()}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/recommend/v2/alternatives?${queryParams.toString()}`, {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${authToken}`
@@ -233,7 +233,7 @@ export async function getRecommendationsAsync(
     token?: string
 ) {
     const authToken = token || DEV_TOKEN;
-    const response = await fetch(`${API_BASE_URL}/v2/recommendations/async`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/recommend/v2/async`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -254,7 +254,7 @@ export async function pollJobStatus(
     token?: string
 ) {
     const authToken = token || DEV_TOKEN;
-    const response = await fetch(`${API_BASE_URL}/v2/recommendations/status/${jobId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/recommend/v2/status/${jobId}`, {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${authToken}`

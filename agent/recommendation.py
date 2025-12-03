@@ -487,3 +487,53 @@ class RecommendationService:
             category_summary=category_summary,
             currency="TWD"
         )
+
+    def get_alternatives(
+        self,
+        category: str,
+        exclude_names: List[str],
+        profile: RestaurantProfile,
+        limit: int = 5
+    ) -> List[MenuItemV2]:
+        """
+        Get alternative dishes for a specific category
+        """
+        candidates = []
+        for item in profile.menu_items:
+            # Filter by category
+            if item.category != category:
+                continue
+            
+            # Filter excluded items
+            if item.name in exclude_names:
+                continue
+                
+            candidates.append(item)
+            
+        # Sort candidates by score (popularity + sentiment)
+        def score_item(item: MenuItem) -> float:
+            score = 0.0
+            if item.is_popular: score += 10.0
+            if item.analysis and item.analysis.sentiment_score:
+                score += item.analysis.sentiment_score * 5.0
+            if item.is_risky: score -= 10.0
+            return score
+            
+        sorted_candidates = sorted(candidates, key=score_item, reverse=True)
+        
+        # Convert top candidates to MenuItemV2
+        results = []
+        for item in sorted_candidates[:limit]:
+            menu_item_v2 = MenuItemV2(
+                dish_id=item.id or "",
+                dish_name=item.name,
+                price=item.price,
+                category=item.category,
+                description=item.description,
+                quantity=1,
+                reason="Alternative option",
+                review_count=item.ai_insight.mention_count if item.ai_insight else 0
+            )
+            results.append(menu_item_v2)
+            
+        return results

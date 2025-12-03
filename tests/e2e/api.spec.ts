@@ -14,10 +14,10 @@ test.describe('API smoke (mock-friendly)', () => {
     test.skip(!fs.existsSync(fixtureOpenApi), 'OpenAPI fixture not found; run python tests/e2e/export_openapi.py');
     const schema = JSON.parse(fs.readFileSync(fixtureOpenApi, 'utf-8'));
     expect(schema.paths['/api/v1/recommend/v2']).toBeTruthy();
-    // expect(schema.paths['/v2/recommendations/alternatives']).toBeTruthy();
+    expect(schema.paths['/api/v1/recommend/v2/alternatives']).toBeTruthy();
   });
 
-  test('POST /v2/recommendations returns items', async () => {
+  test('POST /api/v1/recommend/v2 returns items', async () => {
     const ctx = await request.newContext({ baseURL: apiBase });
     const payload = {
       restaurant_name: '測試餐廳',
@@ -47,24 +47,22 @@ test.describe('API smoke (mock-friendly)', () => {
     expect(json.items.length).toBeGreaterThan(0);
   });
 
-  // test('GET /v2/recommendations/alternatives returns list or 404', async () => {
-  //   const ctx = await request.newContext({ baseURL: apiBase });
-  //   const res = await ctx.get('/v2/recommendations/alternatives', {
-  //     params: {
-  //       recommendation_id: 'test-rec-id',
-  //       category: '熱菜',
-  //       exclude: ['宮保雞丁'],
-  //     },
-  //     headers: {
-  //       Authorization: authHeader,
-  //     },
-  //     timeout: 20_000,
-  //   });
+  test('GET /api/v1/recommend/v2/alternatives returns list', async () => {
+    const ctx = await request.newContext({ baseURL: apiBase });
+    const res = await ctx.get('/api/v1/recommend/v2/alternatives', {
+      params: {
+        recommendation_id: 'test-rec-id',
+        category: '熱菜',
+        exclude: ['宮保雞丁'],
+      },
+      headers: {
+        Authorization: authHeader,
+      },
+      timeout: 20_000,
+    });
 
-  //   expect([200, 404]).toContain(res.status());
-  //   if (res.status() === 200) {
-  //     const json = await res.json();
-  //     expect(Array.isArray(json)).toBeTruthy();
-  //   }
-  // });
+    expect(res.status()).toBe(200);
+    const json = await res.json();
+    expect(Array.isArray(json)).toBeTruthy();
+  });
 });
