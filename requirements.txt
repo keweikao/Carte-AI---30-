@@ -47,3 +47,4 @@ PyJWT
 apify-client
 Pillow
 google-search-results
+firebase-admin

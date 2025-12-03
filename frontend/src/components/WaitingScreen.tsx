@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Utensils, Search, BookOpen, ChefHat, MessageSquare } from 'lucide-react';
+import { Utensils, Search, BookOpen, ChefHat, MessageSquare } from 'lucide-react';
 
 interface WaitingScreenProps {
     jobId: string;
-    onComplete: (result: any) => void;
+    onComplete: (result: unknown) => void;
     onError: (error: string) => void;
 }
 
