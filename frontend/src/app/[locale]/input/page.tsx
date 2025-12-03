@@ -13,6 +13,7 @@ import { ArrowRight, Check, Utensils, Sparkles, Users, AlertCircle, ArrowLeft, B
 // import Image from "next/image";
 import { RestaurantSearch } from "@/components/restaurant-search";
 import { TagInput } from "@/components/tag-input"; // New import
+import { InstallButton } from "@/components/install-button";
 
 function InputPageContents() {
     const t = useTranslations('InputPage');

@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, Info } from "lucide-react";
+import { Check, AlertCircle, ArrowLeft, CheckCircle2, RotateCw, Info, Crown } from "lucide-react";
 import { InstallButton } from "@/components/install-button";
 import { motion } from "framer-motion";
 import Link from "next/link";

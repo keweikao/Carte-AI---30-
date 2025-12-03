@@ -21,6 +21,7 @@ test.describe('API smoke (mock-friendly)', () => {
     const ctx = await request.newContext({ baseURL: apiBase });
     const payload = {
       restaurant_name: '測試餐廳',
+      place_id: 'mock-place-id',
       dining_style: 'Shared',
       party_size: 2,
       budget: { type: 'Total', amount: 1200 },
