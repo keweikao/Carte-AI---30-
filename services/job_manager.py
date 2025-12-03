@@ -12,6 +12,7 @@ class JobStatus(Enum):
 
 class JobManager:
     def __init__(self):
+        self.memory_store = {}
         try:
             self.db = firestore.client()
             self.collection = self.db.collection('recommendation_jobs')
@@ -31,7 +32,12 @@ class JobManager:
             "progress": 0,
             "message": "Job created"
         }
-        self.collection.document(job_id).set(job_data)
+        
+        if self.collection:
+            self.collection.document(job_id).set(job_data)
+        else:
+            self.memory_store[job_id] = job_data
+            
         return job_id
 
     def update_status(self, job_id: str, status: JobStatus, progress: int = 0, message: str = "", result: Optional[Dict] = None, error: Optional[str] = None):
@@ -48,13 +54,19 @@ class JobManager:
         if error:
             update_data["error"] = error
             
-        self.collection.document(job_id).update(update_data)
+        if self.collection:
+            self.collection.document(job_id).update(update_data)
+        elif job_id in self.memory_store:
+            self.memory_store[job_id].update(update_data)
 
     def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
-        doc = self.collection.document(job_id).get()
-        if doc.exists:
-            return doc.to_dict()
-        return None
+        if self.collection:
+            doc = self.collection.document(job_id).get()
+            if doc.exists:
+                return doc.to_dict()
+            return None
+        else:
+            return self.memory_store.get(job_id)
 
 # Global instance
 job_manager = JobManager()
