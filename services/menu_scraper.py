@@ -174,13 +174,14 @@ class MenuScraper:
         print(f"Fetching images for {restaurant_name} (place_id: {place_id}) using Apify...")
         try:
             client = ApifyClientAsync(APIFY_API_TOKEN)
+            # Use searchStringsArray with restaurant name instead of place_id URL
+            # This approach has proven more reliable for fetching data
             actor_call = await client.actor("compass~crawler-google-places").call(
                 run_input={
-                    "startUrls": [{"url": f"https://www.google.com/maps/place/?q=place_id:{place_id}"}],
+                    "searchStringsArray": [restaurant_name],
                     "maxImages": max_images,
                     "maxReviews": 0,  # Don't need reviews here
                     "language": "zh-TW",
-                    "scrapePlaceDetailPage": True,
                     "proxyConfiguration": {"useApifyProxy": True},
                 }
             )
@@ -219,6 +220,7 @@ class MenuScraper:
 
         try:
             # Download images
+            import base64
             image_data = []
             async with httpx.AsyncClient() as client:
                 for idx, url in enumerate(images_to_process):
@@ -226,9 +228,11 @@ class MenuScraper:
                         print(f"Downloading image {idx+1}/{len(images_to_process)}: {url[:60]}...")
                         response = await client.get(url, timeout=30)
                         response.raise_for_status()
+                        # Encode image as base64 string for Gemini API
+                        image_base64 = base64.b64encode(response.content).decode('utf-8')
                         image_data.append({
                             'mime_type': 'image/jpeg',
-                            'data': response.content
+                            'data': image_base64
                         })
                     except Exception as e:
                         print(f"Failed to download image {idx+1}: {e}")
@@ -276,7 +280,7 @@ class MenuScraper:
 
             # Use Gemini Vision API
             genai.configure(api_key=GEMINI_API_KEY)
-            model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            model = genai.GenerativeModel('gemini-2.5-flash')  # Stable version with vision support
 
             # Prepare content with images
             content_parts = [prompt]
@@ -290,12 +294,18 @@ class MenuScraper:
 
             menu_data_raw = response.text
             print(f"Gemini Vision response received. Parsing...")
+            print(f"DEBUG: Raw response length: {len(menu_data_raw)}")
+            print(f"DEBUG: Raw response (first 500 chars): {menu_data_raw[:500]}")
+            print(f"DEBUG: Raw response (last 100 chars): {menu_data_raw[-100:] if len(menu_data_raw) > 100 else menu_data_raw}")
 
             # Clean up response
             if menu_data_raw.startswith("```json"):
                 menu_data_raw = menu_data_raw[len("```json"):].strip()
             if menu_data_raw.endswith("```"):
                 menu_data_raw = menu_data_raw[:-len("```")].strip()
+
+            print(f"DEBUG: Cleaned response length: {len(menu_data_raw)}")
+            print(f"DEBUG: Cleaned response (first 500 chars): {menu_data_raw[:500]}")
 
             menu_items_dicts = json.loads(menu_data_raw)
 
@@ -309,8 +319,16 @@ class MenuScraper:
 
             return parsed_menu_items
 
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error during Vision API menu extraction: {e}")
+            print(f"DEBUG: JSONDecodeError at position {e.pos}: {e.msg}")
+            print(f"DEBUG: Problematic content around error: {menu_data_raw[max(0, e.pos-50):min(len(menu_data_raw), e.pos+50)]}")
+            import traceback
+            traceback.print_exc()
+            return []
         except Exception as e:
             print(f"Error during Vision API menu extraction: {e}")
+            print(f"DEBUG: Exception type: {type(e).__name__}")
             import traceback
             traceback.print_exc()
             return []

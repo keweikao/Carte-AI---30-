@@ -94,6 +94,7 @@ import { NetworkStatus } from "@/components/network-status";
 import { Analytics } from "@/lib/analytics";
 import Script from "next/script";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
+import { PWAInstaller } from "@/components/pwa-installer";
 
 import { InAppBrowserGuard } from "@/components/InAppBrowserGuard";
 
@@ -120,6 +121,14 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className="light">
       <head>
+        <meta name="application-name" content="Carte AI 點餐助手" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Carte AI" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512x512.png" />
         {GA_MEASUREMENT_ID && (
           <>
             <Script
@@ -162,6 +171,7 @@ export default async function LocaleLayout({
             {children}
             <Toaster />
             <NetworkStatus />
+            <PWAInstaller />
             <Analytics gaId={GA_MEASUREMENT_ID} />
             <WebVitalsReporter />
           </AuthProvider>

@@ -1,119 +1,66 @@
-import asyncio
+"""
+Restaurant Aggregator - Orchestrates the data pipeline
+Handles warm start (cache) and cold start (new data fetching)
+"""
+
 from typing import Optional
-import datetime
 
 from schemas.restaurant_profile import RestaurantProfile
 from services import firestore_service
-from services.menu_scraper import MenuScraper
-from services.review_analyzer import ReviewAnalyzer
+from services.pipeline import RestaurantPipeline
+
 
 async def get_restaurant_data(place_id: str, name: str) -> Optional[RestaurantProfile]:
     """
-    Orchestrator function to get restaurant data.
-    Handles warm start (cache hit) and cold start (data fetching and processing).
+    Main orchestrator function to get restaurant data.
+    Handles warm start (cache hit) and cold start (data fetching via new pipeline).
+
+    Args:
+        place_id: Google Maps place ID
+        name: Restaurant name
+
+    Returns:
+        RestaurantProfile or None if processing fails
     """
-    # 1. Warm Start Check
-    print(f"--- Aggregator: Checking cache for place_id: {place_id} ---")
+    # WARM START: Check cache first
+    print(f"[Aggregator] Checking cache for place_id: {place_id}")
     cached_profile = firestore_service.get_restaurant_profile(place_id=place_id)
+
     if cached_profile:
+        print(f"[Aggregator] ✓ Cache hit for {name}")
         return cached_profile
 
-    # 2. Cold Start Logic
-    print(f"--- Aggregator: Cache miss. Starting Cold Start for {name} ---")
+    # COLD START: Use new pipeline
+    print(f"[Aggregator] Cache miss. Starting cold start for: {name}")
 
-    # Initialize services
-    scraper = MenuScraper()
-    analyzer = ReviewAnalyzer()
+    try:
+        # Initialize new pipeline
+        pipeline = RestaurantPipeline()
 
-    # --- Ingestion and Processing ---
+        # Process restaurant through pipeline
+        profile = await pipeline.process(restaurant_name=name)
 
-    # Step 1: Get Menu
-    menu_url = await scraper.search_menu_url(name)
-    menu_items = []
-    trust_level = "low"
-    restaurant_address = "Address not available"  # Default
+        if not profile:
+            print(f"[Aggregator] Pipeline failed to generate profile for {name}")
+            return None
 
-    if menu_url:
-        menu_text = await scraper.fetch_and_parse_with_jina(menu_url)
-        if menu_text:
-            menu_items = await scraper.extract_menu_with_gemini(menu_text)
-            trust_level = "high" if menu_items else "low"
+        # Update place_id if pipeline found different one
+        if profile.place_id and profile.place_id != place_id:
+            print(f"[Aggregator] Place ID mismatch: {place_id} -> {profile.place_id}")
+            # Use the pipeline's place_id (more accurate from Apify)
+        else:
+            # Ensure place_id is set
+            profile.place_id = place_id
 
-    # Fallback if text-based scraping fails
-    if not menu_items:
-        print("Text-based scraping failed or yielded no results. Using Vision API fallback.")
-        menu_items = await scraper.vision_api_fallback(place_id, name)
-        trust_level = "medium"
+        # Save to Firestore
+        print(f"[Aggregator] Saving profile to Firestore...")
+        firestore_service.save_restaurant_profile(profile)
 
-    if not menu_items:
-        print(f"Could not generate a menu for {name}. Aborting.")
+        print(f"[Aggregator] ✓ Cold start complete for {name}")
+        return profile
+
+    except Exception as e:
+        print(f"[Aggregator] ERROR: Failed to process {name}: {e}")
+        import traceback
+        traceback.print_exc()
         return None
-
-    # Step 2: Get Reviews and Fuse (also fetch address from Apify)
-    reviews_from_apify = await analyzer.fetch_reviews_apify(place_id=place_id, restaurant_name=name)
-
-    # Try to get address from the reviews fetch (which uses Apify)
-    # We need to modify fetch_reviews_apify to return address too, but for now use a helper
-    try:
-        restaurant_address = await _fetch_restaurant_address(place_id, name)
-    except Exception as e:
-        print(f"Could not fetch restaurant address: {e}")
-        restaurant_address = "Address not available"
-
-    final_menu_items, review_summary = await analyzer.analyze_and_fuse_reviews(
-        reviews=reviews_from_apify,
-        menu_items=menu_items
-    )
-
-    # Step 3: Create final profile and persist
-    new_profile = RestaurantProfile(
-        place_id=place_id,
-        name=name,
-        address=restaurant_address,
-        updated_at=datetime.datetime.now(datetime.timezone.utc),
-        trust_level=trust_level,
-        menu_source_url=menu_url,
-        menu_items=final_menu_items,
-        review_summary=review_summary
-    )
-
-    # Step 4: Save to Firestore
-    firestore_service.save_restaurant_profile(new_profile)
-
-    return new_profile
-
-async def _fetch_restaurant_address(place_id: str, restaurant_name: str) -> str:
-    """
-    Helper function to fetch restaurant address from Apify.
-    """
-    from apify_client import ApifyClientAsync
-    import os
-
-    APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN")
-    if not APIFY_API_TOKEN:
-        return "Address not available"
-
-    try:
-        client = ApifyClientAsync(APIFY_API_TOKEN)
-        actor_call = await client.actor("compass~crawler-google-places").call(
-            run_input={
-                "searchStringsArray": [restaurant_name],
-                "maxImages": 0,
-                "maxReviews": 0,
-                "language": "zh-TW",
-            }
-        )
-
-        list_items = []
-        async for item in client.dataset(actor_call["defaultDatasetId"]).iterate_items():
-            list_items.append(item)
-
-        if list_items and "address" in list_items[0]:
-            address = list_items[0]["address"]
-            print(f"Fetched address from Apify: {address}")
-            return address
-
-        return "Address not available"
-    except Exception as e:
-        print(f"Error fetching address from Apify: {e}")
-        return "Address not available"

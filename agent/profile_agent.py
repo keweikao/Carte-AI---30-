@@ -42,7 +42,7 @@ class RestaurantProfileAgent:
                 }
 
         # --- Cold Start Logic ---
-        print(f"Fetching live data for {restaurant_name}...")
+        print(f"🕵️ RestaurantProfileAgent: Cache MISS for {restaurant_name}. Fetching live data...")
         
         # This part of the code still uses the old data fetchers.
         # As per the new spec, this should be replaced by the aggregator calling
@@ -52,6 +52,7 @@ class RestaurantProfileAgent:
         
         try:
             reviews_data, menu_text = await asyncio.gather(reviews_task, menu_task)
+            print(f"🕵️ RestaurantProfileAgent: Live data fetched. reviews_data: {len(reviews_data.get('photos', []))} photos, menu_text: {len(menu_text) if menu_text else 0} chars.")
         except Exception as e:
             print(f"❌ Analysis failed during data fetching: {e}")
             raise e
@@ -60,6 +61,7 @@ class RestaurantProfileAgent:
         print("Starting Multi-Agent Analysis...")
         photos_data = reviews_data.get("photos", [])
         
+        print(f"🕵️ RestaurantProfileAgent: Initiating VisualAgent for {len(photos_data)} photos.")
         visual_task = self.visual_agent.run(photos_data)
         review_task = self.review_agent.run(reviews_data)
         search_task = self.search_agent.run(restaurant_name)

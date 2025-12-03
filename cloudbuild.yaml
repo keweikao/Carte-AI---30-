@@ -36,6 +36,12 @@ steps:
       - 'GEMINI_API_KEY=GEMINI_API_KEY:latest'
       - '--update-secrets'
       - 'APIFY_API_TOKEN=APIFY_API_TOKEN:latest'
+      - '--update-secrets'
+      - 'SERPER_API_KEY=SERPER_API_KEY:latest'
+      - '--update-secrets'
+      - 'JINA_API_KEY=JINA_API_KEY:latest'
+      - '--update-secrets'
+      - 'GOOGLE_API_KEY=GOOGLE_API_KEY:latest'
 
 images:
   - 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/oderwhat-staging:$BUILD_ID'

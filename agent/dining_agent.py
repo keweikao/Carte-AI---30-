@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from schemas.recommendation import UserInputV2, RecommendationResponseV2, MenuItemV2, DishSlotResponse, RecommendationRequest, FullRecommendationResponse
 from agent.data_fetcher import fetch_place_details, fetch_menu_from_search, fetch_place_photo
 from agent.prompt_builder import create_prompt_for_gemini_v2
-# from services.firestore_service import get_cached_data, save_restaurant_data, get_user_profile, save_recommendation_candidates, save_user_activity
+
 
 load_dotenv()
 
