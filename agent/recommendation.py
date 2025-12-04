@@ -303,32 +303,36 @@ class RecommendationService:
             for rec_data in result.get("recommendations", []):
                 dish_name = rec_data.get("dish_name")
 
-                # Find corresponding MenuItem
+                # Find corresponding MenuItem (simple exact match for now, could be improved)
                 menu_item = next((item for item in filtered_items if item.name == dish_name), None)
+                
+                # If exact match fails, try partial match
+                if not menu_item:
+                    menu_item = next((item for item in filtered_items if dish_name in item.name or item.name in dish_name), None)
+
                 if not menu_item:
                     print(f"[SoftRanking] Warning: LLM recommended unknown dish: {dish_name}")
                     continue
 
                 quantity = rec_data.get("quantity", 1)
+                reason = rec_data.get("reason", "Recommended based on preferences")
 
                 # Convert to MenuItemV2 format
+                # Note: MenuItemV2 requires dish_name, price, quantity, reason, category
                 menu_item_v2 = MenuItemV2(
-                    id=menu_item.id or "",
-                    name=menu_item.name,
-                    price=menu_item.price,
-                    category=menu_item.category,
-                    description=menu_item.description,
-                    image_url=menu_item.image_url,
-                    source_type=menu_item.source_type,
-                    is_popular=menu_item.is_popular,
-                    is_risky=menu_item.is_risky
+                    dish_id=menu_item.id or "",
+                    dish_name=menu_item.name,
+                    price=menu_item.price or 0,
+                    quantity=quantity,
+                    reason=reason,
+                    category=menu_item.category or "其他",
+                    review_count=menu_item.ai_insight.mention_count if menu_item.ai_insight else 0
                 )
 
                 dish_slot = DishSlotResponse(
-                    dish=menu_item_v2,
-                    quantity=quantity,
-                    reason=rec_data.get("reason", "Recommended based on preferences"),
-                    highlight_note=rec_data.get("highlight_note")
+                    category=menu_item.category or "其他",
+                    display=menu_item_v2,
+                    alternatives=[] # Alternatives can be populated later if needed
                 )
 
                 recommendations.append(dish_slot)
@@ -343,23 +347,24 @@ class RecommendationService:
             # Calculate category summary
             category_summary = {}
             for item in recommendations:
-                cat = item.display.category
+                cat = item.category
                 category_summary[cat] = category_summary.get(cat, 0) + 1
 
             return RecommendationResponseV2(
                 recommendation_id=f"rec_{int(time.time())}",
                 restaurant_name=profile.name,
-                recommendation_summary=result.get("reasoning", "Based on your preferences, here are our top recommendations."),
+                recommendation_summary=overall_reasoning,
                 items=recommendations,
                 total_price=total_price,
-                cuisine_type="中式餐館",  # Default, should be inferred
+                cuisine_type="中式餐館",  # Default, should be inferred or passed
                 category_summary=category_summary,
                 currency="TWD"
             )
 
         except json.JSONDecodeError as e:
             print(f"[SoftRanking] JSON parsing error: {e}")
-            print(f"[SoftRanking] Raw response: {result_text[:500] if 'result_text' in locals() else 'N/A'}")
+            if 'result_text' in locals():
+                print(f"[SoftRanking] Raw response: {result_text[:500]}")
             return self._fallback_ranking(filtered_items, user_input, profile)
         except Exception as e:
             print(f"[SoftRanking] Error during ranking: {e}")
@@ -373,13 +378,11 @@ class RecommendationService:
             return "無特別預算限制"
 
         lines = []
-        if budget.total:
-            lines.append(f"- 總預算：${budget.total}")
-        if budget.max_per_dish:
-            lines.append(f"- 單道菜上限：${budget.max_per_dish}")
-        if budget.min_per_dish:
-            lines.append(f"- 單道菜下限：${budget.min_per_dish}")
-
+        if budget.type == "Total" and budget.amount:
+             lines.append(f"- 總預算：${budget.amount}")
+        elif budget.type == "Per_Person" and budget.amount:
+             lines.append(f"- 每人預算：${budget.amount}")
+        
         return "\n".join(lines) if lines else "無特別預算限制"
 
     def _format_preferences(self, user_input: UserInputV2) -> str:
@@ -447,7 +450,7 @@ class RecommendationService:
 
         # Select top items
         selected_items = sorted_items[:target_count]
-
+        
         recommendations = []
         total_price = 0
         category_summary = {}
@@ -456,37 +459,37 @@ class RecommendationService:
             menu_item_v2 = MenuItemV2(
                 dish_id=item.id or "",
                 dish_name=item.name,
-                price=item.price,
-                category=item.category,
+                price=item.price or 0,
                 quantity=1,
-                reason="Recommended based on popularity and reviews",
+                reason="Popular and highly rated",
+                category=item.category or "其他",
                 review_count=item.ai_insight.mention_count if item.ai_insight else 0
             )
-
+            
             dish_slot = DishSlotResponse(
-                category=item.category,
+                category=item.category or "其他",
                 display=menu_item_v2,
                 alternatives=[]
             )
-
+            
             recommendations.append(dish_slot)
-
             if item.price:
                 total_price += item.price
             
-            cat = item.category
+            cat = item.category or "其他"
             category_summary[cat] = category_summary.get(cat, 0) + 1
 
         return RecommendationResponseV2(
             recommendation_id=f"rec_{int(time.time())}",
             restaurant_name=profile.name,
-            recommendation_summary="Recommendations based on popular dishes and customer reviews.",
+            recommendation_summary="Fallback recommendations based on popularity.",
             items=recommendations,
             total_price=total_price,
             cuisine_type="中式餐館",
             category_summary=category_summary,
             currency="TWD"
         )
+
 
     def get_alternatives(
         self,
