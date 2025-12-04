@@ -209,11 +209,17 @@ class WebSearchProvider:
                         cached_at = cached_at.replace(tzinfo=timezone.utc)
                         
                     if cached_at and (datetime.now(timezone.utc) - cached_at < timedelta(days=7)):
-                        print(f"[WebSearchProvider] Cache hit for {restaurant_name}")
-                        return WebContent(
-                            source_url=data.get('source_url'),
-                            text_content=data.get('text_content')
-                        )
+                        # VALIDATION: Check if cached content is actually useful
+                        text_content = data.get('text_content', '')
+                        if text_content and len(text_content) > 100:  # At least 100 chars
+                            print(f"[WebSearchProvider] Cache hit for {restaurant_name}")
+                            return WebContent(
+                                source_url=data.get('source_url'),
+                                text_content=text_content
+                            )
+                        else:
+                            print(f"[WebSearchProvider] Cache invalid (empty or too short: {len(text_content)} chars), re-fetching")
+                            # Continue to re-fetch below
             except Exception as e:
                 print(f"[WebSearchProvider] Cache read error: {e}")
         
