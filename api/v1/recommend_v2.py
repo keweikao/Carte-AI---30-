@@ -132,22 +132,37 @@ async def process_recommendation_logic(user_input: UserInputV2) -> Recommendatio
     # Mock handling for tests to bypass Gemini API
     if user_input.place_id == 'mock-place-id':
         print(f"[RecommendAPI] Using mock recommendations for {user_input.restaurant_name}")
-        from schemas.recommendation import RecommendationResponseV2, RecommendedDish
+        from schemas.recommendation import RecommendationResponseV2, DishSlotResponse, MenuItemV2
         import uuid
         return RecommendationResponseV2(
             recommendation_id=str(uuid.uuid4()),
+            restaurant_name=user_input.restaurant_name,
+            recommendation_summary="Mock recommendation summary",
+            total_price=450,
+            cuisine_type="中式餐館",
+            category_summary={"熱菜": 1, "蔬菜": 1},
             items=[
-                RecommendedDish(
-                    dish_name="宮保雞丁",
+                DishSlotResponse(
                     category="熱菜",
-                    price=300,
-                    reason="經典川菜，香辣可口"
+                    display=MenuItemV2(
+                        dish_name="宮保雞丁",
+                        price=300,
+                        quantity=1,
+                        reason="經典川菜，香辣可口",
+                        category="熱菜"
+                    ),
+                    alternatives=[]
                 ),
-                RecommendedDish(
-                    dish_name="炒青菜",
+                DishSlotResponse(
                     category="蔬菜",
-                    price=150,
-                    reason="新鮮健康"
+                    display=MenuItemV2(
+                        dish_name="炒青菜",
+                        price=150,
+                        quantity=1,
+                        reason="新鮮健康",
+                        category="蔬菜"
+                    ),
+                    alternatives=[]
                 )
             ]
         )
