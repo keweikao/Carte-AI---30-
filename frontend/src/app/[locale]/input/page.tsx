@@ -182,9 +182,6 @@ export default function InputPageV3() {
                                         className="text-xl font-bold bg-cream border-2 border-charcoal/10 focus:border-caramel rounded-xl px-5 py-6 shadow-inner placeholder:font-normal"
                                     />
                                 </div>
-                                <div className="mt-auto pt-8 flex justify-center opacity-30">
-                                    <MapPin className="w-24 h-24 text-caramel" />
-                                </div>
                             </motion.div>
                         )}
 
