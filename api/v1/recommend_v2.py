@@ -24,9 +24,15 @@ async def get_or_create_profile(restaurant_name: str, place_id: Optional[str] = 
     if place_id == 'mock-place-id':
         print(f"[RecommendAPI] Using mock profile for {restaurant_name}")
         from schemas.restaurant_profile import MenuItem, DishAttributes, MenuItemAnalysis
+        from datetime import datetime
         return RestaurantProfile(
             place_id="mock-place-id",
             name=restaurant_name,
+            address="測試地址",
+            updated_at=datetime.now(),
+            trust_level="high",
+            menu_source_url="https://example.com",
+            review_summary="測試餐廳評價",
             menu_items=[
                 MenuItem(
                     name="宮保雞丁", 
