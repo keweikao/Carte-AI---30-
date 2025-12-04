@@ -1,20 +1,35 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { AgentCard } from './agent-card';
-import { TriviaCard } from './trivia-card';
+// import { TriviaCard } from './trivia-card'; // Replaced with TransparencyStream
+import { TransparencyStream } from './transparency-stream';
 
 interface AgentFocusLoaderProps<T = unknown> {
     jobId: string;
     onComplete: (result: T) => void;
     onError: (error: string) => void;
+    // Context data for Transparency Stream
+    restaurantName?: string;
+    reviewCount?: number;
+    partySize?: number;
+    dietary?: string;
 }
 
-export function AgentFocusLoader<T = unknown>({ jobId, onComplete, onError }: AgentFocusLoaderProps<T>) {
+export function AgentFocusLoader<T = unknown>({
+    jobId,
+    onComplete,
+    onError,
+    restaurantName,
+    reviewCount,
+    partySize,
+    dietary
+}: AgentFocusLoaderProps<T>) {
     const [currentAgent, setCurrentAgent] = useState<string>('VisualAgent');
     const [logs, setLogs] = useState<string[]>([]);
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [totalSteps, setTotalSteps] = useState<number>(4);
     const [isFirstVisit, setIsFirstVisit] = useState<boolean>(false);
+    const [progress, setProgress] = useState<number>(0);
 
     useEffect(() => {
         const pollInterval = setInterval(async () => {
@@ -45,6 +60,14 @@ export function AgentFocusLoader<T = unknown>({ jobId, onComplete, onError }: Ag
                     setTotalSteps(data.total_steps);
                 }
 
+                // Calculate progress percentage
+                if (data.progress !== undefined) {
+                    setProgress(data.progress);
+                } else {
+                    // Fallback: calculate based on steps
+                    setProgress(Math.round((currentStep / totalSteps) * 100));
+                }
+
                 // 檢查是否為首次訪問 (Cache Miss)
                 if (data.metadata && data.metadata.is_cache_hit === false) {
                     setIsFirstVisit(true);
@@ -65,10 +88,10 @@ export function AgentFocusLoader<T = unknown>({ jobId, onComplete, onError }: Ag
         }, 1000); // 每秒 Polling
 
         return () => clearInterval(pollInterval);
-    }, [jobId, currentAgent, onComplete, onError]);
+    }, [jobId, currentAgent, currentStep, totalSteps, onComplete, onError]);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-cream-50 relative">
             {/* Agent 卡片 */}
             <AnimatePresence mode="wait">
                 <AgentCard
@@ -88,9 +111,15 @@ export function AgentFocusLoader<T = unknown>({ jobId, onComplete, onError }: Ag
                 </div>
             )}
 
-            {/* 小知識卡片 */}
+            {/* Transparency Stream (replaced TriviaCard) */}
             <div className="mt-8 w-full max-w-md">
-                <TriviaCard />
+                <TransparencyStream
+                    progress={progress}
+                    restaurantName={restaurantName}
+                    reviewCount={reviewCount}
+                    partySize={partySize}
+                    dietary={dietary}
+                />
             </div>
         </div>
     );
