@@ -13,6 +13,7 @@ interface RestaurantSearchProps {
   defaultValue?: string;
   name?: string;
   placeholder?: string;
+  className?: string; // Allow custom styling for Input
 }
 
 interface Suggestion {
@@ -22,7 +23,7 @@ interface Suggestion {
   secondary_text: string;
 }
 
-export function RestaurantSearch({ onSelect, onChange, defaultValue, name, placeholder }: RestaurantSearchProps) {
+export function RestaurantSearch({ onSelect, onChange, defaultValue, name, placeholder, className }: RestaurantSearchProps) {
   const { data: session } = useSession();
   const [value, setValue] = useState(defaultValue || '');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -126,7 +127,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue, name, place
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          className="text-lg py-6 bg-background border-border pr-10"
+          className={cn("text-lg py-6 bg-background border-border pr-10", className)}
           autoFocus
           aria-label="搜尋餐廳名稱"
           aria-describedby="restaurant-search-hint"
