@@ -636,15 +636,14 @@ function RecommendationPageContent() {
                 <div className="container max-w-4xl mx-auto">
                     <Button
                         onClick={async () => {
-                            if (selectedTotalPrice > 0) {
+                            // Check if at least one dish is selected
+                            const selectedSlots = dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected');
+
+                            if (selectedSlots.length > 0) {
                                 try {
                                     // Calculate session duration
                                     const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
 
-                                    // Filter only SELECTED dishes
-                                    const selectedSlots = dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected');
-
-                                    // Track finalization
                                     // Track finalization
                                     await finalizeOrder(data.recommendation_id, {
                                         final_selections: selectedSlots.map(slot => ({
@@ -662,7 +661,6 @@ function RecommendationPageContent() {
                                     // Proceed anyway
                                 }
 
-                                const selectedSlots = dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected');
                                 const finalMenu = {
                                     recommendation_id: data.recommendation_id,
                                     restaurant_name: data.restaurant_name,
