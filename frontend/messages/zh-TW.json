@@ -6,9 +6,15 @@
         "demo_button": "看 Demo"
     },
     "InputPage": {
+        "concierge_subtitle": "Dining Concierge",
+        "concierge_title": "我現在正在...",
+        "reselect_restaurant": "重新選擇餐廳",
+        "section_we_have": "我們有...",
+        "section_occasion": "今天是...",
+        "section_dietary": "特別注意...",
         "title": "不知道怎麼點？",
         "subtitle": "輸入餐廳名稱，AI 根據 Google Map 及實際評價幫你推薦菜色。",
-        "restaurant_placeholder": "輸入餐廳名稱...",
+        "restaurant_placeholder": "輸入餐廳名稱 (例如: 鼎泰豐)",
         "next_button": "下一步",
         "step2_title": "開啟你的美食探索之旅",
         "step2_subtitle": "告訴我們你的喜好。",
@@ -16,10 +22,10 @@
         "mode_sharing": "大家一起分食",
         "mode_individual": "個人套餐",
         "occasion_label": "用餐情境",
-        "occasion_friends": "朋友聚會",
-        "occasion_family": "家庭聚餐",
-        "occasion_date": "約會慶祝",
-        "occasion_business": "商務聚餐",
+        "occasion_friends": "聚餐",
+        "occasion_family": "家庭",
+        "occasion_date": "約會",
+        "occasion_business": "商務",
         "occasion_quick": "快速解決",
         "occasion_treat": "犒賞自己",
         "occasion_fitness": "健身減脂",
@@ -27,8 +33,9 @@
         "occasion_all_signatures": "招牌全制霸",
         "people_label": "幾位用餐？",
         "dietary_label": "其他用餐需求",
-        "dietary_placeholder": "例如：不吃花生、奶蛋素...",
-        "generate_button": "開始生成推薦"
+        "dietary_placeholder": "例如：不吃牛、不吃辣...",
+        "generate_button": "告訴我該點什麼",
+        "ai_disclaimer": "AI 將閱讀 Google 評論與菜單來為您推薦"
     },
     "LoadingPage": {
         "analyzing": "AI 正在分析評論...",
