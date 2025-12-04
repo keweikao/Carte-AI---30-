@@ -75,25 +75,31 @@ export function TransparencyStream({
                 return {
                     Icon: Search,
                     label: '探索中',
-                    color: 'from-blue-500 to-cyan-500',
-                    bgColor: 'bg-blue-50',
-                    textColor: 'text-blue-900'
+                    color: 'from-caramel to-caramel-600',  // Warm caramel gradient
+                    bgColor: 'bg-cream-50',
+                    textColor: 'text-charcoal',
+                    badgeBg: 'bg-caramel',
+                    badgeText: 'text-white'
                 };
             case 'filtering':
                 return {
                     Icon: Filter,
                     label: '篩選中',
-                    color: 'from-purple-500 to-pink-500',
-                    bgColor: 'bg-purple-50',
-                    textColor: 'text-purple-900'
+                    color: 'from-terracotta to-terracotta-600',  // Terracotta gradient
+                    bgColor: 'bg-terracotta-50',
+                    textColor: 'text-charcoal',
+                    badgeBg: 'bg-terracotta',
+                    badgeText: 'text-white'
                 };
             case 'decision':
                 return {
                     Icon: ChefHat,
                     label: '生成中',
-                    color: 'from-orange-500 to-red-500',
-                    bgColor: 'bg-orange-50',
-                    textColor: 'text-orange-900'
+                    color: 'from-charcoal to-charcoal-700',  // Deep charcoal gradient
+                    bgColor: 'bg-charcoal-50',
+                    textColor: 'text-charcoal',
+                    badgeBg: 'bg-charcoal',
+                    badgeText: 'text-white'
                 };
         }
     };
