@@ -79,6 +79,17 @@ async def get_place_autocomplete_endpoint(
 def health_check():
     return {"status": "ok"}
 
+# --- Legacy Routes for Backward Compatibility ---
+from services.job_manager import job_manager
+
+@app.get("/v2/recommendations/status/{job_id}")
+async def get_job_status_legacy(job_id: str):
+    """Legacy endpoint for backward compatibility with existing frontend"""
+    job = job_manager.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
