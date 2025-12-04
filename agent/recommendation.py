@@ -265,36 +265,19 @@ class RecommendationService:
             else:
                 target_count = user_input.party_size
 
+        from agent.prompts import RECOMMENDATION_PROMPT_TEMPLATE
+        
         # Build LLM prompt
-        prompt = f"""
-你是一個專業的餐廳點餐顧問。請根據用餐需求，從以下菜單中挑選最合適的菜色組合。
-
-## 用餐資訊
-- 餐廳：{profile.name}
-- 人數：{user_input.party_size} 人
-- 用餐方式：{user_input.dining_style} (Shared=合菜共享, Individual=各點各的)
-- 目標菜色數：{target_count} 道
-
-## 預算限制
-{self._format_budget(user_input.budget)}
-
-## 用餐偏好
-{self._format_preferences(user_input)}
-
-## 可選菜單（已過濾不符合硬性限制的菜色）
-{json.dumps(menu_data, ensure_ascii=False, indent=2)}
-
-## 推薦原則
-1. **多樣性**：選擇不同類別、烹飪方式、口味的菜色
-2. **平衡性**：
-   - 共享式：考慮冷熱、葷素、主食配菜的平衡
-   - 個人式：每人推薦 1 道主菜
-3. **價格控制**：符合預算限制
-4. **評價優先**：優先選擇 is_popular=true 或 sentiment_score 高的菜色
-5. **場合適配**：{user_input.occasion or "一般聚餐"}
-
-請分析並挑選菜色。
-"""
+        prompt = RECOMMENDATION_PROMPT_TEMPLATE.format(
+            restaurant_name=profile.name,
+            party_size=user_input.party_size,
+            dining_style=user_input.dining_style,
+            target_count=target_count,
+            budget_info=self._format_budget(user_input.budget),
+            preferences_info=self._format_preferences(user_input),
+            menu_json=json.dumps(menu_data, ensure_ascii=False, indent=2),
+            occasion=user_input.occasion or "一般聚餐"
+        )
 
         try:
             response = await model.generate_content_async(prompt)
