@@ -1,3 +1,14 @@
+import os
+import firebase_admin
+from firebase_admin import credentials
+
+# Initialize Firebase Admin SDK FIRST
+if not firebase_admin._apps:
+    try:
+        firebase_admin.initialize_app()
+    except Exception as e:
+        print(f"Warning: Failed to initialize Firebase Admin SDK: {e}")
+
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from fastapi import (
@@ -9,16 +20,6 @@ from auth.google_auth import verify_google_token
 from agent.data_fetcher import fetch_place_autocomplete
 from api.v1.restaurant import router as v1_restaurant_router
 from api.v1.recommend_v2 import router as v2_recommend_router
-import os
-import firebase_admin
-from firebase_admin import credentials
-
-# Initialize Firebase Admin SDK
-if not firebase_admin._apps:
-    try:
-        firebase_admin.initialize_app()
-    except Exception as e:
-        print(f"Warning: Failed to initialize Firebase Admin SDK: {e}")
 
 USE_MOCK_EXTERNAL = os.getenv("USE_MOCK_EXTERNAL", "").lower() in ("true", "1", "yes")
 
