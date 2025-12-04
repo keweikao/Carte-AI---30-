@@ -360,7 +360,7 @@ function RecommendationPageContent() {
         // Automatically select the current dish
         if (emptyPoolSlotIndex >= 0) {
             const currentDish = dishSlots[emptyPoolSlotIndex].display;
-            handleSelect(currentDish.dish_name, emptyPoolSlotIndex);
+            handleSelect(currentDish.dish_name);
         }
     };
 
