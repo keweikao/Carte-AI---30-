@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils";
 interface RestaurantSearchProps {
   onSelect: (details: { name: string; place_id?: string }) => void;
   onChange?: (value: string) => void;
-  defaultValue?: string;
+  value?: string; // Controlled value
+  defaultValue?: string; // Fallback for uncontrolled mode
   name?: string;
   placeholder?: string;
   className?: string; // Allow custom styling for Input
@@ -23,9 +24,12 @@ interface Suggestion {
   secondary_text: string;
 }
 
-export function RestaurantSearch({ onSelect, onChange, defaultValue, name, placeholder, className }: RestaurantSearchProps) {
+export function RestaurantSearch({ onSelect, onChange, value, defaultValue, name, placeholder, className }: RestaurantSearchProps) {
   const { data: session } = useSession();
-  const [value, setValue] = useState(defaultValue || '');
+  // Use controlled value if provided, otherwise use internal state
+  const [internalValue, setInternalValue] = useState(defaultValue || '');
+  const displayValue = value !== undefined ? value : internalValue;
+
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,7 +49,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue, name, place
   // Debounced search
   useEffect(() => {
     // Don't search if value hasn't changed significantly or is empty
-    if (!value.trim()) {
+    if (!displayValue.trim()) {
       setSuggestions([]);
       setIsOpen(false);
       return;
@@ -54,11 +58,11 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue, name, place
     const timer = setTimeout(async () => {
       // Only search if we have a session token and input length > 1
       // @ts-expect-error - id_token exists on session but not in type definition
-      if (value.length > 1 && session?.id_token) {
+      if (displayValue.length > 1 && session?.id_token) {
         setLoading(true);
         try {
           // @ts-expect-error - id_token exists on session
-          const data = await getPlaceAutocomplete(value, session.id_token);
+          const data = await getPlaceAutocomplete(displayValue, session.id_token);
           if (data.suggestions && data.suggestions.length > 0) {
             setSuggestions(data.suggestions);
             setIsOpen(true);
@@ -75,11 +79,15 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue, name, place
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
-  }, [value, session]);
+  }, [displayValue, session]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setValue(newValue);
+    if (value === undefined) {
+      // Uncontrolled mode: update internal state
+      setInternalValue(newValue);
+    }
+    // Always call onChange callback if provided
     if (onChange) {
       onChange(newValue);
     }
@@ -96,7 +104,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue, name, place
       if (isOpen) {
         setIsOpen(false);
       } else {
-        setValue('');
+        if (value === undefined) setInternalValue('');
         if (onChange) onChange('');
         onSelect({ name: '' });
       }
@@ -105,13 +113,13 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue, name, place
     if (e.key === 'Enter') {
       e.preventDefault();
       setIsOpen(false);
-      onSelect({ name: value });
+      onSelect({ name: displayValue });
     }
   };
 
   const handleSelectSuggestion = (suggestion: Suggestion) => {
     const name = suggestion.main_text;
-    setValue(name);
+    if (value === undefined) setInternalValue(name);
     if (onChange) onChange(name);
     onSelect({ name, place_id: suggestion.place_id });
     setIsOpen(false);
@@ -124,7 +132,7 @@ export function RestaurantSearch({ onSelect, onChange, defaultValue, name, place
           name={name}
           type="text"
           placeholder={placeholder || "例如：鼎泰豐、海底撈..."}
-          value={value}
+          value={displayValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           className={cn("text-lg py-6 bg-background border-border pr-10", className)}

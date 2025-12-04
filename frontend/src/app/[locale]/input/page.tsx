@@ -62,17 +62,19 @@ function InputPageContents() {
     }, [status, error, router]);
 
     // URL Prefill Logic
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         const restaurant = searchParams.get("restaurant");
         const people = searchParams.get("people");
 
-        if (restaurant) {
+        // Only update if value actually changes to avoid cascading renders
+        if (restaurant && restaurant !== formData.restaurant_name) {
             updateData("restaurant_name", restaurant);
         }
-        if (people) {
+        if (people && parseInt(people) !== formData.people) {
             updateData("people", parseInt(people));
         }
-    }, [searchParams, updateData]);
+    }, [searchParams]);
 
     if (error && error !== 'mock_bypass') {
         return (
@@ -129,10 +131,11 @@ function InputPageContents() {
                         <div className="relative bg-white rounded-xl shadow-card p-1">
                             <RestaurantSearch
                                 name="restaurant_name"
+                                value={formData.restaurant_name}
                                 onSelect={({ name, place_id }) => {
                                     updateData("restaurant_name", name);
                                     if (place_id) {
-                                        updateData("place_id", place_id);
+                                        setFormData(prev => ({ ...prev, place_id }));
                                         // Prefetch logic
                                         // @ts-expect-error - session token type
                                         const token = session?.id_token;
@@ -145,7 +148,6 @@ function InputPageContents() {
                                     }
                                 }}
                                 onChange={(value) => updateData("restaurant_name", value)}
-                                defaultValue={formData.restaurant_name}
                                 placeholder={t('restaurant_placeholder')}
                                 className="text-xl sm:text-2xl font-bold border-none shadow-none focus-visible:ring-0 px-4 h-16 sm:h-20 bg-transparent placeholder:text-muted-foreground/50"
                             />

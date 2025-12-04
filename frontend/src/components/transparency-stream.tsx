@@ -105,7 +105,7 @@ export function TransparencyStream({
         }, 30); // 30ms per character for smooth typing
 
         return () => clearInterval(typeInterval);
-    }, [currentMessage?.text, currentMessageIndex]);
+    }, [currentMessage, currentMessageIndex]);
 
     // Highlight keywords (text between **)
     const renderHighlightedText = (text: string) => {
