@@ -68,10 +68,38 @@ export function TransparencyStream({
         progress < 30 ? 'perception' :
             progress < 70 ? 'filtering' : 'decision';
 
-    // Get phase icon
-    const PhaseIcon =
-        currentPhase === 'perception' ? Search :
-            currentPhase === 'filtering' ? Filter : ChefHat;
+    // Get phase icon and styling
+    const getPhaseConfig = () => {
+        switch (currentPhase) {
+            case 'perception':
+                return {
+                    Icon: Search,
+                    label: '探索中',
+                    color: 'from-blue-500 to-cyan-500',
+                    bgColor: 'bg-blue-50',
+                    textColor: 'text-blue-900'
+                };
+            case 'filtering':
+                return {
+                    Icon: Filter,
+                    label: '篩選中',
+                    color: 'from-purple-500 to-pink-500',
+                    bgColor: 'bg-purple-50',
+                    textColor: 'text-purple-900'
+                };
+            case 'decision':
+                return {
+                    Icon: ChefHat,
+                    label: '生成中',
+                    color: 'from-orange-500 to-red-500',
+                    bgColor: 'bg-orange-50',
+                    textColor: 'text-orange-900'
+                };
+        }
+    };
+
+    const phaseConfig = getPhaseConfig();
+    const PhaseIcon = phaseConfig.Icon;
 
     // Get relevant messages for current phase
     const phaseMessages = messages.filter(m => m.phase === currentPhase);
@@ -114,7 +142,7 @@ export function TransparencyStream({
             if (part.startsWith('**') && part.endsWith('**')) {
                 const content = part.slice(2, -2);
                 return (
-                    <span key={index} className="text-terracotta font-bold">
+                    <span key={index} className="font-bold text-charcoal">
                         {content}
                     </span>
                 );
@@ -127,16 +155,16 @@ export function TransparencyStream({
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md mx-auto"
+            className="w-full mx-auto"
         >
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-border">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 border border-gray-100">
                 {/* Phase Icon with Pulse Animation */}
-                <div className="flex justify-center mb-6">
+                <div className="flex justify-center mb-8">
                     <motion.div
                         key={currentPhase}
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{
-                            scale: [1, 1.1, 1],
+                            scale: [1, 1.15, 1],
                             opacity: 1
                         }}
                         transition={{
@@ -147,10 +175,17 @@ export function TransparencyStream({
                             },
                             opacity: { duration: 0.3 }
                         }}
-                        className="w-16 h-16 rounded-full bg-gradient-to-br from-caramel to-terracotta flex items-center justify-center"
+                        className={`w-20 h-20 rounded-full bg-gradient-to-br ${phaseConfig.color} flex items-center justify-center shadow-lg`}
                     >
-                        <PhaseIcon className="w-8 h-8 text-white" />
+                        <PhaseIcon className="w-10 h-10 text-white" strokeWidth={2.5} />
                     </motion.div>
+                </div>
+
+                {/* Phase Label */}
+                <div className="text-center mb-6">
+                    <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${phaseConfig.bgColor} ${phaseConfig.textColor}`}>
+                        {phaseConfig.label}
+                    </span>
                 </div>
 
                 {/* Dynamic Message Stream */}
@@ -161,15 +196,15 @@ export function TransparencyStream({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className="text-center min-h-[60px] flex items-center justify-center"
+                        className="text-center min-h-[80px] flex items-center justify-center px-4"
                     >
-                        <p className="text-lg text-foreground leading-relaxed">
+                        <p className="text-lg sm:text-xl text-gray-700 leading-relaxed font-medium">
                             {renderHighlightedText(displayText)}
                             {isTyping && (
                                 <motion.span
                                     animate={{ opacity: [0, 1, 0] }}
                                     transition={{ duration: 0.8, repeat: Infinity }}
-                                    className="inline-block ml-1"
+                                    className="inline-block ml-1 text-gray-500"
                                 >
                                     |
                                 </motion.span>
@@ -179,30 +214,30 @@ export function TransparencyStream({
                 </AnimatePresence>
 
                 {/* Progress Indicator */}
-                <div className="mt-6 space-y-2">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{Math.round(progress)}%</span>
-                        <span className="capitalize">{currentPhase}</span>
+                <div className="mt-8 space-y-3">
+                    <div className="flex justify-between text-sm font-semibold">
+                        <span className="text-gray-600">{Math.round(progress)}%</span>
+                        <span className={`capitalize ${phaseConfig.textColor}`}>{phaseConfig.label}</span>
                     </div>
-                    <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
                         <motion.div
-                            className="h-full bg-gradient-to-r from-caramel to-terracotta"
+                            className={`h-full bg-gradient-to-r ${phaseConfig.color} shadow-lg`}
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
-                            transition={{ duration: 0.3 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Optional: Background Ambience */}
+            {/* Background Gradient Animation */}
             <motion.div
-                className="absolute inset-0 -z-10 blur-3xl opacity-20"
+                className="absolute inset-0 -z-10 blur-3xl opacity-10 pointer-events-none"
                 animate={{
                     background: [
-                        'radial-gradient(circle at 20% 50%, #E08B5D 0%, transparent 50%)',
-                        'radial-gradient(circle at 80% 50%, #C15D3A 0%, transparent 50%)',
-                        'radial-gradient(circle at 50% 80%, #E08B5D 0%, transparent 50%)'
+                        'radial-gradient(circle at 20% 50%, rgb(59, 130, 246) 0%, transparent 50%)',
+                        'radial-gradient(circle at 80% 50%, rgb(168, 85, 247) 0%, transparent 50%)',
+                        'radial-gradient(circle at 50% 80%, rgb(249, 115, 22) 0%, transparent 50%)'
                     ]
                 }}
                 transition={{

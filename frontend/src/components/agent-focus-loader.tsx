@@ -1,7 +1,4 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { AgentCard } from './agent-card';
-// import { TriviaCard } from './trivia-card'; // Replaced with TransparencyStream
 import { TransparencyStream } from './transparency-stream';
 
 interface AgentFocusLoaderProps<T = unknown> {
@@ -91,28 +88,20 @@ export function AgentFocusLoader<T = unknown>({
     }, [jobId, currentAgent, currentStep, totalSteps, onComplete, onError]);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-cream-50 relative">
-            {/* Agent 卡片 */}
-            <AnimatePresence mode="wait">
-                <AgentCard
-                    key={currentAgent}
-                    agentName={currentAgent}
-                    logs={logs}
-                    currentStep={currentStep}
-                    totalSteps={totalSteps}
-                />
-            </AnimatePresence>
-
-            {/* 溫馨提示 */}
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-cream-50 via-white to-cream-100 relative">
+            {/* Cold Start Notification */}
             {isFirstVisit && (
-                <div className="mt-6 text-center space-y-1 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <p className="text-primary font-medium">✨ 您是第一位探索這家餐廳的美食家！</p>
-                    <p className="text-sm text-muted-foreground">AI 正在進行深度分析，請稍候片刻...</p>
+                <div className="mb-8 text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-md">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-caramel/10 to-terracotta/10 rounded-full border border-caramel/20">
+                        <span className="text-2xl">✨</span>
+                        <p className="text-caramel-900 font-semibold">您是第一位探索這家餐廳的美食家！</p>
+                    </div>
+                    <p className="text-sm text-charcoal-600">AI 正在進行深度分析，請稍候片刻...</p>
                 </div>
             )}
 
-            {/* Transparency Stream (replaced TriviaCard) */}
-            <div className="mt-8 w-full max-w-md">
+            {/* Transparency Stream - Main Content */}
+            <div className="w-full max-w-lg">
                 <TransparencyStream
                     progress={progress}
                     restaurantName={restaurantName}
