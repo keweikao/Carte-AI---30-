@@ -158,7 +158,7 @@ function InputPageContents() {
                             animate={{ opacity: 1 }}
                             onClick={() => {
                                 updateData("restaurant_name", "");
-                                updateData("place_id", undefined);
+                                setFormData(prev => ({ ...prev, place_id: undefined }));
                             }}
                             className="text-xs text-muted-foreground mt-3 hover:text-primary flex items-center gap-1 ml-1"
                         >
