@@ -20,11 +20,14 @@ test.describe('UI flow (mock login + recommendation)', () => {
 
     const restaurantField = page.locator(locators.input.restaurantField);
     await expect(restaurantField).toBeVisible();
+
+    // Fill restaurant name - triggers controlled component onChange
     await restaurantField.fill('測試餐廳');
 
+    // Wait for the submit button to appear (V2.2 shows it after restaurant selection + form expansion)
+    // The button appears via AnimatePresence after formData.restaurant_name is set
     const submit = page.locator(locators.input.submitButton);
-    await expect(submit).toBeVisible();
-    // 不強制導航，避免真登入依賴；僅確認 UI 元件可互動
+    await expect(submit).toBeVisible({ timeout: 10000 });
     await expect(submit).toBeEnabled();
   });
 });

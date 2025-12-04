@@ -5,7 +5,7 @@
   },
   "input": {
     "restaurantField": "input[name=\"restaurant_name\"], input[placeholder*=\"餐廳\"]",
-    "submitButton": "button:has-text(\"下一步\")"
+    "submitButton": "button:has-text(\"告訴我該點什麼\")"
   },
   "results": {
     "card": "[data-testid=\"dish-card\"]",
