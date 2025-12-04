@@ -292,3 +292,26 @@ async def health_check():
             }
         }
     )
+
+# --- Finalize Order API (Moved from main.py) ---
+from schemas.tracking import FinalizeRequest, FinalizeResponse
+import uuid
+
+@router.post("/recommend/v2/{recommendation_id}/finalize", response_model=FinalizeResponse)
+async def finalize_order(recommendation_id: str, request: FinalizeRequest):
+    """
+    Records the final order selection.
+    """
+    print(f"[Tracking] Finalizing order for recommendation: {recommendation_id}")
+    print(f"  - Total Price: {request.total_price}")
+    print(f"  - Selections: {len(request.final_selections)} items")
+    
+    return FinalizeResponse(
+        status="success",
+        message="Order finalized successfully",
+        order_id=str(uuid.uuid4()),
+        summary={
+            "total_price": request.total_price,
+            "item_count": len(request.final_selections)
+        }
+    )
