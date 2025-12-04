@@ -149,9 +149,16 @@ class RecommendationService:
                 continue
 
             # Budget filter (if specified)
-            if user_input.budget and user_input.budget.max_per_dish:
-                if item.price and item.price > user_input.budget.max_per_dish:
-                    print(f"[HardFilter] Rejected {item.name} - price ${item.price} > max ${user_input.budget.max_per_dish}")
+            if user_input.budget:
+                max_price = None
+                if user_input.budget.type == "Per_Person":
+                    max_price = user_input.budget.amount
+                elif user_input.budget.type == "Total":
+                    # For total budget, filter out dishes that exceed the total budget
+                    max_price = user_input.budget.amount
+
+                if max_price and item.price and item.price > max_price:
+                    print(f"[HardFilter] Rejected {item.name} - price ${item.price} > max ${max_price}")
                     continue
 
             # Passed all filters
