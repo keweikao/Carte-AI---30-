@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RestaurantSearch } from '@/components/restaurant-search';
 import { MapPin, Users, Utensils, ChefHat, ChevronLeft, Check } from 'lucide-react';
@@ -14,7 +13,6 @@ export default function InputPageV3() {
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
     const error = searchParams.get('error');
-    const t = useTranslations();
 
     // Current step (1-4)
     const [currentStep, setCurrentStep] = useState(1);
@@ -189,7 +187,8 @@ export default function InputPageV3() {
                                         if (place_id) {
                                             setFormData(prev => ({ ...prev, place_id }));
                                             // Prefetch
-                                            const token = (session as any)?.id_token;
+                                            // @ts-expect-error - id_token exists on session
+                                            const token = session?.id_token;
                                             if (token && name) {
                                                 fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/recommend/v2/prefetch?restaurant_name=${encodeURIComponent(name)}&place_id=${place_id}`, {
                                                     method: 'POST',

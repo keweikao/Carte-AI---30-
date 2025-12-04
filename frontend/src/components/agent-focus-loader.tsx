@@ -22,7 +22,6 @@ export function AgentFocusLoader<T = unknown>({
     dietary
 }: AgentFocusLoaderProps<T>) {
     const [currentAgent, setCurrentAgent] = useState<string>('VisualAgent');
-    const [logs, setLogs] = useState<string[]>([]);
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [totalSteps, setTotalSteps] = useState<number>(4);
     const [isFirstVisit, setIsFirstVisit] = useState<boolean>(false);
@@ -43,10 +42,6 @@ export function AgentFocusLoader<T = unknown>({
                 // 更新狀態
                 if (data.current_agent && data.current_agent !== currentAgent) {
                     setCurrentAgent(data.current_agent);
-                }
-
-                if (data.logs) {
-                    setLogs(data.logs);
                 }
 
                 if (data.current_step) {
