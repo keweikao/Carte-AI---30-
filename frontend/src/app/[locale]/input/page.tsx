@@ -103,7 +103,7 @@ export default function InputPageV3() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F9F6F0] p-4 sm:p-6 flex flex-col justify-center">
+        <div className="min-h-screen bg-cream-50 p-4 sm:p-6 flex flex-col justify-center">
             <div className="max-w-xl mx-auto w-full pt-4 pb-12">
 
                 {/* Header - Editorial Style */}
@@ -140,7 +140,7 @@ export default function InputPageV3() {
                 </div>
 
                 {/* Main Card */}
-                <div className="bg-white rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 min-h-[420px] relative overflow-hidden flex flex-col">
+                <div className="bg-white rounded-[2rem] shadow-floating border border-white/50 p-6 sm:p-8 min-h-[420px] relative overflow-hidden flex flex-col">
                     <AnimatePresence mode="wait">
 
                         {/* Step 1: Restaurant Search */}
@@ -179,7 +179,7 @@ export default function InputPageV3() {
                                         }}
                                         onChange={(value) => updateData("restaurant_name", value)}
                                         placeholder="例如：鼎泰豐..."
-                                        className="text-xl font-bold bg-cream-50 border-2 border-charcoal/10 focus:border-caramel rounded-xl px-5 py-6 shadow-inner placeholder:font-normal"
+                                        className="text-xl font-bold bg-cream border-2 border-charcoal/10 focus:border-caramel rounded-xl px-5 py-6 shadow-inner placeholder:font-normal"
                                     />
                                 </div>
                                 <div className="mt-auto pt-8 flex justify-center opacity-30">

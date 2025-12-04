@@ -13,26 +13,27 @@ const config: Config = {
         display: ['var(--font-display)'],
         body: ['var(--font-body)'],
         handwriting: ['var(--font-handwriting)'],
+        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
       },
       colors: {
         cream: {
-          50: '#FFFCF7',
-          100: '#FFF8F0',
+          50: '#F9F6F0',  // Main background - matches color guide
+          100: '#F3EDE3',
           200: '#FFF0E0',
         },
         caramel: {
-          50: '#F5E6D3',
-          100: '#E8D4B8',
-          DEFAULT: '#D4A574',
-          700: '#B8915F',
-          900: '#8A6B47',
+          50: '#FAF6F0',
+          100: '#F5EDE1',
+          DEFAULT: '#D4A574',  // Primary accent
+          600: '#B8874F',
+          700: '#9C6D3E',
         },
         terracotta: {
-          50: '#F5E1E0',
+          50: '#F9EDE9',
           100: '#E8C5C2',
-          DEFAULT: '#C85A54',
+          DEFAULT: '#C77B5F',  // Multi-select tags - matches color guide
+          600: '#A85F46',
           700: '#B04E48',
-          900: '#8A3D39',
         },
         sage: {
           50: '#F0F2EF',
@@ -42,9 +43,9 @@ const config: Config = {
           900: '#4A5145',
         },
         charcoal: {
-          50: '#F5F5F5',
-          100: '#E0E0E0',
-          DEFAULT: '#2D2D2D',
+          50: '#F7F7F7',
+          100: '#E3E3E3',
+          DEFAULT: '#2C2C2C',  // Primary selections - matches color guide
           700: '#1F1F1F',
           900: '#0A0A0A',
         },
@@ -56,7 +57,7 @@ const config: Config = {
       },
       boxShadow: {
         card: '0 4px 20px rgba(212, 165, 116, 0.15)',
-        floating: '0 12px 40px rgba(45, 45, 45, 0.25)',
+        floating: '0 25px 50px -12px rgba(44, 44, 44, 0.15)',  // Main card shadow
       },
     },
   },
