@@ -23,7 +23,7 @@ async def get_or_create_profile(restaurant_name: str, place_id: Optional[str] = 
     # Mock handling for tests to bypass Apify dependency
     if place_id == 'mock-place-id':
         print(f"[RecommendAPI] Using mock profile for {restaurant_name}")
-        from schemas.restaurant_profile import MenuItem, AnalysisResult, AIInsight
+        from schemas.restaurant_profile import MenuItem, DishAttributes, MenuItemAnalysis
         return RestaurantProfile(
             place_id="mock-place-id",
             name=restaurant_name,
@@ -33,7 +33,7 @@ async def get_or_create_profile(restaurant_name: str, place_id: Optional[str] = 
                     price=300, 
                     category="熱菜", 
                     description="Spicy chicken",
-                    analysis=AnalysisResult(
+                    analysis=DishAttributes(
                         is_spicy=True, 
                         contains_beef=False, 
                         contains_pork=False, 
@@ -49,7 +49,7 @@ async def get_or_create_profile(restaurant_name: str, place_id: Optional[str] = 
                         sentiment_score=0.8,
                         highlight_review="Great!"
                     ),
-                    ai_insight=AIInsight(
+                    ai_insight=MenuItemAnalysis(
                         sentiment="positive",
                         summary="Good",
                         mention_count=10
@@ -62,7 +62,7 @@ async def get_or_create_profile(restaurant_name: str, place_id: Optional[str] = 
                     price=150, 
                     category="蔬菜", 
                     description="Stir-fried vegetables",
-                    analysis=AnalysisResult(
+                    analysis=DishAttributes(
                         is_spicy=False,
                         is_vegan=True,
                         allergens=[],
@@ -75,7 +75,7 @@ async def get_or_create_profile(restaurant_name: str, place_id: Optional[str] = 
                         sentiment_score=0.7,
                         highlight_review="Fresh"
                     ),
-                    ai_insight=AIInsight(
+                    ai_insight=MenuItemAnalysis(
                         sentiment="positive",
                         summary="Healthy",
                         mention_count=5

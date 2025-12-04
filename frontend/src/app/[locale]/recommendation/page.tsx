@@ -159,7 +159,6 @@ function RecommendationPageContent() {
                 const rawMode = searchParams.get("mode");
                 const dining_style = (rawMode === "Shared" || rawMode === "sharing") ? "Shared" : "Individual";
                 const dish_count_str = searchParams.get("dish_count");
-                const dish_count_str = searchParams.get("dish_count");
                 const occasion = searchParams.get("occasion") || undefined;
 
                 const requestData: UserInputV2 = {
