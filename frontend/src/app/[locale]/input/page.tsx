@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RestaurantSearch } from '@/components/restaurant-search';
-import { MapPin, Users, Utensils, ChefHat, ChevronLeft, Check } from 'lucide-react';
+import { MapPin, Users, Utensils, ChefHat, ChevronLeft, Check, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function InputPageV3() {
@@ -33,50 +33,45 @@ export default function InputPageV3() {
 
     // Mode options
     const modeOptions = [
-        { value: "sharing", label: "分食", icon: Users, description: "一起享用多道菜" },
-        { value: "individual", label: "個人", icon: Utensils, description: "各自點餐" }
+        { value: "sharing", label: "大家分食", icon: Users, description: "適合合菜、熱炒，氣氛熱鬧" },
+        { value: "individual", label: "個人套餐", icon: Utensils, description: "拉麵、定食，各自享用" }
     ];
 
     // Occasion options  
     const occasionOptions = [
-        { value: "friends", label: "聚餐", icon: "🍻", description: "朋友聚會" },
-        { value: "family", label: "家庭", icon: "👨‍👩‍👧‍👦", description: "家人用餐" },
-        { value: "date", label: "約會", icon: "💑", description: "浪漫時光" },
-        { value: "business", label: "商務", icon: "💼", description: "工作應酬" }
+        { value: "friends", label: "朋友聚餐", icon: "🍻" },
+        { value: "family", label: "家庭聚會", icon: "👨‍👩‍👧‍👦" },
+        { value: "date", label: "浪漫約會", icon: "💑" },
+        { value: "business", label: "商務應酬", icon: "💼" }
     ];
 
     // Dietary suggestions
     const dietarySuggestions = [
-        "不吃牛", "不吃豬", "不吃辣", "素食", "鍋邊素",
-        "清淡口味", "老人友善", "兒童友善", "海鮮過敏"
+        "不吃牛", "不吃豬", "不吃辣", "全素", "鍋邊素",
+        "少油少鹽", "老人友善", "兒童友善", "海鮮過敏"
     ];
 
-    // Navigation
+    // Navigation Logic
     const canGoNext = () => {
         switch (currentStep) {
             case 1: return formData.restaurant_name !== "";
-            case 2: return true; // Mode has default
+            case 2: return true;
             case 3: return formData.people > 0;
-            case 4: return true; // Occasion/dietary optional
+            case 4: return true;
             default: return false;
         }
     };
 
     const nextStep = () => {
-        if (canGoNext() && currentStep < 4) {
-            setCurrentStep(prev => prev + 1);
-        }
+        if (canGoNext() && currentStep < 4) setCurrentStep(prev => prev + 1);
     };
 
     const prevStep = () => {
-        if (currentStep > 1) {
-            setCurrentStep(prev => prev - 1);
-        }
+        if (currentStep > 1) setCurrentStep(prev => prev - 1);
     };
 
     const handleSubmit = () => {
         if (!canGoNext()) return;
-
         const params = new URLSearchParams({
             restaurant: formData.restaurant_name,
             people: formData.people.toString(),
@@ -84,16 +79,9 @@ export default function InputPageV3() {
             mode: formData.mode,
             occasion: formData.occasion,
         });
-
-        if (formData.place_id) {
-            params.set('place_id', formData.place_id);
-        }
-
+        if (formData.place_id) params.set('place_id', formData.place_id);
         router.push(`/recommendation?${params.toString()}`);
     };
-
-    // Step indicator
-    const stepLabels = ["餐廳", "模式", "人數", "偏好"];
 
     // Redirect if not authenticated
     if (status === 'unauthenticated' && !error) {
@@ -103,10 +91,10 @@ export default function InputPageV3() {
 
     if (error && error !== 'mock_bypass') {
         return (
-            <div className="min-h-screen flex items-center justify-center p-6 bg-cream-50">
+            <div className="min-h-screen flex items-center justify-center p-6 bg-[#F9F6F0]">
                 <div className="text-center space-y-4 max-w-md">
                     <p className="text-lg text-charcoal-700">發生錯誤：{error}</p>
-                    <button onClick={() => router.push('/')} className="text-caramel hover:underline">
+                    <button onClick={() => router.push('/')} className="text-caramel hover:underline font-bold">
                         返回首頁
                     </button>
                 </div>
@@ -115,53 +103,46 @@ export default function InputPageV3() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 p-6">
-            <div className="max-w-2xl mx-auto pt-8 pb-16">
-                {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-charcoal mb-3">
+        <div className="min-h-screen bg-[#F9F6F0] p-4 sm:p-6 flex flex-col justify-center">
+            <div className="max-w-xl mx-auto w-full pt-4 pb-12">
+
+                {/* Header - Editorial Style */}
+                <div className="text-center mb-8 sm:mb-10">
+                    <p className="text-caramel-700 font-bold tracking-[0.2em] text-xs uppercase mb-2">
                         Dining Concierge
+                    </p>
+                    <h1 className="text-3xl sm:text-4xl font-serif font-bold text-charcoal leading-tight">
+                        為您規劃<br />完美的用餐體驗
                     </h1>
-                    <p className="text-charcoal-600">AI 為您規劃完美的用餐體驗</p>
                 </div>
 
-                {/* Step Indicator */}
-                <div className="flex items-center justify-center gap-2 mb-12">
-                    {stepLabels.map((label, index) => {
-                        const stepNum = index + 1;
-                        const isActive = stepNum === currentStep;
-                        const isCompleted = stepNum < currentStep;
-
-                        return (
-                            <React.Fragment key={stepNum}>
-                                <button
-                                    onClick={() => stepNum < currentStep && setCurrentStep(stepNum)}
-                                    disabled={stepNum > currentStep}
-                                    className={cn(
-                                        "flex items-center gap-2 px-4 py-2 rounded-full transition-all",
-                                        isActive && "bg-caramel text-white shadow-lg scale-110",
-                                        isCompleted && "bg-caramel/20 text-caramel cursor-pointer hover:bg-caramel/30",
-                                        !isActive && !isCompleted && "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                    )}
-                                >
-                                    <span className="text-sm font-semibold">{stepNum}</span>
-                                    {isCompleted && <Check className="w-4 h-4" />}
-                                    <span className="hidden sm:inline text-sm">{label}</span>
-                                </button>
-                                {index < stepLabels.length - 1 && (
-                                    <div className={cn(
-                                        "h-0.5 w-8 transition-colors",
-                                        stepNum < currentStep ? "bg-caramel" : "bg-gray-200"
-                                    )} />
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
+                {/* Progress Bar */}
+                <div className="mb-8 px-2">
+                    <div className="flex justify-between mb-2">
+                        {["餐廳", "模式", "人數", "偏好"].map((label, idx) => (
+                            <span key={idx} className={cn(
+                                "text-xs font-bold transition-colors duration-300",
+                                currentStep > idx ? "text-caramel-700" :
+                                    currentStep === idx + 1 ? "text-charcoal" : "text-gray-300"
+                            )}>
+                                {label}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <motion.div
+                            className="h-full bg-gradient-to-r from-caramel to-terracotta"
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${(currentStep / 4) * 100}%` }}
+                            transition={{ ease: "easeInOut", duration: 0.4 }}
+                        />
+                    </div>
                 </div>
 
-                {/* Step Content */}
-                <div className="bg-white rounded-3xl shadow-xl p-8 sm:p-10 min-h-[400px]">
+                {/* Main Card */}
+                <div className="bg-white rounded-[2rem] shadow-2xl border border-white/50 p-6 sm:p-8 min-h-[420px] relative overflow-hidden flex flex-col">
                     <AnimatePresence mode="wait">
+
                         {/* Step 1: Restaurant Search */}
                         {currentStep === 1 && (
                             <motion.div
@@ -169,38 +150,41 @@ export default function InputPageV3() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                className="flex-1 flex flex-col"
                             >
-                                <div className="text-center mb-8">
-                                    <MapPin className="w-12 h-12 text-caramel mx-auto mb-4" />
-                                    <h2 className="text-2xl font-bold text-charcoal mb-2">
-                                        您想去哪家餐廳？
+                                <div className="mb-6">
+                                    <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
+                                        您現在在哪裡？
                                     </h2>
-                                    <p className="text-charcoal-600">搜尋並選擇餐廳</p>
+                                    <p className="text-gray-500 text-sm">輸入餐廳名稱，AI 將為您解讀菜單</p>
                                 </div>
 
-                                <RestaurantSearch
-                                    name="restaurant_name"
-                                    value={formData.restaurant_name}
-                                    onSelect={({ name, place_id }) => {
-                                        updateData("restaurant_name", name);
-                                        if (place_id) {
-                                            setFormData(prev => ({ ...prev, place_id }));
-                                            // Prefetch
-                                            // @ts-expect-error - id_token exists on session
-                                            const token = session?.id_token;
-                                            if (token && name) {
-                                                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/recommend/v2/prefetch?restaurant_name=${encodeURIComponent(name)}&place_id=${place_id}`, {
-                                                    method: 'POST',
-                                                    headers: { 'Authorization': `Bearer ${token}` }
-                                                }).catch(err => console.error("Prefetch failed:", err));
+                                <div className="relative z-20">
+                                    <RestaurantSearch
+                                        name="restaurant_name"
+                                        value={formData.restaurant_name}
+                                        onSelect={({ name, place_id }) => {
+                                            updateData("restaurant_name", name);
+                                            if (place_id) {
+                                                setFormData(prev => ({ ...prev, place_id }));
+                                                // @ts-expect-error - id_token exists on session
+                                                const token = session?.id_token;
+                                                if (token && name) {
+                                                    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/recommend/v2/prefetch?restaurant_name=${encodeURIComponent(name)}&place_id=${place_id}`, {
+                                                        method: 'POST',
+                                                        headers: { 'Authorization': `Bearer ${token}` }
+                                                    }).catch(console.error);
+                                                }
                                             }
-                                        }
-                                    }}
-                                    onChange={(value) => updateData("restaurant_name", value)}
-                                    placeholder="例如：鼎泰豐、海底撈..."
-                                    className="text-xl font-semibold border-2 border-gray-200 focus:border-caramel rounded-xl px-6 py-4"
-                                />
+                                        }}
+                                        onChange={(value) => updateData("restaurant_name", value)}
+                                        placeholder="例如：鼎泰豐..."
+                                        className="text-xl font-bold bg-cream-50 border-2 border-charcoal/10 focus:border-caramel rounded-xl px-5 py-6 shadow-inner placeholder:font-normal"
+                                    />
+                                </div>
+                                <div className="mt-auto pt-8 flex justify-center opacity-30">
+                                    <MapPin className="w-24 h-24 text-caramel" />
+                                </div>
                             </motion.div>
                         )}
 
@@ -211,17 +195,16 @@ export default function InputPageV3() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                className="flex-1"
                             >
-                                <div className="text-center mb-8">
-                                    <Utensils className="w-12 h-12 text-caramel mx-auto mb-4" />
-                                    <h2 className="text-2xl font-bold text-charcoal mb-2">
-                                        用餐方式
+                                <div className="mb-6">
+                                    <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
+                                        怎麼吃？
                                     </h2>
-                                    <p className="text-charcoal-600">選擇您的用餐模式</p>
+                                    <p className="text-gray-500 text-sm">選擇您的用餐形式</p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {modeOptions.map((option) => {
                                         const Icon = option.icon;
                                         const isSelected = formData.mode === option.value;
@@ -231,25 +214,25 @@ export default function InputPageV3() {
                                                 key={option.value}
                                                 onClick={() => updateData("mode", option.value)}
                                                 className={cn(
-                                                    "p-6 rounded-2xl border-2 transition-all text-center space-y-3",
-                                                    "hover:scale-105 hover:shadow-lg",
+                                                    "p-5 rounded-2xl border-2 transition-all duration-300 text-left relative overflow-hidden group",
                                                     isSelected
-                                                        ? "border-caramel bg-caramel/5 shadow-lg"
-                                                        : "border-gray-200 hover:border-caramel/50"
+                                                        ? "bg-charcoal border-charcoal text-white shadow-lg scale-[1.02]"
+                                                        : "bg-white border-gray-200 text-charcoal hover:border-caramel hover:bg-cream-50"
                                                 )}
                                             >
-                                                <Icon className={cn(
-                                                    "w-10 h-10 mx-auto",
-                                                    isSelected ? "text-caramel" : "text-gray-400"
-                                                )} />
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <Icon className={cn(
+                                                        "w-8 h-8",
+                                                        isSelected ? "text-caramel" : "text-gray-400 group-hover:text-caramel"
+                                                    )} />
+                                                    {isSelected && <div className="bg-caramel rounded-full p-1"><Check className="w-3 h-3 text-white" /></div>}
+                                                </div>
                                                 <div>
+                                                    <p className="font-bold text-lg mb-1">{option.label}</p>
                                                     <p className={cn(
-                                                        "font-bold text-lg mb-1",
-                                                        isSelected ? "text-caramel" : "text-charcoal"
-                                                    )}>
-                                                        {option.label}
-                                                    </p>
-                                                    <p className="text-sm text-gray-600">{option.description}</p>
+                                                        "text-xs",
+                                                        isSelected ? "text-gray-300" : "text-gray-500"
+                                                    )}>{option.description}</p>
                                                 </div>
                                             </button>
                                         );
@@ -265,57 +248,53 @@ export default function InputPageV3() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                className="flex-1 flex flex-col justify-center"
                             >
                                 <div className="text-center mb-8">
-                                    <Users className="w-12 h-12 text-caramel mx-auto mb-4" />
-                                    <h2 className="text-2xl font-bold text-charcoal mb-2">
+                                    <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
                                         幾位用餐？
                                     </h2>
-                                    <p className="text-charcoal-600">讓我們知道人數</p>
+                                    <p className="text-gray-500 text-sm">我們會依人數調整份量建議</p>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-6">
+                                <div className="bg-cream-50 rounded-full p-2 flex items-center justify-between max-w-xs mx-auto w-full border border-gray-200 shadow-inner">
                                     <button
                                         onClick={() => formData.people > 1 && updateData("people", formData.people - 1)}
                                         disabled={formData.people <= 1}
-                                        className="w-14 h-14 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-2xl font-bold text-charcoal transition-all hover:scale-110"
+                                        className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xl font-bold text-charcoal shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all"
                                     >
                                         −
                                     </button>
 
-                                    <div className="text-center min-w-[120px]">
-                                        <div className="text-6xl font-bold text-caramel mb-2">
+                                    <div className="text-center">
+                                        <span className="text-4xl font-serif font-bold text-charcoal tabular-nums">
                                             {formData.people}
-                                        </div>
-                                        <div className="text-sm text-gray-600">
-                                            {formData.people === 1 ? "位" : "位"}
-                                        </div>
+                                        </span>
+                                        <span className="text-gray-500 ml-2 font-medium">位</span>
                                     </div>
 
                                     <button
                                         onClick={() => updateData("people", formData.people + 1)}
                                         disabled={formData.people >= 20}
-                                        className="w-14 h-14 rounded-full bg-caramel hover:bg-caramel-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-2xl font-bold text-white transition-all hover:scale-110 shadow-lg"
+                                        className="w-12 h-12 rounded-full bg-charcoal text-white flex items-center justify-center text-xl font-bold shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all"
                                     >
                                         +
                                     </button>
                                 </div>
 
-                                {/* Quick select */}
-                                <div className="flex justify-center gap-3 flex-wrap">
-                                    {[2, 4, 6, 8].map(num => (
+                                <div className="flex justify-center gap-2 mt-8 flex-wrap">
+                                    {[2, 4, 6].map(num => (
                                         <button
                                             key={num}
                                             onClick={() => updateData("people", num)}
                                             className={cn(
-                                                "px-4 py-2 rounded-full text-sm font-semibold transition-all",
+                                                "px-4 py-2 rounded-lg text-sm font-bold transition-colors border",
                                                 formData.people === num
-                                                    ? "bg-caramel text-white shadow-md"
-                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                    ? "bg-caramel text-white border-caramel"
+                                                    : "bg-white text-gray-500 border-gray-200 hover:border-caramel/50"
                                             )}
                                         >
-                                            {num} 位
+                                            {num} 人
                                         </button>
                                     ))}
                                 </div>
@@ -329,134 +308,116 @@ export default function InputPageV3() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-8"
+                                className="flex-1 space-y-8 overflow-y-auto max-h-[50vh] pr-1"
                             >
-                                <div className="text-center mb-6">
-                                    <ChefHat className="w-12 h-12 text-caramel mx-auto mb-4" />
-                                    <h2 className="text-2xl font-bold text-charcoal mb-2">
-                                        告訴我們更多
+                                <div className="mb-2">
+                                    <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
+                                        最後確認
                                     </h2>
-                                    <p className="text-charcoal-600">讓推薦更符合您的需求</p>
+                                    <p className="text-gray-500 text-sm">讓推薦更精準</p>
                                 </div>
 
-                                {/* Occasion */}
-                                <div className="space-y-4">
-                                    <label className="block text-sm font-semibold text-charcoal-700">
-                                        用餐目的
-                                    </label>
+                                {/* Occasion Grid */}
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold text-charcoal uppercase tracking-wider">用餐目的</label>
                                     <div className="grid grid-cols-2 gap-3">
                                         {occasionOptions.map((option) => {
                                             const isSelected = formData.occasion === option.value;
-
                                             return (
                                                 <button
                                                     key={option.value}
                                                     onClick={() => updateData("occasion", option.value)}
                                                     className={cn(
-                                                        "p-4 rounded-xl border-2 transition-all text-left",
-                                                        "hover:scale-105 hover:shadow-md",
+                                                        "p-4 rounded-xl border-2 transition-all flex items-center gap-3",
                                                         isSelected
-                                                            ? "border-caramel bg-caramel/5"
-                                                            : "border-gray-200 hover:border-caramel/50"
+                                                            ? "bg-charcoal border-charcoal text-white shadow-md"
+                                                            : "bg-white border-gray-200 text-charcoal hover:border-caramel"
                                                     )}
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-3xl">{option.icon}</span>
-                                                        <div>
-                                                            <p className={cn(
-                                                                "font-semibold",
-                                                                isSelected ? "text-caramel" : "text-charcoal"
-                                                            )}>
-                                                                {option.label}
-                                                            </p>
-                                                            <p className="text-xs text-gray-600">{option.description}</p>
-                                                        </div>
-                                                    </div>
+                                                    <span className="text-2xl">{option.icon}</span>
+                                                    <span className="font-bold text-sm">{option.label}</span>
                                                 </button>
                                             );
                                         })}
                                     </div>
                                 </div>
 
-                                {/* Dietary */}
-                                <div className="space-y-4">
-                                    <label className="block text-sm font-semibold text-charcoal-700">
-                                        飲食偏好 <span className="text-gray-500 font-normal">（選填）</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.dietary_restrictions}
-                                        onChange={(e) => updateData("dietary_restrictions", e.target.value)}
-                                        placeholder="例如：不吃牛、素食、海鮮過敏..."
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-caramel focus:outline-none transition-colors"
-                                    />
+                                {/* Dietary Pills */}
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold text-charcoal uppercase tracking-wider">飲食偏好 (多選)</label>
                                     <div className="flex flex-wrap gap-2">
-                                        {dietarySuggestions.map((tag) => (
-                                            <button
-                                                key={tag}
-                                                onClick={() => {
-                                                    const current = formData.dietary_restrictions;
-                                                    const tags = current ? current.split('、').filter(Boolean) : [];
-                                                    if (tags.includes(tag)) {
-                                                        updateData("dietary_restrictions", tags.filter(t => t !== tag).join('、'));
-                                                    } else {
-                                                        updateData("dietary_restrictions", [...tags, tag].join('、'));
-                                                    }
-                                                }}
-                                                className={cn(
-                                                    "px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                                                    formData.dietary_restrictions.includes(tag)
-                                                        ? "bg-caramel text-white shadow-sm"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                )}
-                                            >
-                                                {tag}
-                                            </button>
-                                        ))}
+                                        {dietarySuggestions.map((tag) => {
+                                            const current = formData.dietary_restrictions;
+                                            const isSelected = current.includes(tag);
+
+                                            return (
+                                                <button
+                                                    key={tag}
+                                                    onClick={() => {
+                                                        const tags = current ? current.split('、').filter(Boolean) : [];
+                                                        if (isSelected) {
+                                                            updateData("dietary_restrictions", tags.filter(t => t !== tag).join('、'));
+                                                        } else {
+                                                            updateData("dietary_restrictions", [...tags, tag].join('、'));
+                                                        }
+                                                    }}
+                                                    className={cn(
+                                                        "px-4 py-2 rounded-full text-sm font-bold border-2 transition-all",
+                                                        isSelected
+                                                            ? "bg-terracotta border-terracotta text-white shadow-sm"
+                                                            : "bg-white border-gray-200 text-charcoal hover:border-terracotta/50"
+                                                    )}
+                                                >
+                                                    {tag}
+                                                </button>
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div>
 
-                {/* Navigation Buttons */}
-                <div className="flex items-center justify-between mt-8">
-                    <button
-                        onClick={prevStep}
-                        disabled={currentStep === 1}
-                        className={cn(
-                            "flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all",
-                            currentStep === 1
-                                ? "opacity-0 cursor-not-allowed"
-                                : "bg-gray-100 hover:bg-gray-200 text-charcoal"
-                        )}
-                    >
-                        <ChevronLeft className="w-5 h-5" />
-                        上一步
-                    </button>
-
-                    {currentStep < 4 ? (
+                    {/* Bottom Navigation */}
+                    <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
                         <button
-                            onClick={nextStep}
-                            disabled={!canGoNext()}
+                            onClick={prevStep}
+                            disabled={currentStep === 1}
                             className={cn(
-                                "px-8 py-3 rounded-xl font-semibold transition-all shadow-lg",
-                                canGoNext()
-                                    ? "bg-gradient-to-r from-caramel to-terracotta text-white hover:shadow-xl hover:scale-105"
-                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                "flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all text-sm",
+                                currentStep === 1
+                                    ? "opacity-0 cursor-not-allowed"
+                                    : "text-gray-500 hover:text-charcoal hover:bg-gray-100"
                             )}
                         >
-                            下一步
+                            <ChevronLeft className="w-4 h-4" />
+                            上一步
                         </button>
-                    ) : (
-                        <button
-                            onClick={handleSubmit}
-                            className="px-8 py-3 rounded-xl font-semibold bg-gradient-to-r from-caramel to-terracotta text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                        >
-                            告訴我該點什麼 ✨
-                        </button>
-                    )}
+
+                        {currentStep < 4 ? (
+                            <button
+                                onClick={nextStep}
+                                disabled={!canGoNext()}
+                                className={cn(
+                                    "flex items-center gap-2 px-8 py-3 rounded-full font-bold transition-all shadow-md",
+                                    canGoNext()
+                                        ? "bg-charcoal text-white hover:bg-black hover:scale-105"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                )}
+                            >
+                                下一步
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleSubmit}
+                                className="flex items-center gap-2 px-8 py-3 rounded-full font-bold bg-gradient-to-r from-caramel to-terracotta text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                            >
+                                <ChefHat className="w-5 h-5" />
+                                生成菜單
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
