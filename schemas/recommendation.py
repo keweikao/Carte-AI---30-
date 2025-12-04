@@ -55,7 +55,10 @@ class UserInputV2(BaseModel):
     preferences: List[str] = Field(default_factory=list, description="List of preference tags (e.g., 'No_Beef', 'Spicy')")
     natural_input: Optional[str] = Field(None, description="User's free-text supplementary description")
     user_id: Optional[str] = Field(None, description="User ID for personalization")
-    occasion: Optional[str] = Field(None, description="Dining occasion (e.g., 'business', 'date', 'family', 'friends', 'fitness')")
+    occasion: Optional[Literal["friends", "family", "date", "business", "fitness", "all_signatures"]] = Field(
+        None, 
+        description="Dining occasion: friends (聚餐), family (家庭), date (約會), business (商務), fitness (健身減脂), all_signatures (招牌全制霸)"
+    )
     language: str = Field("zh-TW", description="User's preferred language (e.g., 'zh-TW', 'en-US', 'ja-JP')")
 
 class MenuItemV2(BaseModel):

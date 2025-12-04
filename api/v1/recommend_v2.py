@@ -163,6 +163,50 @@ async def health_check():
         }
     )
 
+    return job
+
+@router.post("/recommend/v2/prefetch", status_code=202)
+async def prefetch_restaurant(
+    restaurant_name: str = Query(..., description="Restaurant name"),
+    place_id: Optional[str] = Query(None, description="Google Place ID"),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    """
+    Prefetch restaurant data to speed up future recommendations.
+    
+    This endpoint triggers Cold Start in the background if the restaurant
+    is not in cache, without blocking the frontend.
+    """
+    try:
+        # Check if already in cache
+        from services import firestore_service
+        if place_id:
+            cached_profile = firestore_service.get_restaurant_profile(place_id)
+            if cached_profile:
+                return {"status": "cached", "message": f"{restaurant_name} is already in cache"}
+        
+        # Trigger background pipeline
+        async def prefetch_task():
+            try:
+                print(f"[Prefetch] Starting background Cold Start for: {restaurant_name}")
+                from services.restaurant_service import RestaurantService
+                await RestaurantService.get_or_create_profile(restaurant_name, place_id)
+                print(f"[Prefetch] Completed for: {restaurant_name}")
+            except Exception as e:
+                print(f"[Prefetch] Failed for {restaurant_name}: {e}")
+                # Don't raise - this is background, failure is OK
+        
+        background_tasks.add_task(prefetch_task)
+        
+        return {
+            "status": "prefetching",
+            "message": f"Started background prefetch for {restaurant_name}"
+        }
+        
+    except Exception as e:
+        print(f"[Prefetch] Error: {e}")
+        return {"status": "error", "message": str(e)}
+
 # --- Finalize Order API (Moved from main.py) ---
 from schemas.tracking import FinalizeRequest, FinalizeResponse
 import uuid

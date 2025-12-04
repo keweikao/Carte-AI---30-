@@ -813,30 +813,76 @@ class MenuIntelligence:
                     print(f"[MenuIntelligence] Failed to parse attributes for {dish_name}: {e}")
                     continue
 
-            # Apply attributes to menu items
+            # Apply attributes to menu items with FUZZY MATCHING
             enhanced_items = []
+            unmatched_gemini_dishes = set(attribute_map.keys())
+            
             for item in menu_items:
+                matched_attrs = None
+                
+                # Try exact match first
                 if item.name in attribute_map:
-                    # Create new MenuItem with analysis
-                    enhanced_item = MenuItem(
-                        id=item.id,
-                        name=item.name,
-                        price=item.price,
-                        category=item.category,
-                        description=item.description,
-                        image_url=item.image_url,
-                        source_type=item.source_type,
-                        is_popular=item.is_popular,
-                        is_risky=item.is_risky,
-                        analysis=attribute_map[item.name],
-                        ai_insight=item.ai_insight  # Keep legacy insight
-                    )
-                    enhanced_items.append(enhanced_item)
+                    matched_attrs = attribute_map[item.name]
+                    unmatched_gemini_dishes.discard(item.name)
                 else:
-                    print(f"[MenuIntelligence] No attributes generated for {item.name}, keeping original")
-                    enhanced_items.append(item)
+                    # Try fuzzy match (case-insensitive, ignore spaces/punctuation)
+                    import re
+                    normalized_item_name = re.sub(r'[^\w]', '', item.name.lower())
+                    
+                    for gemini_dish_name, attrs in attribute_map.items():
+                        normalized_gemini_name = re.sub(r'[^\w]', '', gemini_dish_name.lower())
+                        
+                        # If normalized names match, or one contains the other
+                        if (normalized_item_name == normalized_gemini_name or
+                            normalized_item_name in normalized_gemini_name or
+                            normalized_gemini_name in normalized_item_name):
+                            matched_attrs = attrs
+                            unmatched_gemini_dishes.discard(gemini_dish_name)
+                            print(f"[MenuIntelligence] Fuzzy matched: '{item.name}' ← '{gemini_dish_name}'")
+                            break
+                
+                # If still no match, create conservative fallback attributes
+                if matched_attrs is None:
+                    print(f"[MenuIntelligence] No match for '{item.name}', using fallback attributes")
+                    matched_attrs = DishAttributes(
+                        # Conservative defaults that won't filter out the dish
+                        is_spicy=False,
+                        is_vegan=False,
+                        contains_beef=False,
+                        contains_pork=False,
+                        contains_seafood=False,
+                        allergens=[],
+                        flavors=["savory"],  # Generic flavor
+                        textures=["unknown"],
+                        temperature="hot",
+                        cooking_method="unknown",
+                        suitable_occasions=["casual"],
+                        is_signature=False,  # Conservative: not signature unless Gemini confirms
+                        sentiment_score=0.0,  # Neutral
+                        highlight_review=None
+                    )
+                
+                # Create enhanced MenuItem with analysis
+                enhanced_item = MenuItem(
+                    id=item.id,
+                    name=item.name,
+                    price=item.price,
+                    category=item.category,
+                    description=item.description,
+                    image_url=item.image_url,
+                    source_type=item.source_type,
+                    is_popular=item.is_popular,
+                    is_risky=item.is_risky,
+                    analysis=matched_attrs,  # Now always populated
+                    ai_insight=item.ai_insight
+                )
+                enhanced_items.append(enhanced_item)
+            
+            # Log any Gemini dishes that didn't match menu items
+            if unmatched_gemini_dishes:
+                print(f"[MenuIntelligence] Gemini analyzed dishes not found in menu: {unmatched_gemini_dishes}")
 
-            print(f"[MenuIntelligence] Generated attributes for {len(attribute_map)} items")
+            print(f"[MenuIntelligence] Generated attributes for {len(attribute_map)} items (exact), {len(enhanced_items)} total with fallbacks")
             return enhanced_items
 
         except json.JSONDecodeError as e:
