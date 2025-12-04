@@ -154,7 +154,7 @@ export default function InputPageV3() {
                             >
                                 <div className="mb-6">
                                     <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
-                                        您現在在哪裡？
+                                        您準備在哪間餐廳用餐？
                                     </h2>
                                     <p className="text-gray-500 text-sm">輸入餐廳名稱，AI 將為您解讀菜單</p>
                                 </div>
@@ -414,7 +414,7 @@ export default function InputPageV3() {
                                 className="flex items-center gap-2 px-8 py-3 rounded-full font-bold bg-gradient-to-r from-caramel to-terracotta text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
                             >
                                 <ChefHat className="w-5 h-5" />
-                                生成菜單
+                                告訴我該點什麼 ✨
                             </button>
                         )}
                     </div>
