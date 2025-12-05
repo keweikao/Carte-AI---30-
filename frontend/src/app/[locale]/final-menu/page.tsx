@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
     Share2,
-    Download,
     ChefHat,
     Check,
     Copy,
@@ -32,32 +31,33 @@ export default function FinalMenuPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [menuData, setMenuData] = useState<FinalMenuData | null>(null);
     const [copied, setCopied] = useState(false);
     const [shared, setShared] = useState(false);
 
-    // 從 URL 或 localStorage 載入資料
-    useEffect(() => {
+    // 從 URL 載入資料 (使用 useMemo 避免 setState in effect)
+    const menuData = useMemo<FinalMenuData | null>(() => {
+        if (typeof window === "undefined") return null;
+
         const dataParam = searchParams.get("data");
 
         if (dataParam) {
             try {
-                const decoded = JSON.parse(atob(dataParam));
-                setMenuData(decoded);
+                return JSON.parse(atob(dataParam));
             } catch {
                 // 嘗試從 localStorage
                 const stored = localStorage.getItem("carte_final_menu");
                 if (stored) {
-                    setMenuData(JSON.parse(stored));
+                    return JSON.parse(stored);
                 }
             }
         } else {
             // 從 localStorage 載入
             const stored = localStorage.getItem("carte_final_menu");
             if (stored) {
-                setMenuData(JSON.parse(stored));
+                return JSON.parse(stored);
             }
         }
+        return null;
     }, [searchParams]);
 
     // 複製菜單
@@ -85,7 +85,7 @@ export default function FinalMenuPage() {
                     url: shareUrl
                 });
                 setShared(true);
-            } catch (err) {
+            } catch {
                 // 用戶取消分享
             }
         } else {

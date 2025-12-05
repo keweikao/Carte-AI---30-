@@ -43,7 +43,6 @@ export default function WaitingPage() {
     const searchParams = useSearchParams();
 
     const [currentStage, setCurrentStage] = useState(0);
-    const [progress, setProgress] = useState(0);
     const [jobId, setJobId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -95,12 +94,8 @@ export default function WaitingPage() {
                 router.push(`/zh/recommendation?job_id=${jobId}`);
             } else if (data.status === "failed") {
                 setError(data.error || "推薦生成失敗");
-            } else {
-                // 更新進度
-                if (data.progress) {
-                    setProgress(data.progress);
-                }
             }
+            // 進度由 UI 階段動畫處理
         } catch (err) {
             console.error("Poll error:", err);
         }
