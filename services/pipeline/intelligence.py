@@ -593,15 +593,24 @@ class InsightEngine:
             # Create enhanced menu items
             enhanced_items = []
             for item in menu_items:
+                # Get insight or create default one
+                insight = insight_map.get(item.name)
+                if insight is None:
+                    insight = MenuItemAnalysis(
+                        sentiment="neutral",
+                        summary="顧客評論中未特別提及此菜品",
+                        mention_count=0
+                    )
+                
                 enhanced_item = MenuItem(
                     name=item.name,
                     price=item.price,
                     category=item.category,
                     description=item.description,
                     source_type="dine_in",  # Assume dine_in for scraped menus
-                    is_popular=False,  # Will be determined by recommendation agent
+                    is_popular=insight.mention_count >= 3,  # Popular if mentioned 3+ times
                     is_risky=False,
-                    ai_insight=insight_map.get(item.name)
+                    ai_insight=insight
                 )
                 enhanced_items.append(enhanced_item)
 
