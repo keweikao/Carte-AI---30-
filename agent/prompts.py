@@ -26,4 +26,8 @@ RECOMMENDATION_PROMPT_TEMPLATE = """
 5. **場合適配**：{occasion}
 
 請分析並挑選菜色。
+
+重要規則：
+1. 若菜名原文不是繁體中文（如日文、英文），請務必在 `translated_name` 欄位提供準確的繁體中文翻譯。
+2. `dish_name` 欄位必須與輸入的原始菜名完全一致，以便系統進行對應。
 """

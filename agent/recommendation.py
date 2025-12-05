@@ -205,6 +205,7 @@ class RecommendationService:
                             "type": "OBJECT",
                             "properties": {
                                 "dish_name": {"type": "STRING"},
+                                "translated_name": {"type": "STRING"},
                                 "quantity": {"type": "INTEGER"},
                                 "reason": {"type": "STRING"},
                                 "highlight_note": {"type": "STRING"}
@@ -307,11 +308,22 @@ class RecommendationService:
                 quantity = rec_data.get("quantity", 1)
                 reason = rec_data.get("reason", "Recommended based on preferences")
 
+                # Handle translation
+                translated_name = rec_data.get("translated_name")
+                # If translated_name exists and is different from original, use it as main name
+                if translated_name and translated_name != menu_item.name:
+                    display_name = translated_name
+                    local_name = menu_item.name
+                else:
+                    display_name = menu_item.name
+                    local_name = None
+
                 # Convert to MenuItemV2 format
                 # Note: MenuItemV2 requires dish_name, price, quantity, reason, category
                 menu_item_v2 = MenuItemV2(
                     dish_id=menu_item.id or "",
-                    dish_name=menu_item.name,
+                    dish_name=display_name,
+                    dish_name_local=local_name,
                     price=menu_item.price or 0,
                     quantity=quantity,
                     reason=reason,

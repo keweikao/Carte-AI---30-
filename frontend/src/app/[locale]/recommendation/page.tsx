@@ -435,9 +435,16 @@ function RecommendationPageContent() {
     }, [groupedByCategory, data]);
 
     if (initialLoading && jobId) {
+        const restaurantName = searchParams.get('restaurant_name') || searchParams.get('restaurant') || '';
+        const partySize = parseInt(searchParams.get('party_size') || '2');
+        const dietary = searchParams.get('dietary_restrictions') || '';
+
         return (
             <AgentFocusLoader
                 jobId={jobId}
+                restaurantName={restaurantName}
+                partySize={partySize}
+                dietary={dietary}
                 onComplete={(result: RecommendationData) => {
                     setData(result);
                     setDishSlots(result.items);
