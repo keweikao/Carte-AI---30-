@@ -62,7 +62,7 @@ export function DishCard({ item, status, onSelect, onSwap, isSwapping }: DishCar
             {/* Row 2: Reason & Review Count */}
             <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-body">&quot;{item.reason}&quot;</p>
             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-              {item.review_count && (
+              {item.review_count && item.review_count > 0 && (
                 <span className="flex items-center gap-1">
                   <Star className="w-3 h-3 fill-current text-caramel" /> {item.review_count} 則好評
                 </span>
