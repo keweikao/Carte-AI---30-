@@ -54,7 +54,7 @@ export default function InputPageV3() {
     // Navigation Logic
     const canGoNext = () => {
         switch (currentStep) {
-            case 1: return formData.restaurant_name !== "";
+            case 1: return formData.restaurant_name !== "" && formData.place_id !== undefined;
             case 2: return true;
             case 3: return formData.people > 0;
             case 4: return true;
