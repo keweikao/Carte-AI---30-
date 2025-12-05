@@ -26,8 +26,16 @@ test.describe('UI flow (mock login + recommendation)', () => {
     await restaurantField.click();
     await restaurantField.type('測試餐廳');
 
-    // Wait for step 1 validation (restaurant name entered) 
-    await page.waitForTimeout(1000);
+    // Wait for autocomplete suggestions (listbox) and select the first option
+    // This ensures place_id is set, which is required for the "Next" button to be enabled
+    const suggestionList = page.getByRole('listbox');
+    await expect(suggestionList).toBeVisible({ timeout: 5000 });
+
+    const firstOption = page.getByRole('option').first();
+    await firstOption.click();
+
+    // Wait for state update
+    await page.waitForTimeout(500);
 
     // Check if "下一步" button appears (it should if step 1 is valid)
     const nextButton1 = page.locator('button:has-text("下一步")').first();
