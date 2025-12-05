@@ -26,10 +26,8 @@ export function TransparencyStream({
                 });
             }, 300);
             return () => clearInterval(interval);
-        } else if (simulatedProgress !== 0) {
-            setSimulatedProgress(0); // 當真實進度超過10%時，停用模擬
         }
-    }, [progress, simulatedProgress]);
+    }, [progress]);
 
     // 使用較高的值
     const displayProgress = Math.max(progress, simulatedProgress);
