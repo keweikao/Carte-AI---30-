@@ -10,6 +10,22 @@ test.describe('UI flow (mock login + recommendation)', () => {
   test.skip(!runUI, 'Set E2E_RUN_UI=1 to run UI flow tests.');
 
   test('user can reach input and see recommendations', async ({ page }) => {
+    // Mock the autocomplete API to ensure listbox appears in test environment
+    await page.route('**/places/autocomplete*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          suggestions: [{
+            description: '測試餐廳 Mock',
+            place_id: 'mock-place-1',
+            main_text: '測試餐廳 Mock',
+            secondary_text: 'Mock Address'
+          }]
+        })
+      });
+    });
+
     await page.goto('/');
     if (locators.landing?.heroTitle) {
       await expect(page.locator(locators.landing.heroTitle)).toBeVisible();
