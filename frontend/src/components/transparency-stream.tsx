@@ -25,6 +25,26 @@ export function TransparencyStream({
     const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
     const [displayText, setDisplayText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    // 模擬進度 - 當後端 progress 在 0-10% 時，用前端模擬動畫
+    const [simulatedProgress, setSimulatedProgress] = useState(0);
+
+    // 模擬進度動畫
+    useEffect(() => {
+        if (progress <= 10) {
+            const interval = setInterval(() => {
+                setSimulatedProgress(prev => {
+                    if (prev >= 25) return prev; // 最高模擬到25%
+                    return prev + 1;
+                });
+            }, 300);
+            return () => clearInterval(interval);
+        } else {
+            setSimulatedProgress(0); // 當真實進度超過10%時，停用模擬
+        }
+    }, [progress]);
+
+    // 使用較高的值
+    const displayProgress = Math.max(progress, simulatedProgress);
 
     // Generate messages based on progress and context
     const messages: StreamMessage[] = [
@@ -65,8 +85,8 @@ export function TransparencyStream({
 
     // Determine current phase based on progress
     const currentPhase: 'perception' | 'filtering' | 'decision' =
-        progress < 30 ? 'perception' :
-            progress < 70 ? 'filtering' : 'decision';
+        displayProgress < 30 ? 'perception' :
+            displayProgress < 70 ? 'filtering' : 'decision';
 
     // Get phase icon and styling
     const getPhaseConfig = () => {
@@ -148,7 +168,7 @@ export function TransparencyStream({
             if (part.startsWith('**') && part.endsWith('**')) {
                 const content = part.slice(2, -2);
                 return (
-                    <span key={index} className="font-bold text-charcoal">
+                    <span key={index} className="font-bold text-charcoal-800">
                         {content}
                     </span>
                 );
@@ -204,13 +224,13 @@ export function TransparencyStream({
                         transition={{ duration: 0.3 }}
                         className="text-center min-h-[80px] flex items-center justify-center px-4"
                     >
-                        <p className="text-lg sm:text-xl text-gray-700 leading-relaxed font-medium">
+                        <p className="text-lg sm:text-xl text-charcoal-800 leading-relaxed font-medium">
                             {renderHighlightedText(displayText)}
                             {isTyping && (
                                 <motion.span
                                     animate={{ opacity: [0, 1, 0] }}
                                     transition={{ duration: 0.8, repeat: Infinity }}
-                                    className="inline-block ml-1 text-gray-500"
+                                    className="inline-block ml-1 text-caramel"
                                 >
                                     |
                                 </motion.span>
@@ -222,15 +242,15 @@ export function TransparencyStream({
                 {/* Progress Indicator */}
                 <div className="mt-8 space-y-3">
                     <div className="flex justify-between text-sm font-semibold">
-                        <span className="text-gray-600">{Math.round(progress)}%</span>
+                        <span className="text-charcoal-600">{Math.round(displayProgress)}%</span>
                         <span className={`capitalize ${phaseConfig.textColor}`}>{phaseConfig.label}</span>
                     </div>
-                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="h-2.5 bg-cream-200 rounded-full overflow-hidden shadow-inner">
                         <motion.div
                             className={`h-full bg-gradient-to-r ${phaseConfig.color} shadow-lg`}
                             initial={{ width: 0 }}
-                            animate={{ width: `${progress}%` }}
-                            transition={{ duration: 0.3, ease: "easeOut" }}
+                            animate={{ width: `${displayProgress}%` }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
                         />
                     </div>
                 </div>
