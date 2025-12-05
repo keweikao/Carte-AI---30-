@@ -61,7 +61,16 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 if USE_MOCK_EXTERNAL:
     _fetch_place_autocomplete = fetch_place_autocomplete
     async def mock_fetch_place_autocomplete(input: str):
-        return await _fetch_place_autocomplete(input) if GOOGLE_API_KEY else [{"description": f"{input} Mock", "place_id": "mock-place-1"}]
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if api_key:
+            return await _fetch_place_autocomplete(input)
+        
+        return [{
+            "description": f"{input} Mock", 
+            "place_id": "mock-place-1",
+            "main_text": f"{input} Mock",
+            "secondary_text": "Mock Address"
+        }]
     fetch_place_autocomplete = mock_fetch_place_autocomplete
 
 @app.get("/places/autocomplete")
