@@ -606,8 +606,9 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<'div'> & {
   showIcon?: boolean
 }) {
-  // Use useRef to store the random width value to avoid calling Math.random during render
-  const widthRef = React.useRef(`${Math.floor(Math.random() * 40) + 50}%`)
+  // Use useState with lazy initialization to avoid calling Math.random during render
+  // The function is only called once during the initial render
+  const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`)
 
   return (
     <div
@@ -627,7 +628,7 @@ function SidebarMenuSkeleton({
         data-sidebar="menu-skeleton-text"
         style={
           {
-            '--skeleton-width': widthRef.current,
+            '--skeleton-width': width,
           } as React.CSSProperties
         }
       />
