@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Filter, ChefHat } from "lucide-react"
 
@@ -20,7 +20,7 @@ const streamMessages: StreamMessage[] = [
   { id: 7, text: "篩選適合聚餐的菜色...", phase: "filtering" },
   { id: 8, text: "平衡口味與價格...", phase: "decision" },
   { id: 9, text: "生成個人化推薦菜單...", phase: "decision" },
-  { id: 10, text: "完成！準備呈現您的推薦...", phase: "decision" },
+  { id: 10, text: "完成!準備呈現您的推薦...", phase: "decision" },
 ]
 
 const phases = [
@@ -56,9 +56,12 @@ export default function WaitingPage() {
   useEffect(() => {
     if (currentMessageIndex < streamMessages.length) {
       const message = streamMessages[currentMessageIndex]
-      setDisplayedMessages((prev) => [...prev.slice(-4), message])
-      setCurrentPhase(message.phase)
-      setProgress(((currentMessageIndex + 1) / streamMessages.length) * 100)
+      // Batch state updates using startTransition to avoid cascading renders
+      startTransition(() => {
+        setDisplayedMessages((prev) => [...prev.slice(-4), message])
+        setCurrentPhase(message.phase)
+        setProgress(((currentMessageIndex + 1) / streamMessages.length) * 100)
+      })
     }
   }, [currentMessageIndex])
 
@@ -142,13 +145,12 @@ export default function WaitingPage() {
                     className={`
                     w-10 h-10 rounded-full flex items-center justify-center
                     transition-all duration-300
-                    ${
-                      isPast
+                    ${isPast
                         ? "bg-charcoal text-white"
                         : isActive
                           ? `${getPhaseColor(phase.id, "bg")} text-white scale-110`
                           : "bg-charcoal/10 text-charcoal/30"
-                    }
+                      }
                   `}
                   >
                     {isPast ? (
@@ -181,10 +183,9 @@ export default function WaitingPage() {
                   key={message.id}
                   className={`
                     flex items-center gap-3 p-3 rounded-xl transition-all duration-300
-                    ${
-                      isLatest
-                        ? `${getPhaseColor(message.phase, "bg")}/10 ${getPhaseColor(message.phase, "border")} border`
-                        : "opacity-40"
+                    ${isLatest
+                      ? `${getPhaseColor(message.phase, "bg")}/10 ${getPhaseColor(message.phase, "border")} border`
+                      : "opacity-40"
                     }
                   `}
                 >
