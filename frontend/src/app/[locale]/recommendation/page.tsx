@@ -554,53 +554,51 @@ function RecommendationPageContent() {
                                                 >
                                                     <div className="flex gap-4">
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <div className="flex items-center gap-2">
-                                                                    <h3 className="font-bold text-lg text-foreground leading-tight">{slot.display.dish_name}</h3>
-                                                                    {slot.display.quantity > 1 && (
-                                                                        <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
-                                                                            x{slot.display.quantity}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                {/* 價格已移除 */}
-                                                                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">&ldquo;{slot.display.reason}&rdquo;</p>
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <h3 className="font-bold text-lg text-foreground leading-tight">{slot.display.dish_name}</h3>
+                                                                {slot.display.quantity > 1 && (
+                                                                    <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
+                                                                        x{slot.display.quantity}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">&ldquo;{slot.display.reason}&rdquo;</p>
 
-                                                                <div className="flex items-center gap-2 mt-4" role="group" aria-label="菜品操作">
-                                                                    <Button
-                                                                        size="sm"
-                                                                        className={`flex-1 h-9 rounded-full ${status === 'selected' ? 'bg-green-600 hover:bg-green-700' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'} transition-colors`}
-                                                                        onClick={() => handleSelect(slot.display.dish_name)}
-                                                                        aria-label={status === 'selected' ? `移除 ${slot.display.dish_name}` : `加入 ${slot.display.dish_name}`}
-                                                                        aria-pressed={status === 'selected'}
-                                                                    >
-                                                                        {status === 'selected' ? (
-                                                                            <>
-                                                                                <CheckCircle2 className="w-4 h-4 mr-1.5" aria-hidden="true" />
-                                                                                {t('selected')}
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <span className="mr-1.5 text-lg leading-none">+</span>
-                                                                                {t('add_dish')}
-                                                                            </>
-                                                                        )}
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        className="h-9 rounded-full px-4"
-                                                                        onClick={() => handleSwap(index)}
-                                                                        disabled={isSwapping}
-                                                                        aria-label={`換一道菜替代 ${slot.display.dish_name}`}
-                                                                        aria-busy={isSwapping}
-                                                                    >
-                                                                        <RotateCw className={`w-4 h-4 mr-1.5 ${isSwapping ? 'animate-spin' : ''}`} aria-hidden="true" />
-                                                                        {t('swap_dish')}
-                                                                    </Button>
-                                                                </div>
+                                                            <div className="flex items-center gap-2 mt-4" role="group" aria-label="菜品操作">
+                                                                <Button
+                                                                    size="sm"
+                                                                    className={`flex-1 h-9 rounded-full ${status === 'selected' ? 'bg-green-600 hover:bg-green-700' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'} transition-colors`}
+                                                                    onClick={() => handleSelect(slot.display.dish_name)}
+                                                                    aria-label={status === 'selected' ? `移除 ${slot.display.dish_name}` : `加入 ${slot.display.dish_name}`}
+                                                                    aria-pressed={status === 'selected'}
+                                                                >
+                                                                    {status === 'selected' ? (
+                                                                        <>
+                                                                            <CheckCircle2 className="w-4 h-4 mr-1.5" aria-hidden="true" />
+                                                                            {t('selected')}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <span className="mr-1.5 text-lg leading-none">+</span>
+                                                                            {t('add_dish')}
+                                                                        </>
+                                                                    )}
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="h-9 rounded-full px-4"
+                                                                    onClick={() => handleSwap(index)}
+                                                                    disabled={isSwapping}
+                                                                    aria-label={`換一道菜替代 ${slot.display.dish_name}`}
+                                                                    aria-busy={isSwapping}
+                                                                >
+                                                                    <RotateCw className={`w-4 h-4 mr-1.5 ${isSwapping ? 'animate-spin' : ''}`} aria-hidden="true" />
+                                                                    {t('swap_dish')}
+                                                                </Button>
                                                             </div>
                                                         </div>
+                                                    </div>
                                                 </Card>
                                             </motion.div>
                                         );
