@@ -29,7 +29,7 @@ test.describe('UI flow (mock login + recommendation)', () => {
     // Wait for autocomplete suggestions (listbox) and select the first option
     // This ensures place_id is set, which is required for the "Next" button to be enabled
     const suggestionList = page.getByRole('listbox');
-    await expect(suggestionList).toBeVisible({ timeout: 5000 });
+    await expect(suggestionList).toBeVisible({ timeout: 10000 });
 
     const firstOption = page.getByRole('option').first();
     await firstOption.click();

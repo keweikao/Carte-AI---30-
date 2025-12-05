@@ -56,13 +56,14 @@ export function RestaurantSearch({ onSelect, onChange, value, defaultValue, name
     }
 
     const timer = setTimeout(async () => {
-      // Only search if we have a session token and input length > 1
-      // @ts-expect-error - id_token exists on session but not in type definition
-      if (displayValue.length > 1 && session?.id_token) {
+      // Only search if input length > 1
+      // API client handles authentication (uses session token or falls back to dev token)
+      if (displayValue.length > 1) {
         setLoading(true);
         try {
           // @ts-expect-error - id_token exists on session
-          const data = await getPlaceAutocomplete(displayValue, session.id_token);
+          const token = session?.id_token;
+          const data = await getPlaceAutocomplete(displayValue, token);
           if (data.suggestions && data.suggestions.length > 0) {
             setSuggestions(data.suggestions);
             setIsOpen(true);
