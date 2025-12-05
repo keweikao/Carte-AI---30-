@@ -206,6 +206,7 @@ class RecommendationService:
                             "properties": {
                                 "dish_name": {"type": "STRING"},
                                 "translated_name": {"type": "STRING"},
+                                "local_name": {"type": "STRING"},
                                 "quantity": {"type": "INTEGER"},
                                 "reason": {"type": "STRING"},
                                 "highlight_note": {"type": "STRING"}
@@ -308,14 +309,23 @@ class RecommendationService:
                 quantity = rec_data.get("quantity", 1)
                 reason = rec_data.get("reason", "Recommended based on preferences")
 
-                # Handle translation
+                # Handle names
                 translated_name = rec_data.get("translated_name")
-                # If translated_name exists and is different from original, use it as main name
-                if translated_name and translated_name != menu_item.name:
+                llm_local_name = rec_data.get("local_name")
+                
+                # Determine display name (Traditional Chinese)
+                if translated_name:
                     display_name = translated_name
-                    local_name = menu_item.name
                 else:
                     display_name = menu_item.name
+                
+                # Determine local name (Original Language)
+                if llm_local_name:
+                    local_name = llm_local_name
+                elif translated_name and translated_name != menu_item.name:
+                    # If we used a translation, the original name is likely the local name
+                    local_name = menu_item.name
+                else:
                     local_name = None
 
                 # Convert to MenuItemV2 format
