@@ -44,8 +44,14 @@ export function DishCard({ item, status, onSelect, onSwap, isSwapping }: DishCar
             {/* Row 1: Title & Price */}
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-lg text-foreground leading-tight truncate pr-2">
-                  {item.dish_name} {item.quantity > 1 && <span className="text-caramel">x{item.quantity}</span>}
+                <h3 className="font-bold text-lg text-foreground leading-tight pr-2">
+                  {item.dish_name}
+                  {item.dish_name_local && (
+                    <span className="text-sm text-muted-foreground ml-1 font-normal">
+                      ({item.dish_name_local})
+                    </span>
+                  )}
+                  {item.quantity > 1 && <span className="text-caramel ml-1">x{item.quantity}</span>}
                 </h3>
                 {item.price_estimated && (
                   <Badge variant="neutral" className="bg-caramel/10 text-caramel border-caramel/20">估價</Badge>

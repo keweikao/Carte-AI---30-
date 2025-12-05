@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Share2, Printer, Star, Download, Copy, Check, Search } from "lucide-react";
+import { ArrowLeft, Share2, Printer, Star, Download, Copy, Check, Search, Languages } from "lucide-react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { MenuItem } from "@/types";
@@ -437,7 +437,8 @@ function MenuPageContent() {
                             onClick={() => setShowLocalLanguage(!showLocalLanguage)}
                             className="gap-2"
                         >
-                            {showLocalLanguage ? t('show_chinese_name') : t('show_original_name')}
+                            <Languages className="w-4 h-4" />
+                            {showLocalLanguage ? "顯示中文菜名" : "顯示原文菜名"}
                         </Button>
                     </div>
                 </motion.div>
