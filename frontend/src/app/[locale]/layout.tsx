@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Noto_Sans_TC, Caveat } from "next/font/google";
+import { Cormorant_Garamond, Inter, Noto_Sans_TC, Caveat } from "next/font/google";
 import "../../app/globals.css";
 
+// Carte AI Design System - Serif font for headings
 const display = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -10,12 +11,22 @@ const display = Cormorant_Garamond({
   preload: true,
 });
 
-const body = Noto_Sans_TC({
+// Carte AI Design System - Sans-serif font for body text
+const body = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "700", "900"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-body",
   display: "swap",
   preload: true,
+});
+
+// Chinese font fallback
+const bodyZh = Noto_Sans_TC({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-body-zh",
+  display: "swap",
+  preload: false,
 });
 
 const handwriting = Caveat({
@@ -158,6 +169,7 @@ export default async function LocaleLayout({
         className={[
           display.variable,
           body.variable,
+          bodyZh.variable,
           handwriting.variable,
           "font-body",
           "antialiased",
