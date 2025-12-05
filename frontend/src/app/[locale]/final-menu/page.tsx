@@ -75,7 +75,7 @@ export default function FinalMenuPage() {
         if (!menuData) return;
 
         const shareData = btoa(JSON.stringify(menuData));
-        const shareUrl = `${window.location.origin}/zh/final-menu?data=${shareData}`;
+        const shareUrl = `${window.location.origin}/final-menu?data=${shareData}`;
 
         if (navigator.share) {
             try {
@@ -296,7 +296,7 @@ export default function FinalMenuPage() {
                         className="text-center mt-8"
                     >
                         <button
-                            onClick={() => router.push("/zh/input")}
+                            onClick={() => router.push("/input")}
                             className="text-caramel hover:text-terracotta transition-colors font-medium"
                         >
                             探索其他餐廳 →

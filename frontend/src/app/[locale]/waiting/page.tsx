@@ -91,7 +91,7 @@ export default function WaitingPage() {
 
             if (data.status === "completed") {
                 // 導向推薦頁面
-                router.push(`/zh/recommendation?job_id=${jobId}`);
+                router.push(`/recommendation?job_id=${jobId}`);
             } else if (data.status === "failed") {
                 setError(data.error || "推薦生成失敗");
             }
