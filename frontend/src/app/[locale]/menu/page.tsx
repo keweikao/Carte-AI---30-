@@ -244,7 +244,17 @@ function MenuPageContent() {
                 }
                 ctx.fillText(reason, 55, y);
             }
-            y += 45;
+            y += 25;
+
+            // 評論數
+            if (dish.review_count && dish.review_count > 0) {
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#999';
+                ctx.fillText(`★ ${dish.review_count} 則好評`, 55, y);
+                y += 35; // 增加間距給下一個項目
+            } else {
+                y += 20; // 若無評論數，間距小一點
+            }
         });
 
         // Footer
