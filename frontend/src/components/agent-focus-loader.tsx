@@ -31,7 +31,8 @@ export function AgentFocusLoader<T = unknown>({
         const pollInterval = setInterval(async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await fetch(`${apiUrl}/v2/recommendations/status/${jobId}`);
+                // 正確的 API 路徑
+                const response = await fetch(`${apiUrl}/api/v1/recommend/v2/status/${jobId}`);
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
