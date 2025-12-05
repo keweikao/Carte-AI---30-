@@ -6,12 +6,16 @@ interface TransparencyStreamProps {
     progress: number;
     restaurantName?: string;
     partySize?: number;
+    reviewCount?: number;
+    dietary?: string;
 }
 
 export function TransparencyStream({
     progress,
     restaurantName = "餐廳",
     partySize = 2,
+    reviewCount,
+    dietary,
 }: TransparencyStreamProps) {
     // 模擬進度 - 當後端 progress 在 0-10% 時，用前端模擬動畫
     const [simulatedProgress, setSimulatedProgress] = useState(0);
@@ -133,6 +137,18 @@ export function TransparencyStream({
                         />
                     </div>
                 </div>
+
+                {/* 溫馨提醒 */}
+                {(!reviewCount || reviewCount === 0) && displayProgress < 50 && (
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 2 }}
+                        className="text-xs text-muted-foreground mt-6 text-center italic"
+                    >
+                        💡 溫馨提醒：第一次搜尋這家餐廳，AI 需要一點時間細讀評論，請耐心等候...
+                    </motion.p>
+                )}
             </div>
         </motion.div>
     );
