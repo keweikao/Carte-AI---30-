@@ -2,13 +2,17 @@ import createMiddleware from 'next-intl/middleware';
 
 export default createMiddleware({
     // A list of all locales that are supported
-    locales: ['en', 'zh-TW'],
+    locales: ['en', 'zh-TW', 'zh'],
 
     // Used when no locale matches
     defaultLocale: 'zh-TW',
 
-    // Don't show prefix for default locale
-    localePrefix: 'as-needed'
+    // Locale detection and alias mapping
+    localePrefix: 'as-needed',
+
+    // Map 'zh' to 'zh-TW' for backwards compatibility
+    localeDetection: true,
+    alternateLinks: true
 });
 
 export const config = {
