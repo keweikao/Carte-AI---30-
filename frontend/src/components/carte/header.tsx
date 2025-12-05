@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -27,7 +27,9 @@ export function CarteHeader({ className }: HeaderProps) {
 
     // Close mobile menu on route change
     useEffect(() => {
-        setIsMobileMenuOpen(false);
+        startTransition(() => {
+            setIsMobileMenuOpen(false);
+        });
     }, [pathname]);
 
     const navLinks = [

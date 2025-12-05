@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -11,16 +11,13 @@ import {
     Clock,
     ChefHat,
     MessageSquare,
-    ArrowRight,
-    Check
+    ArrowRight
 } from "lucide-react";
 import { CarteHeader, CarteFooter } from "@/components/carte";
-import { cn } from "@/lib/utils";
 
 export default function LandingPage() {
     const { status } = useSession();
     const router = useRouter();
-    const [isScrolled, setIsScrolled] = useState(false);
 
     // Auto redirect if authenticated
     useEffect(() => {
@@ -34,15 +31,6 @@ export default function LandingPage() {
             }
         }
     }, [status, router]);
-
-    // Scroll detection
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
-        };
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
 
     if (status === "loading") {
         return (
@@ -270,7 +258,7 @@ export default function LandingPage() {
                             >
                                 <MessageSquare className="w-8 h-8 text-caramel mb-4" />
                                 <p className="text-charcoal mb-6 italic">
-                                    "{testimonial.quote}"
+                                    &ldquo;{testimonial.quote}&rdquo;
                                 </p>
                                 <div>
                                     <p className="font-semibold text-charcoal">
