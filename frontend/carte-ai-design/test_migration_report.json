@@ -1,0 +1,244 @@
+{
+  "passed": 57,
+  "failed": 0,
+  "warnings": 1,
+  "details": {
+    "passed": [
+      {
+        "test": "色彩變數 --charcoal",
+        "detail": "已定義"
+      },
+      {
+        "test": "色彩變數 --caramel",
+        "detail": "已定義"
+      },
+      {
+        "test": "色彩變數 --terracotta",
+        "detail": "已定義"
+      },
+      {
+        "test": "色彩變數 --cream",
+        "detail": "已定義"
+      },
+      {
+        "test": "色彩變數 --cream-dark",
+        "detail": "已定義"
+      },
+      {
+        "test": "字體變數 --font-serif",
+        "detail": "已定義"
+      },
+      {
+        "test": "字體變數 --font-sans",
+        "detail": "已定義"
+      },
+      {
+        "test": "陰影變數 --shadow-subtle",
+        "detail": "已定義"
+      },
+      {
+        "test": "陰影變數 --shadow-medium",
+        "detail": "已定義"
+      },
+      {
+        "test": "陰影變數 --shadow-floating",
+        "detail": "已定義"
+      },
+      {
+        "test": "Google Fonts - Cormorant Garamond",
+        "detail": "已引入"
+      },
+      {
+        "test": "Google Fonts - Inter",
+        "detail": "已引入"
+      },
+      {
+        "test": "頁面 /",
+        "detail": "Landing Page 已建立"
+      },
+      {
+        "test": "頁面 /input",
+        "detail": "輸入表單頁 已建立"
+      },
+      {
+        "test": "頁面 /waiting",
+        "detail": "等待畫面 已建立"
+      },
+      {
+        "test": "頁面 /recommendation",
+        "detail": "推薦結果頁 已建立"
+      },
+      {
+        "test": "頁面 /final-menu",
+        "detail": "最終菜單頁 已建立"
+      },
+      {
+        "test": "Landing Page - Hero Section",
+        "detail": "已實作"
+      },
+      {
+        "test": "Landing Page - Features Section",
+        "detail": "已實作"
+      },
+      {
+        "test": "Landing Page - How It Works",
+        "detail": "已實作"
+      },
+      {
+        "test": "Input Page - step-restaurant",
+        "detail": "步驟已整合"
+      },
+      {
+        "test": "Input Page - step-dining-mode",
+        "detail": "步驟已整合"
+      },
+      {
+        "test": "Input Page - step-party-size",
+        "detail": "步驟已整合"
+      },
+      {
+        "test": "Input Page - step-preferences",
+        "detail": "步驟已整合"
+      },
+      {
+        "test": "Waiting Page - 探索階段",
+        "detail": "已實作"
+      },
+      {
+        "test": "Waiting Page - 分析階段",
+        "detail": "已實作"
+      },
+      {
+        "test": "Waiting Page - 生成階段",
+        "detail": "已實作"
+      },
+      {
+        "test": "Waiting Page - Transparency Stream",
+        "detail": "已實作"
+      },
+      {
+        "test": "Recommendation Page - DishCard",
+        "detail": "已使用"
+      },
+      {
+        "test": "Recommendation Page - MenuSummary",
+        "detail": "已使用"
+      },
+      {
+        "test": "Recommendation Page - 響應式佈局",
+        "detail": "已實作"
+      },
+      {
+        "test": "Final Menu Page - Success Header",
+        "detail": "已實作"
+      },
+      {
+        "test": "Final Menu Page - 分享功能",
+        "detail": "已實作"
+      },
+      {
+        "test": "Final Menu Page - 地圖連結",
+        "detail": "已實作"
+      },
+      {
+        "test": "元件 header.tsx",
+        "detail": "頂部導覽 已建立"
+      },
+      {
+        "test": "元件 footer.tsx",
+        "detail": "頁尾 已建立"
+      },
+      {
+        "test": "元件 progress-bar.tsx",
+        "detail": "步驟進度指示器 已建立"
+      },
+      {
+        "test": "元件 dish-card.tsx",
+        "detail": "菜色卡片 已建立"
+      },
+      {
+        "test": "元件 menu-summary.tsx",
+        "detail": "已選菜色摘要 已建立"
+      },
+      {
+        "test": "元件 empty-state.tsx",
+        "detail": "空狀態 已建立"
+      },
+      {
+        "test": "元件 error-state.tsx",
+        "detail": "錯誤狀態 已建立"
+      },
+      {
+        "test": "DishCard Props",
+        "detail": "找到 3/4 個必要 props"
+      },
+      {
+        "test": "ProgressBar Props",
+        "detail": "步驟相關 props 已定義"
+      },
+      {
+        "test": "Primary Button 漸層",
+        "detail": "在 6 個檔案中使用"
+      },
+      {
+        "test": "圓角按鈕樣式",
+        "detail": "在 25 個檔案中使用"
+      },
+      {
+        "test": "卡片圓角 (rounded-2xl)",
+        "detail": "在 5 個檔案中使用"
+      },
+      {
+        "test": "卡片陰影",
+        "detail": "在 17 個檔案中使用"
+      },
+      {
+        "test": "響應式斷點 sm:",
+        "detail": "在 19 個檔案中使用"
+      },
+      {
+        "test": "響應式斷點 md:",
+        "detail": "在 16 個檔案中使用"
+      },
+      {
+        "test": "響應式斷點 lg:",
+        "detail": "在 7 個檔案中使用"
+      },
+      {
+        "test": "導航到 /input",
+        "detail": "在 4 個檔案中使用"
+      },
+      {
+        "test": "導航到 /waiting",
+        "detail": "在 1 個檔案中使用"
+      },
+      {
+        "test": "導航到 /recommendation",
+        "detail": "在 2 個檔案中使用"
+      },
+      {
+        "test": "導航到 /final-menu",
+        "detail": "在 1 個檔案中使用"
+      },
+      {
+        "test": "React Hook - useState",
+        "detail": "在 4 個檔案中使用"
+      },
+      {
+        "test": "React Hook - useEffect",
+        "detail": "在 1 個檔案中使用"
+      },
+      {
+        "test": "React Hook - useRouter",
+        "detail": "在 4 個檔案中使用"
+      }
+    ],
+    "failed": [],
+    "warnings": [
+      {
+        "test": "響應式斷點 xl:",
+        "detail": "未使用"
+      }
+    ]
+  }
+}
