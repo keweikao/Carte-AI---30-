@@ -71,19 +71,7 @@ function MenuPageSkeleton() {
                     <Skeleton className="h-5 w-40 mx-auto" />
                 </div>
 
-                {/* Price Summary */}
-                <Card className="p-6 mb-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                    <div className="flex justify-between items-end">
-                        <div>
-                            <Skeleton className="h-4 w-20 mb-2" />
-                            <Skeleton className="h-9 w-40" />
-                        </div>
-                        <div className="text-right">
-                            <Skeleton className="h-4 w-16 mb-2" />
-                            <Skeleton className="h-8 w-32" />
-                        </div>
-                    </div>
-                </Card>
+                {/* 價格摘要已移除 */}
 
                 {/* Dishes List */}
                 <div className="space-y-4">
@@ -201,14 +189,13 @@ function MenuPageContent() {
         ctx.fillStyle = '#666';
         ctx.fillText(`${menu.cuisine_type} • ${menu.party_size} 人用餐 • ${menu.dishes.length} 道菜`, canvas.width / 2, 235);
 
-        // Price Summary
+        // 價格摘要已移除
         ctx.fillStyle = '#D4A574';
-        ctx.fillRect(50, 280, canvas.width - 100, 120);
+        ctx.fillRect(50, 280, canvas.width - 100, 60);
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 28px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(`總價: ${menu.currency || 'NT$'} ${menu.total_price.toLocaleString()}`, 80, 325);
-        ctx.fillText(`人均: ${menu.currency || 'NT$'} ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 365);
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Carte AI 推薦菜单', canvas.width / 2, 320);
 
         // Dishes
         let y = 450;
@@ -236,12 +223,7 @@ function MenuPageContent() {
             }
 
             ctx.fillText(`${index + 1}. ${dishName}`, 50, y);
-
-            // Price on the right
-            ctx.textAlign = 'right';
-            ctx.font = 'bold 22px sans-serif';
-            ctx.fillText(`${menu.currency || 'NT$'} ${(dish.price * dish.quantity).toLocaleString()}`, canvas.width - 50, y);
-
+            // 價格已移除
             y += 65;
         });
 
@@ -270,21 +252,14 @@ function MenuPageContent() {
         // Construct share URL
         const shareUrl = 'https://www.carte.tw';
 
-        const shareText = t('share_text_template', {
-            restaurant: menu?.restaurant_name || '',
-            currency: menu?.currency || 'NT$',
-            total_price: menu?.total_price.toLocaleString() || '0',
-            people: menu?.party_size || 0,
-            dishes: menu?.dishes.length || 0,
-            url: shareUrl
-        });
+        // 價格已移除
 
         if (imageBlob && navigator.share) {
             try {
                 const shareData: ShareData = {
                     files: [new File([imageBlob], 'carte_menu.png', { type: 'image/png' })],
                     title: 'Carte AI 智慧推薦菜單',
-                    text: shareText,
+                    text: `🍽️ ${menu?.restaurant_name || ''} - Carte AI 推薦菜單`,
                     url: shareUrl // Add URL to share data
                 };
                 if (navigator.canShare && navigator.canShare(shareData)) {
@@ -379,7 +354,7 @@ function MenuPageContent() {
         );
     }
 
-    const perPerson = Math.round(menu.total_price / menu.party_size);
+    // 價格計算已移除
 
     return (
         <div className="min-h-screen bg-background pb-20">
@@ -437,29 +412,7 @@ function MenuPageContent() {
                     </div>
                 </motion.div>
 
-                {/* Price Summary */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                >
-                    <Card className="p-6 mb-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <p className="text-sm text-muted-foreground mb-1">{t('total_price')}</p>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-foreground font-mono">
-                                    {menu.currency || 'NT$'} {menu.total_price.toLocaleString()}
-                                </h2>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm text-muted-foreground mb-1">{t('per_person')}</p>
-                                <p className="text-xl sm:text-2xl font-bold text-primary font-mono">
-                                    {menu.currency || 'NT$'} {perPerson.toLocaleString()}
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                </motion.div>
+                {/* 價格摘要已移除 */}
 
                 {/* Dishes List */}
                 <div className="space-y-4">
@@ -497,19 +450,7 @@ function MenuPageContent() {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="text-right flex-shrink-0">
-                                            <p className="text-lg font-bold font-mono text-foreground" aria-label={`價格 ${dish.price * dish.quantity} 元`}>
-                                                {menu.currency || 'NT$'} {(dish.price * dish.quantity).toLocaleString()}
-                                            </p>
-                                            {dish.quantity > 1 && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    {dish.quantity} × {menu.currency || 'NT$'} {dish.price}
-                                                </p>
-                                            )}
-                                            {dish.price_estimated && (
-                                                <p className="text-xs text-muted-foreground">{t('estimated')}</p>
-                                            )}
-                                        </div>
+                                        {/* 價格已移除 */}
                                     </div>
                                 </Card>
                             </motion.li>

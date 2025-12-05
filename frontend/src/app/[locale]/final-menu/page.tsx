@@ -103,11 +103,10 @@ export default function FinalMenuPage() {
         text += `━━━━━━━━━━━━━━\n`;
 
         data.items.forEach(item => {
-            text += `${item.name} x${item.quantity} - $${item.price * item.quantity}\n`;
+            text += `${item.name} x${item.quantity}\n`;
         });
 
         text += `━━━━━━━━━━━━━━\n`;
-        text += `💰 總計: $${data.total_price}\n\n`;
         text += `由 Carte AI 推薦 ✨`;
 
         return text;
@@ -202,9 +201,7 @@ export default function FinalMenuPage() {
                                                         x{item.quantity}
                                                     </p>
                                                 </div>
-                                                <p className="font-medium text-charcoal">
-                                                    ${item.price * item.quantity}
-                                                </p>
+                                                {/* 價格已移除 */}
                                             </div>
                                         ))}
                                     </div>
@@ -212,20 +209,7 @@ export default function FinalMenuPage() {
                             ))}
                         </div>
 
-                        {/* 總計 */}
-                        <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
-                            <div className="flex items-center justify-between">
-                                <span className="font-serif text-lg font-bold text-charcoal">
-                                    總計
-                                </span>
-                                <span className="font-serif text-2xl font-bold text-caramel">
-                                    ${menuData.total_price}
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-400 mt-1">
-                                約 ${Math.round(menuData.total_price / menuData.party_size)} / 人
-                            </p>
-                        </div>
+                        {/* 總計已移除 */}
                     </motion.div>
 
                     {/* 行動按鈕 */}
