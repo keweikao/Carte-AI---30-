@@ -47,7 +47,7 @@ jobs:
             --region=${{ env.REGION }} \
             --platform=managed \
             --allow-unauthenticated \
-            --set-secrets="GEMINI_API_KEY=dining-gemini-api-key:latest,GOOGLE_API_KEY=dining-google-api-key:latest,GOOGLE_CLIENT_ID=dining-google-client-id:latest,SEARCH_ENGINE_ID=dining-search-engine-id:latest" \
+            --set-secrets="GEMINI_API_KEY=dining-gemini-api-key:latest,GOOGLE_API_KEY=dining-google-api-key:latest,GOOGLE_CLIENT_ID=dining-google-client-id:latest,SEARCH_ENGINE_ID=dining-search-engine-id:latest,APIFY_API_TOKEN=APIFY_API_TOKEN:latest" \
             --quiet
 
       - name: Show deployment URL
