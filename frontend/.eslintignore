@@ -1,0 +1,10 @@
+# Ignore carte-ai-design directory (separate Next.js project)
+carte-ai-design/
+
+# Standard ignores
+node_modules/
+.next/
+out/
+build/
+dist/
+.cache/

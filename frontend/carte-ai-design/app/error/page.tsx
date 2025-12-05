@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
-import { ErrorState } from "@/components/carte/error-state"
+import { ErrorState } from "../../components/carte/error-state"
 
 function ErrorContent() {
   const searchParams = useSearchParams()
