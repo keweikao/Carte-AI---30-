@@ -80,7 +80,7 @@ export default function InputPageV3() {
             occasion: formData.occasion,
         });
         if (formData.place_id) params.set('place_id', formData.place_id);
-        router.push(`/recommendation?${params.toString()}`);
+        router.push(`/zh/waiting?${params.toString()}`);
     };
 
     // Redirect if not authenticated
