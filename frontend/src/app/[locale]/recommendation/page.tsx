@@ -278,55 +278,17 @@ function RecommendationPageContent() {
         });
     };
 
-    const handleSwap = async (slotIndex: number) => {
+    const handleSwap = (slotIndex: number) => {
         setSwappingSlots(prev => new Set(prev).add(slotIndex));
 
         const newSlots = [...dishSlots];
         const currentSlot = newSlots[slotIndex];
         const oldDish = currentSlot.display;
 
-        let newDish: MenuItem | null = null;
-
+        // 只使用預先生成的 alternatives，不呼叫 API
         if (currentSlot.alternatives.length > 0) {
-            newDish = currentSlot.alternatives.shift() as MenuItem;
-        } else if (data) {
-            try {
-                // @ts-expect-error - id_token exists on session but not in type definition
-                const token = session?.id_token;
-                const seenDishes = [currentSlot.display, ...currentSlot.alternatives].map(d => d.dish_name);
-                const moreAlternatives = await getAlternatives({
-                    recommendation_id: data.recommendation_id,
-                    category: currentSlot.category,
-                    exclude: seenDishes
-                }, token);
+            const newDish = currentSlot.alternatives.shift() as MenuItem;
 
-                if (moreAlternatives.length > 0) {
-                    newDish = moreAlternatives.shift() as MenuItem;
-                    currentSlot.alternatives.push(...moreAlternatives);
-                } else {
-                    // FE-039: No more alternatives available
-                    setEmptyPoolCategory(currentSlot.category);
-                    setEmptyPoolSlotIndex(slotIndex);
-                    setShowEmptyPoolDialog(true);
-                    setSwappingSlots(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(slotIndex);
-                        return newSet;
-                    });
-                    return;
-                }
-            } catch (e) {
-                console.error("Failed to fetch more alternatives:", e);
-                setSwappingSlots(prev => {
-                    const newSet = new Set(prev);
-                    newSet.delete(slotIndex);
-                    return newSet;
-                });
-                return;
-            }
-        }
-
-        if (newDish) {
             // Track swapped dish
             setSwappedDishes(prev => {
                 const newMap = new Map(prev);
@@ -337,14 +299,19 @@ function RecommendationPageContent() {
             });
 
             currentSlot.display = newDish;
-            setDishSlots(newSlots); // Update the slots state
+            setDishSlots(newSlots);
 
             setSlotStatus(prev => {
                 const newMap = new Map(prev);
                 newMap.delete(oldDish.dish_name);
-                newMap.set((newDish as MenuItem).dish_name, 'pending');
+                newMap.set(newDish.dish_name, 'pending');
                 return newMap;
             });
+        } else {
+            // 沒有更多備選，顯示提示
+            setEmptyPoolCategory(currentSlot.category);
+            setEmptyPoolSlotIndex(slotIndex);
+            setShowEmptyPoolDialog(true);
         }
 
         setTimeout(() => setSwappingSlots(prev => {

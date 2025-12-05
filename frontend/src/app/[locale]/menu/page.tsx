@@ -198,33 +198,53 @@ function MenuPageContent() {
         ctx.fillText('Carte AI 推薦菜单', canvas.width / 2, 320);
 
         // Dishes
-        let y = 450;
+        let y = 380;
         ctx.fillStyle = '#2D2D2D';
         ctx.font = 'bold 26px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText('推薦菜色', 50, y);
-        y += 50;
+        y += 45;
 
         menu.dishes.forEach((dish, index) => {
-            ctx.font = '22px sans-serif';
+            // 菜名
+            ctx.font = 'bold 22px sans-serif';
             ctx.fillStyle = '#2D2D2D';
             ctx.textAlign = 'left';
 
-            // Truncate dish name if too long
-            const maxWidth = 550;
+            const maxWidth = 650;
             let dishName = dish.quantity > 1 ? `${dish.dish_name} ×${dish.quantity}` : dish.dish_name;
-            const metrics = ctx.measureText(`${index + 1}. ${dishName}`);
-
-            if (metrics.width > maxWidth) {
+            if (ctx.measureText(`${index + 1}. ${dishName}`).width > maxWidth) {
                 while (ctx.measureText(`${index + 1}. ${dishName}...`).width > maxWidth && dishName.length > 10) {
                     dishName = dishName.slice(0, -1);
                 }
                 dishName += '...';
             }
-
             ctx.fillText(`${index + 1}. ${dishName}`, 50, y);
-            // 價格已移除
-            y += 65;
+
+            // 品類 badge
+            if (dish.category) {
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#D4A574';
+                const catX = 55 + ctx.measureText(`${index + 1}. ${dishName}`).width + 15;
+                ctx.fillText(`[${dish.category}]`, Math.min(catX, 600), y);
+            }
+            y += 28;
+
+            // 推薦理由
+            if (dish.reason) {
+                ctx.font = '16px sans-serif';
+                ctx.fillStyle = '#666';
+                const reasonMaxWidth = 680;
+                let reason = dish.reason;
+                if (ctx.measureText(reason).width > reasonMaxWidth) {
+                    while (ctx.measureText(reason + '...').width > reasonMaxWidth && reason.length > 20) {
+                        reason = reason.slice(0, -1);
+                    }
+                    reason += '...';
+                }
+                ctx.fillText(reason, 55, y);
+            }
+            y += 45;
         });
 
         // Footer
@@ -444,7 +464,7 @@ function MenuPageContent() {
                                             <p className="text-sm text-muted-foreground leading-relaxed">
                                                 {dish.reason}
                                             </p>
-                                            {dish.review_count && (
+                                            {dish.review_count && dish.review_count > 0 && (
                                                 <p className="text-xs text-muted-foreground mt-2">
                                                     {dish.review_count} {t('reviews')}
                                                 </p>
