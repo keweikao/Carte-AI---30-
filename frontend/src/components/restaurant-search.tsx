@@ -179,7 +179,7 @@ export function RestaurantSearch({ onSelect, onChange, value, defaultValue, name
           ))}
           <div className="px-2 py-2 border-t mt-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/powered_by_google_on_white.png" alt="Powered by Google" className="h-4 w-auto opacity-70" />
+            <img src="/powered_by_google_on_white.png" alt="Powered by Google" className="h-5 w-auto opacity-70" />
           </div>
         </ul>
       )}

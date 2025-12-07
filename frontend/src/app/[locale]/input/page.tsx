@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RestaurantSearch } from '@/components/restaurant-search';
 import { MapPin, Users, Utensils, ChefHat, ChevronLeft, Check, ArrowRight } from 'lucide-react';
@@ -84,6 +84,28 @@ export default function InputPageV3() {
     };
 
 
+
+    // Require authentication - show login prompt for guests
+    if (status === 'unauthenticated') {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-cream-50">
+                <div className="text-center space-y-6 max-w-md">
+                    <h1 className="text-2xl font-serif font-bold text-charcoal">
+                        請先登入以使用 Carte AI
+                    </h1>
+                    <p className="text-gray-600">
+                        我們需要您的 Google 帳號來為您提供個人化推薦
+                    </p>
+                    <button
+                        onClick={() => signIn('google', { callbackUrl: '/zh/input' })}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-bold hover:bg-black transition-colors"
+                    >
+                        使用 Google 登入
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (error && error !== 'mock_bypass') {
         return (
