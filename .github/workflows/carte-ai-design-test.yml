@@ -1,0 +1,130 @@
+name: Carte AI Design - Migration Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'frontend/carte-ai-design/**'
+      - '.github/workflows/carte-ai-design-test.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'frontend/carte-ai-design/**'
+  workflow_dispatch:
+
+jobs:
+  migration-completeness-test:
+    name: 設計遷移完整性測試
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: frontend/carte-ai-design
+    
+    steps:
+      - name: 📥 Checkout 程式碼
+        uses: actions/checkout@v4
+      
+      - name: 🐍 設定 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: 📋 執行完整性測試
+        id: test
+        run: |
+          echo "🚀 開始執行 Carte AI 設計遷移完整性測試..."
+          python3 test_migration_completeness.py
+      
+      - name: 📊 顯示測試摘要
+        if: always()
+        run: |
+          echo "📊 測試結果摘要:"
+          python3 show_test_summary.py
+      
+      - name: 📄 上傳測試報告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-test-report
+          path: |
+            frontend/carte-ai-design/test_migration_report.json
+            frontend/carte-ai-design/docs/MIGRATION_TEST_REPORT.md
+          retention-days: 30
+      
+      - name: 💬 建立測試報告註解 (PR)
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'frontend/carte-ai-design/test_migration_report.json';
+            
+            let report;
+            try {
+              report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            } catch (error) {
+              console.log('無法讀取測試報告');
+              return;
+            }
+            
+            const passed = report.passed || 0;
+            const failed = report.failed || 0;
+            const warnings = report.warnings || 0;
+            const total = passed + failed;
+            const percentage = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
+            
+            const statusEmoji = percentage == 100 ? '🎉' : percentage >= 90 ? '👍' : percentage >= 70 ? '⚠️' : '❌';
+            
+            let comment = `## ${statusEmoji} Carte AI 設計遷移測試報告\n\n`;
+            comment += `**完成度**: ${percentage}% (${passed}/${total})\n\n`;
+            comment += `| 狀態 | 數量 |\n`;
+            comment += `|------|------|\n`;
+            comment += `| ✅ 通過 | ${passed} |\n`;
+            comment += `| ❌ 失敗 | ${failed} |\n`;
+            comment += `| ⚠️ 警告 | ${warnings} |\n\n`;
+            
+            if (failed > 0) {
+              comment += `### ❌ 失敗項目\n\n`;
+              report.details.failed.forEach(item => {
+                comment += `- **${item.test}**: ${item.detail}\n`;
+              });
+              comment += `\n`;
+            }
+            
+            if (warnings > 0) {
+              comment += `### ⚠️ 警告項目\n\n`;
+              report.details.warnings.forEach(item => {
+                comment += `- **${item.test}**: ${item.detail}\n`;
+              });
+              comment += `\n`;
+            }
+            
+            comment += `\n📄 詳細報告請查看 Artifacts 中的 \`migration-test-report\`\n`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      - name: ✅ 測試結果檢查
+        if: always()
+        run: |
+          if [ -f test_migration_report.json ]; then
+            FAILED=$(python3 -c "import json; print(json.load(open('test_migration_report.json'))['failed'])")
+            if [ "$FAILED" -gt 0 ]; then
+              echo "❌ 測試失敗: $FAILED 個項目未通過"
+              exit 1
+            else
+              echo "✅ 所有測試通過!"
+            fi
+          else
+            echo "❌ 找不到測試報告"
+            exit 1
+          fi

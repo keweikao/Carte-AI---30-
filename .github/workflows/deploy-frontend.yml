@@ -1,0 +1,82 @@
+name: Deploy Frontend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: gen-lang-client-0415289079
+  REGION: asia-east1
+  SERVICE_NAME: dining-frontend
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Lint
+        run: npm run lint
+
+      # Currently we don't have tests set up to run reliably in CI, 
+      # but this placeholder ensures we can add 'npm run test' later easily.
+      # - name: Run Tests
+      #   run: npm run test
+
+  deploy:
+    name: Deploy Frontend
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          cd frontend
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --source . \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars="NEXT_PUBLIC_GA_MEASUREMENT_ID=G-EB1596V7J2,NEXTAUTH_URL=https://dining-frontend-1045148759148.asia-east1.run.app,NEXT_PUBLIC_API_URL=https://dining-backend-1045148759148.asia-east1.run.app,AUTH_TRUST_HOST=true" \
+            --set-secrets="GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest" \
+            --quiet
+
+      - name: Show deployment URL
+        run: |
+          echo "Frontend deployed to: https://dining-frontend-u33peegeaa-de.a.run.app"

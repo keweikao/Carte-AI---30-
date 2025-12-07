@@ -1,0 +1,102 @@
+name: e2e-mock
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      USE_MOCK_EXTERNAL: "1"
+      E2E_RUN_UI: "1"
+      E2E_RUN_API: "1"
+      E2E_BASE_URL: "http://127.0.0.1:3000"
+      E2E_API_URL: "http://127.0.0.1:8000"
+      E2E_AUTH_HEADER: "Bearer fake-token"
+      NEXT_PUBLIC_API_URL: "http://127.0.0.1:8000"
+      NEXT_PUBLIC_USE_MOCK: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Export OpenAPI fixture
+        run: python tests/e2e/export_openapi.py
+
+      - name: Install frontend deps and Playwright
+        run: |
+          cd frontend
+          npm install
+          npx playwright install --with-deps chromium
+          cd ..
+          npm install @playwright/test typescript ts-node
+
+      - name: Start backend (mock mode)
+        run: |
+          USE_MOCK_EXTERNAL=1 uvicorn main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+
+      - name: Start frontend dev server
+        run: |
+          cd frontend
+          NEXT_PUBLIC_API_URL=http://127.0.0.1:8000 NEXT_PUBLIC_USE_MOCK=1 npm run dev -- --hostname 0.0.0.0 --port 3000 > frontend.log 2>&1 &
+          cd ..
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for Backend (http://127.0.0.1:8000/health)..."
+          for i in {1..60}; do
+            if curl -s http://127.0.0.1:8000/health >/dev/null; then
+              echo "Backend is ready!"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "Backend failed to start."
+              echo "=== Backend Logs ==="
+              cat backend.log
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Waiting for Frontend (http://127.0.0.1:3000/input?error=mock_bypass)..."
+          for i in {1..60}; do
+            if curl -s http://127.0.0.1:3000/input?error=mock_bypass >/dev/null; then
+              echo "Frontend is ready!"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "Frontend failed to start."
+              echo "=== Frontend Logs ==="
+              cat frontend/frontend.log
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "All services ready!"
+
+      - name: Run Playwright tests (mock mode)
+        run: |
+          E2E_RUN_UI=1 E2E_RUN_API=1 E2E_BASE_URL=http://127.0.0.1:3000 E2E_API_URL=http://127.0.0.1:8000 npx playwright test -c tests/e2e/playwright.config.ts
+
+      - name: Upload Playwright reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            tests/e2e/results/html
+            tests/e2e/results/junit
+            frontend/playwright-report
+          if-no-files-found: ignore
