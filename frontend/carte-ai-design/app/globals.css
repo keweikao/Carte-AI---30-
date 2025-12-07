@@ -1,0 +1,166 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Carte AI - Modern Bistro Editorial Design System */
+:root {
+  /* Primary Brand Colors */
+  --charcoal: #2c2c2c;
+  --caramel: #d4a574;
+  --terracotta: #c77b5f;
+  --cream: #f9f6f0;
+  --cream-dark: #ede8e0;
+
+  /* Neutral Colors */
+  --gray-50: #f7f7f7;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --white: #ffffff;
+
+  /* Semantic Design Tokens */
+  --background: var(--cream);
+  --foreground: var(--charcoal);
+  --card: var(--white);
+  --card-foreground: var(--charcoal);
+  --popover: var(--white);
+  --popover-foreground: var(--charcoal);
+  --primary: var(--charcoal);
+  --primary-foreground: var(--white);
+  --secondary: var(--caramel);
+  --secondary-foreground: var(--charcoal);
+  --muted: var(--gray-100);
+  --muted-foreground: var(--gray-500);
+  --accent: var(--terracotta);
+  --accent-foreground: var(--white);
+  --destructive: #dc2626;
+  --destructive-foreground: var(--white);
+  --border: var(--gray-200);
+  --input: var(--gray-200);
+  --ring: var(--caramel);
+
+  /* Chart Colors (using brand palette) */
+  --chart-1: var(--caramel);
+  --chart-2: var(--terracotta);
+  --chart-3: var(--charcoal);
+  --chart-4: #8b7355;
+  --chart-5: #a69076;
+
+  /* Radius System */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
+
+  /* Shadow System - Modern Bistro */
+  --shadow-subtle: 0 2px 8px rgba(44, 44, 44, 0.06);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-medium: 0 4px 20px rgba(44, 44, 44, 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --shadow-floating: 0 20px 60px -10px rgba(212, 165, 116, 0.3);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+}
+
+@theme inline {
+  /* Font Families */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-mono: "Geist Mono", monospace;
+
+  /* Brand Colors */
+  --color-charcoal: var(--charcoal);
+  --color-caramel: var(--caramel);
+  --color-terracotta: var(--terracotta);
+  --color-cream: var(--cream);
+
+  /* Semantic Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* Typography Base Styles */
+  h1,
+  h2,
+  h3 {
+    @apply font-serif tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl font-normal leading-tight;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl font-normal leading-snug;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl font-normal;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+  }
+}
+
+/* Custom Utilities for Carte AI */
+@layer utilities {
+  .shadow-floating {
+    box-shadow: var(--shadow-floating);
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--caramel) 0%, var(--terracotta) 100%);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

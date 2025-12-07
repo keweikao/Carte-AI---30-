@@ -1,0 +1,1305 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Dining Agent API",
+    "version": "2.0"
+  },
+  "paths": {
+    "/places/autocomplete": {
+      "get": {
+        "summary": "Get Place Autocomplete",
+        "description": "Proxies Google Places Autocomplete API to get restaurant suggestions.\nRequires authentication to prevent abuse.",
+        "operationId": "get_place_autocomplete_places_autocomplete_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Input"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/recommendations": {
+      "post": {
+        "summary": "Get Recommendations V2",
+        "description": "Generates dining recommendations using the V2 structured prompt.\nRequires a valid Google ID Token.",
+        "operationId": "get_recommendations_v2_v2_recommendations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserInputV2"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationResponseV2"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/recommendations": {
+      "post": {
+        "summary": "Get Recommendations V1",
+        "description": "DEPRECATED: This endpoint is deprecated and will be removed in a future version.\nPlease migrate to /v2/recommendations.",
+        "operationId": "get_recommendations_v1_recommendations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FullRecommendationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true,
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/feedback": {
+      "post": {
+        "summary": "Submit Feedback",
+        "description": "Submits user feedback.",
+        "operationId": "submit_feedback_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v2/recommendations/alternatives": {
+      "get": {
+        "summary": "Get Alternatives",
+        "description": "Retrieves alternative dishes for a specific category within a recommendation session.",
+        "operationId": "get_alternatives_v2_recommendations_alternatives_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recommendation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Recommendation Id"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "exclude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "title": "Exclude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MenuItemV2"
+                  },
+                  "title": "Response Get Alternatives V2 Recommendations Alternatives Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/recommendations/{recommendation_id}/swap": {
+      "post": {
+        "summary": "Record Swap",
+        "description": "記錄換菜行為\n\nArgs:\n    recommendation_id: 推薦 ID\n    swap: 換菜資料（原始菜品、新菜品）",
+        "operationId": "record_swap_v2_recommendations__recommendation_id__swap_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recommendation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Recommendation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwapRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/recommendations/{recommendation_id}/add-on": {
+      "post": {
+        "summary": "Request Add On",
+        "description": "請求加點推薦\n從候選菜品池中尋找符合類別的額外菜品。",
+        "operationId": "request_add_on_v2_recommendations__recommendation_id__add_on_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recommendation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Recommendation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddOnResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/recommendations/{recommendation_id}/finalize": {
+      "post": {
+        "summary": "Finalize Order",
+        "description": "記錄最終點餐決策\n\nArgs:\n    recommendation_id: 推薦 ID\n    finalize: 最終選擇資料",
+        "operationId": "finalize_order_v2_recommendations__recommendation_id__finalize_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recommendation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Recommendation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalizeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddOnRequest": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Requested category for the add-on"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Count",
+            "description": "Number of dishes to add",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "category"
+        ],
+        "title": "AddOnRequest"
+      },
+      "AddOnResponse": {
+        "properties": {
+          "new_dishes": {
+            "items": {
+              "$ref": "#/components/schemas/MenuItemV2"
+            },
+            "type": "array",
+            "title": "New Dishes",
+            "description": "List of newly recommended dishes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "new_dishes"
+        ],
+        "title": "AddOnResponse"
+      },
+      "BudgetV2": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Per_Person",
+              "Total"
+            ],
+            "title": "Type",
+            "description": "Budget type"
+          },
+          "amount": {
+            "type": "integer",
+            "title": "Amount",
+            "description": "Budget amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "amount"
+        ],
+        "title": "BudgetV2"
+      },
+      "DishSlotResponse": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Category of the dish slot"
+          },
+          "display": {
+            "$ref": "#/components/schemas/MenuItemV2",
+            "description": "The dish displayed to the user"
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/MenuItemV2"
+            },
+            "type": "array",
+            "title": "Alternatives",
+            "description": "Alternative dishes for swapping"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "display",
+          "alternatives"
+        ],
+        "title": "DishSlotResponse"
+      },
+      "DishSnapshot": {
+        "properties": {
+          "dish_name": {
+            "type": "string",
+            "title": "Dish Name",
+            "description": "菜品名稱"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "菜品類別（如：冷菜、熱菜、刺身、壽司）"
+          },
+          "price": {
+            "type": "integer",
+            "title": "Price",
+            "description": "菜品價格"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "推薦理由"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dish_name",
+          "category",
+          "price"
+        ],
+        "title": "DishSnapshot",
+        "description": "單一菜品的快照資料"
+      },
+      "FeedbackRequest": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id",
+            "description": "ID of the recommendation being rated"
+          },
+          "selected_items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Selected Items",
+            "description": "List of item IDs that the user actually selected"
+          },
+          "rating": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rating",
+            "description": "Rating from 1 to 5"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment",
+            "description": "Optional feedback comment on the recommendation"
+          },
+          "product_feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Feedback",
+            "description": "Optional feedback on the product/app itself"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "selected_items",
+          "rating"
+        ],
+        "title": "FeedbackRequest"
+      },
+      "FinalSelectionItem": {
+        "properties": {
+          "dish_name": {
+            "type": "string",
+            "title": "Dish Name",
+            "description": "菜品名稱"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "菜品類別"
+          },
+          "price": {
+            "type": "integer",
+            "title": "Price",
+            "description": "菜品價格"
+          },
+          "was_swapped": {
+            "type": "boolean",
+            "title": "Was Swapped",
+            "description": "是否曾被換過",
+            "default": false
+          },
+          "swap_count": {
+            "type": "integer",
+            "title": "Swap Count",
+            "description": "被換過的次數",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "dish_name",
+          "category",
+          "price"
+        ],
+        "title": "FinalSelectionItem",
+        "description": "最終選擇的菜品"
+      },
+      "FinalizeRequest": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id",
+            "description": "推薦 ID"
+          },
+          "final_selections": {
+            "items": {
+              "$ref": "#/components/schemas/FinalSelectionItem"
+            },
+            "type": "array",
+            "title": "Final Selections",
+            "description": "最終選擇的菜品列表"
+          },
+          "total_price": {
+            "type": "integer",
+            "title": "Total Price",
+            "description": "最終總價"
+          },
+          "session_duration_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Duration Seconds",
+            "description": "點餐流程時長（秒）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "final_selections",
+          "total_price"
+        ],
+        "title": "FinalizeRequest",
+        "description": "點餐完成請求"
+      },
+      "FinalizeResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "狀態",
+            "default": "success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "回應訊息"
+          },
+          "order_id": {
+            "type": "string",
+            "title": "Order Id",
+            "description": "訂單 ID"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Summary",
+            "description": "訂單摘要"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "order_id",
+          "summary"
+        ],
+        "title": "FinalizeResponse",
+        "description": "點餐完成回應"
+      },
+      "FullRecommendationResponse": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id",
+            "description": "Unique ID for this recommendation session"
+          },
+          "restaurant_name": {
+            "type": "string",
+            "title": "Restaurant Name"
+          },
+          "total_estimated_price": {
+            "type": "integer",
+            "title": "Total Estimated Price",
+            "description": "Total estimated price"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Currency",
+            "default": "TWD"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "Summary of the recommendation"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationItem"
+            },
+            "type": "array",
+            "title": "Recommendations",
+            "description": "List of recommended items"
+          },
+          "user_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Info",
+            "description": "User info if logged in"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "restaurant_name",
+          "total_estimated_price",
+          "summary",
+          "recommendations"
+        ],
+        "title": "FullRecommendationResponse",
+        "description": "DEPRECATED: This will be replaced by RecommendationResponseV2."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MenuItemV2": {
+        "properties": {
+          "dish_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dish Id",
+            "description": "Corresponding menu item ID"
+          },
+          "dish_name": {
+            "type": "string",
+            "title": "Dish Name",
+            "description": "Name of the dish (User's preferred language)"
+          },
+          "dish_name_local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dish Name Local",
+            "description": "Name of the dish in the restaurant's local language (e.g., Japanese)"
+          },
+          "price": {
+            "type": "integer",
+            "title": "Price",
+            "description": "Price of the dish"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Quantity",
+            "description": "Quantity of this dish to order"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Reason for recommending this dish"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Dish category (e.g., 冷菜, 熱菜, 刺身, 壽司)"
+          },
+          "review_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Count",
+            "description": "Number of reviews mentioning this dish"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dish_name",
+          "price",
+          "quantity",
+          "reason",
+          "category"
+        ],
+        "title": "MenuItemV2"
+      },
+      "RecommendationItem": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Unique identifier for the item"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the dish"
+          },
+          "price": {
+            "type": "integer",
+            "title": "Price",
+            "description": "Price of the dish"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Reason for recommending this dish (e.g. '45 reviews mentioned...')"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Type/Category (e.g. Appetizer, Main, Drink)",
+            "default": "Dish"
+          },
+          "is_signature": {
+            "type": "boolean",
+            "title": "Is Signature",
+            "description": "Is this a signature/popular dish?",
+            "default": false
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationItem"
+            },
+            "type": "array",
+            "title": "Alternatives",
+            "description": "Alternative option for swapping"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "price",
+          "reason"
+        ],
+        "title": "RecommendationItem",
+        "description": "DEPRECATED: This will be replaced by MenuItemV2."
+      },
+      "RecommendationRequest": {
+        "properties": {
+          "restaurant_name": {
+            "type": "string",
+            "title": "Restaurant Name",
+            "description": "Name of the restaurant"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "sharing",
+              "individual"
+            ],
+            "title": "Mode",
+            "description": "Dining mode: sharing or individual"
+          },
+          "people": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "People",
+            "description": "Number of people"
+          },
+          "budget": {
+            "type": "string",
+            "title": "Budget",
+            "description": "Budget description, e.g., '500-1000 TWD' or 'unlimited'"
+          },
+          "dietary_restrictions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dietary Restrictions",
+            "description": "Dietary restrictions, e.g., 'no beef'"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id",
+            "description": "User ID for personalization"
+          }
+        },
+        "type": "object",
+        "required": [
+          "restaurant_name",
+          "mode",
+          "people",
+          "budget"
+        ],
+        "title": "RecommendationRequest",
+        "description": "DEPRECATED: This will be replaced by UserInputV2 for a more structured input."
+      },
+      "RecommendationResponseV2": {
+        "properties": {
+          "recommendation_summary": {
+            "type": "string",
+            "title": "Recommendation Summary",
+            "description": "A warm, professional opening explaining the recommendation"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DishSlotResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total_price": {
+            "type": "integer",
+            "title": "Total Price",
+            "description": "Total estimated price of the recommended items"
+          },
+          "nutritional_balance_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nutritional Balance Note",
+            "description": "A brief note on the nutritional or flavor balance"
+          },
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id",
+            "description": "Unique ID for this recommendation session"
+          },
+          "restaurant_name": {
+            "type": "string",
+            "title": "Restaurant Name"
+          },
+          "user_info": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Info",
+            "description": "User info if logged in"
+          },
+          "cuisine_type": {
+            "type": "string",
+            "title": "Cuisine Type",
+            "description": "Restaurant cuisine type (中式餐館, 日本料理, 美式餐廳, 義式料理, 泰式料理)"
+          },
+          "category_summary": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Category Summary",
+            "description": "Count of dishes per category (e.g., {'冷菜': 1, '熱菜': 2})"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Currency code (e.g., TWD, JPY, USD)",
+            "default": "TWD"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_summary",
+          "items",
+          "total_price",
+          "recommendation_id",
+          "restaurant_name",
+          "cuisine_type",
+          "category_summary"
+        ],
+        "title": "RecommendationResponseV2"
+      },
+      "SwapRequest": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id",
+            "description": "推薦 ID"
+          },
+          "original_dish": {
+            "$ref": "#/components/schemas/DishSnapshot",
+            "description": "原始菜品"
+          },
+          "new_dish": {
+            "$ref": "#/components/schemas/DishSnapshot",
+            "description": "替換後的菜品"
+          },
+          "timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timestamp",
+            "description": "換菜時間（自動記錄）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "original_dish",
+          "new_dish"
+        ],
+        "title": "SwapRequest",
+        "description": "換菜請求"
+      },
+      "SwapResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "狀態",
+            "default": "success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "回應訊息"
+          },
+          "swap_count": {
+            "type": "integer",
+            "title": "Swap Count",
+            "description": "本次推薦的總換菜次數"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "swap_count"
+        ],
+        "title": "SwapResponse",
+        "description": "換菜回應"
+      },
+      "UserInputV2": {
+        "properties": {
+          "restaurant_name": {
+            "type": "string",
+            "title": "Restaurant Name",
+            "description": "Name of the restaurant"
+          },
+          "place_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place Id",
+            "description": "Google Maps Place ID for precise restaurant identification"
+          },
+          "dining_style": {
+            "type": "string",
+            "enum": [
+              "Shared",
+              "Individual"
+            ],
+            "title": "Dining Style",
+            "description": "Dining style"
+          },
+          "party_size": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Party Size",
+            "description": "Number of people"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/BudgetV2"
+          },
+          "dish_count_target": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dish Count Target",
+            "description": "Target number of dishes, null if AI should decide"
+          },
+          "preferences": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferences",
+            "description": "List of preference tags (e.g., 'No_Beef', 'Spicy')"
+          },
+          "natural_input": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Natural Input",
+            "description": "User's free-text supplementary description"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id",
+            "description": "User ID for personalization"
+          },
+          "occasion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occasion",
+            "description": "Dining occasion (e.g., 'business', 'date', 'family', 'friends', 'fitness')"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "User's preferred language (e.g., 'zh-TW', 'en-US', 'ja-JP')",
+            "default": "zh-TW"
+          }
+        },
+        "type": "object",
+        "required": [
+          "restaurant_name",
+          "dining_style",
+          "party_size",
+          "budget"
+        ],
+        "title": "UserInputV2"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

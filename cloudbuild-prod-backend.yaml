@@ -1,0 +1,63 @@
+# ============================================
+# 生產環境後端部署配置
+# TARGET PROJECT: gen-lang-client-0415289079 (1045148759148)
+# SERVICE ACCOUNT: 1045148759148-compute@developer.gserviceaccount.com
+# ============================================
+
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/$PROJECT_ID/dining-backend-prod:$BUILD_ID', '.']
+
+  # Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/$PROJECT_ID/dining-backend-prod:$BUILD_ID']
+
+  # Deploy to dining-backend
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'dining-backend'
+      - '--image'
+      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/$PROJECT_ID/dining-backend-prod:$BUILD_ID'
+      - '--region'
+      - 'asia-east1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '2Gi'
+      - '--timeout'
+      - '300s'
+      - '--service-account'
+      - '1045148759148-compute@developer.gserviceaccount.com'
+      - '--set-secrets'
+      - 'SERPER_API_KEY=SERPER_API_KEY:latest,JINA_API_KEY=JINA_API_KEY:latest,GOOGLE_API_KEY=GOOGLE_API_KEY:latest,APIFY_API_TOKEN=APIFY_API_TOKEN:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest'
+
+  # Deploy to dining-agent-service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'dining-agent-service'
+      - '--image'
+      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/$PROJECT_ID/dining-backend-prod:$BUILD_ID'
+      - '--region'
+      - 'asia-east1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '2Gi'
+      - '--timeout'
+      - '300s'
+      - '--service-account'
+      - '1045148759148-compute@developer.gserviceaccount.com'
+      - '--set-secrets'
+      - 'SERPER_API_KEY=SERPER_API_KEY:latest,JINA_API_KEY=JINA_API_KEY:latest,GOOGLE_API_KEY=GOOGLE_API_KEY:latest,APIFY_API_TOKEN=APIFY_API_TOKEN:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest'
+
+images:
+  - 'asia-east1-docker.pkg.dev/$PROJECT_ID/$PROJECT_ID/dining-backend-prod:$BUILD_ID'

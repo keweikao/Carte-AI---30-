@@ -1,0 +1,14 @@
+{
+  "landing": {
+    "loginButton": "text=開始探索菜單",
+    "heroTitle": "h1:has-text(\"讓 AI 為你策劃\")"
+  },
+  "input": {
+    "restaurantField": "input[name=\"restaurant_name\"], input[placeholder*=\"餐廳\"]",
+    "submitButton": "button:has-text(\"獲得推薦\"), button:has-text(\"告訴我該點什麼\")"
+  },
+  "results": {
+    "card": "[data-testid=\"dish-card\"]",
+    "summary": "text=推薦"
+  }
+}

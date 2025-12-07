@@ -1,0 +1,13 @@
+<svg width="400" height="120" viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(20, 20) scale(0.15)">
+     <path d="M120 350 C120 200 200 120 256 120 C312 120 392 200 392 320" stroke="#8B9D83" stroke-width="40" stroke-linecap="round"/>
+     <circle cx="256" cy="100" r="25" fill="#8B9D83"/>
+     <path d="M100 360 H412" stroke="#8B9D83" stroke-width="20" stroke-linecap="round"/>
+     <circle cx="320" cy="360" r="18" fill="#D4A574"/>
+     <path d="M390 280 L400 300 L420 310 L400 320 L390 340 L380 320 L360 310 L380 300 Z" fill="#C85A54"/>
+  </g>
+
+  <text x="110" y="65" font-family="'Playfair Display', 'Times New Roman', serif" font-size="48" fill="#2C2C2C" font-weight="bold">Carte AI</text>
+
+  <text x="112" y="90" font-family="'Inter', 'Arial', sans-serif" font-size="16" fill="#555555" letter-spacing="1">Dining Agent</text>
+</svg>

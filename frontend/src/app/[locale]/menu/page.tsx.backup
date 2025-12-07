@@ -1,0 +1,479 @@
+"use client";
+
+import { useEffect, useState, Suspense, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Share2, Printer, Star, Download, Copy, Check } from "lucide-react";
+import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { MenuItem } from "@/types";
+import { RatingModalDynamic } from "@/lib/dynamic-imports";
+import { submitFeedback } from "@/lib/api";
+import { useSession } from "next-auth/react";
+
+interface FinalMenu {
+    recommendation_id: string;
+    restaurant_name: string;
+    cuisine_type: string;
+    dishes: MenuItem[];
+    total_price: number;
+    party_size: number;
+}
+
+// Skeleton loading state for Menu Page
+function MenuPageSkeleton() {
+    return (
+        <div className="min-h-screen bg-background pb-20">
+            {/* Header */}
+            <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
+                <div className="container flex h-14 items-center justify-between px-4">
+                    <Button variant="ghost" disabled className="gap-2">
+                        <ArrowLeft className="w-4 h-4" />
+                        返回修改
+                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" disabled className="gap-2">
+                            <Printer className="w-4 h-4" />
+                            列印
+                        </Button>
+                        <Button variant="outline" disabled className="gap-2">
+                            <Share2 className="w-4 h-4" />
+                            分享
+                        </Button>
+                        <Button disabled className="gap-2 bg-primary">
+                            <Star className="w-4 h-4" />
+                            評分
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Menu Content */}
+            <div className="container max-w-4xl mx-auto px-4 py-8">
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <Skeleton className="h-6 w-20 mx-auto mb-4 rounded-full" />
+                    <Skeleton className="h-10 w-64 mx-auto mb-2" />
+                    <Skeleton className="h-5 w-40 mx-auto" />
+                </div>
+
+                {/* Price Summary */}
+                <Card className="p-6 mb-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                    <div className="flex justify-between items-end">
+                        <div>
+                            <Skeleton className="h-4 w-20 mb-2" />
+                            <Skeleton className="h-9 w-40" />
+                        </div>
+                        <div className="text-right">
+                            <Skeleton className="h-4 w-16 mb-2" />
+                            <Skeleton className="h-8 w-32" />
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Dishes List */}
+                <div className="space-y-4">
+                    <Skeleton className="h-7 w-24 mb-4" />
+                    {Array.from({ length: 5 }).map((_, index) => (
+                        <Card key={index} className="p-4">
+                            <div className="flex justify-between items-start gap-4">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Skeleton className="h-6 w-6" />
+                                        <Skeleton className="h-6 w-40" />
+                                        <Skeleton className="h-5 w-12 rounded-full" />
+                                    </div>
+                                    <Skeleton className="h-4 w-full mb-2" />
+                                    <Skeleton className="h-4 w-4/5 mb-2" />
+                                    <Skeleton className="h-3 w-24" />
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                    <Skeleton className="h-6 w-20" />
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Footer Note */}
+                <div className="mt-8 text-center">
+                    <Skeleton className="h-4 w-64 mx-auto" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function MenuPageContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const { data: session } = useSession();
+    const [menu, setMenu] = useState<FinalMenu | null>(null);
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [showShareMenu, setShowShareMenu] = useState(false);
+    const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        // Try to get menu from localStorage
+        const storedMenu = localStorage.getItem('final_menu');
+        if (storedMenu) {
+            try {
+                const parsedMenu = JSON.parse(storedMenu);
+                setMenu(parsedMenu);
+            } catch (e) {
+                console.error('Failed to parse stored menu:', e);
+            }
+        }
+
+        // Or get from URL params (if passed)
+        const recommendationId = searchParams.get('recommendation_id');
+        if (recommendationId && !storedMenu) {
+            // Could fetch from API if needed
+            console.log('Recommendation ID:', recommendationId);
+        }
+    }, [searchParams]);
+
+    const handleBack = () => {
+        router.back();
+    };
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    const generateShareImage = async () => {
+        if (!menu || !canvasRef.current) return null;
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+
+        // Set canvas size
+        canvas.width = 800;
+        canvas.height = 600 + (menu.dishes.length * 60);
+
+        // Background
+        ctx.fillStyle = '#FFF8F0';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Header
+        ctx.fillStyle = '#D4A574';
+        ctx.fillRect(0, 0, canvas.width, 120);
+
+        // Logo/Title
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 36px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Carte AI 推薦菜單', canvas.width / 2, 50);
+
+        // Restaurant Name
+        ctx.fillStyle = '#2D2D2D';
+        ctx.font = 'bold 32px sans-serif';
+        ctx.fillText(menu.restaurant_name, canvas.width / 2, 160);
+
+        // Cuisine Type
+        ctx.font = '20px sans-serif';
+        ctx.fillStyle = '#666';
+        ctx.fillText(menu.cuisine_type, canvas.width / 2, 190);
+
+        // Price Summary
+        ctx.fillStyle = '#D4A574';
+        ctx.fillRect(50, 220, canvas.width - 100, 100);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`總價: NT$ ${menu.total_price.toLocaleString()}`, 80, 260);
+        ctx.fillText(`人均: NT$ ${Math.round(menu.total_price / menu.party_size).toLocaleString()}`, 80, 295);
+
+        // Dishes
+        let y = 360;
+        ctx.fillStyle = '#2D2D2D';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText('推薦菜色', 50, y);
+        y += 40;
+
+        menu.dishes.forEach((dish, index) => {
+            ctx.font = '18px sans-serif';
+            ctx.fillStyle = '#2D2D2D';
+            ctx.fillText(`${index + 1}. ${dish.dish_name}`, 50, y);
+            ctx.fillText(`NT$ ${dish.price}`, canvas.width - 150, y);
+            y += 50;
+        });
+
+        // Footer
+        ctx.font = '16px sans-serif';
+        ctx.fillStyle = '#999';
+        ctx.textAlign = 'center';
+        ctx.fillText('由 Carte AI 智慧推薦 • 祝您用餐愉快', canvas.width / 2, y + 30);
+
+        return canvas.toDataURL('image/png');
+    };
+
+    const handleShare = async () => {
+        const imageUrl = await generateShareImage();
+        if (imageUrl) {
+            setShareImageUrl(imageUrl);
+            setShowShareMenu(true);
+        }
+    };
+
+    const handleDownloadImage = () => {
+        if (!shareImageUrl) return;
+
+        const link = document.createElement('a');
+        link.download = `${menu?.restaurant_name || 'menu'}_carte.png`;
+        link.href = shareImageUrl;
+        link.click();
+    };
+
+    const handleCopyImage = async () => {
+        if (!shareImageUrl) return;
+
+        try {
+            const response = await fetch(shareImageUrl);
+            const blob = await response.blob();
+            await navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+            ]);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy image:', err);
+            alert('複製失敗，請使用下載功能');
+        }
+    };
+
+    const handleRatingSubmit = async (data: { rating: "up" | "down"; comment: string }) => {
+        if (!menu || !session) return;
+
+        try {
+            // @ts-expect-error - id_token exists on session but not in type definition
+            const token = session?.id_token;
+            await submitFeedback({
+                recommendation_id: menu.recommendation_id,
+                rating: data.rating === "up" ? 5 : 1,
+                selected_items: menu.dishes.map(d => d.dish_name),
+                comment: data.comment
+            }, token);
+            setShowRatingModal(false);
+            alert('感謝您的評分！');
+        } catch (error) {
+            console.error('Failed to submit feedback:', error);
+            alert('評分提交失敗，請稍後再試。');
+        }
+    };
+
+    const handleRating = () => {
+        setShowRatingModal(true);
+    };
+
+    if (!menu) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="text-center space-y-4">
+                    <p className="text-muted-foreground">載入菜單中...</p>
+                    <Button onClick={handleBack}>返回</Button>
+                </div>
+            </div>
+        );
+    }
+
+    const perPerson = Math.round(menu.total_price / menu.party_size);
+
+    return (
+        <div className="min-h-screen bg-background pb-20">
+            {/* Header - Hidden on print */}
+            <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur print:hidden" role="banner">
+                <div className="container flex h-14 items-center justify-between px-4">
+                    <Button variant="ghost" onClick={handleBack} className="gap-2" aria-label="返回上一頁修改菜單">
+                        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                        返回修改
+                    </Button>
+                    <div className="flex gap-2" role="group" aria-label="菜單操作">
+                        <Button variant="outline" onClick={handlePrint} className="gap-2" aria-label="列印菜單">
+                            <Printer className="w-4 h-4" aria-hidden="true" />
+                            列印
+                        </Button>
+                        <Button variant="outline" onClick={handleShare} className="gap-2" aria-label="分享菜單">
+                            <Share2 className="w-4 h-4" aria-hidden="true" />
+                            分享
+                        </Button>
+                        <Button onClick={handleRating} className="gap-2 bg-primary" aria-label="為這次推薦評分">
+                            <Star className="w-4 h-4" aria-hidden="true" />
+                            評分
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Menu Content */}
+            <div className="container max-w-4xl mx-auto px-4 py-8">
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center mb-8"
+                >
+                    <Badge variant="neutral" className="mb-4">
+                        {menu.cuisine_type}
+                    </Badge>
+                    <h1 className="text-4xl font-bold text-foreground mb-2 font-display">
+                        {menu.restaurant_name}
+                    </h1>
+                    <p className="text-muted-foreground">
+                        {menu.party_size} 人用餐 • {menu.dishes.length} 道菜
+                    </p>
+                </motion.div>
+
+                {/* Price Summary */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                >
+                    <Card className="p-6 mb-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-1">菜單總價</p>
+                                <h2 className="text-3xl font-bold text-foreground font-mono">
+                                    NT$ {menu.total_price.toLocaleString()}
+                                </h2>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm text-muted-foreground mb-1">人均約</p>
+                                <p className="text-2xl font-bold text-primary font-mono">
+                                    NT$ {perPerson.toLocaleString()}
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
+                </motion.div>
+
+                {/* Dishes List */}
+                <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-foreground mb-4">推薦菜色</h3>
+                    <ul className="space-y-4" role="list" aria-label="最終菜單列表">
+                        {menu.dishes.map((dish, index) => (
+                            <motion.li
+                                key={dish.dish_id || dish.dish_name}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.2 + index * 0.05 }}
+                            >
+                                <Card className="p-4 hover:shadow-md transition-shadow" role="article" aria-label={`菜品 ${index + 1}：${dish.dish_name}`}>
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-lg font-semibold text-muted-foreground" aria-label={`第 ${index + 1} 道`}>
+                                                    {index + 1}.
+                                                </span>
+                                                <h4 className="text-lg font-bold text-foreground">
+                                                    {dish.dish_name}
+                                                </h4>
+                                                {dish.category && (
+                                                    <Badge variant="neutral" className="text-xs" aria-label={`類別：${dish.category}`}>
+                                                        {dish.category}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                                {dish.reason}
+                                            </p>
+                                            {dish.review_count && (
+                                                <p className="text-xs text-muted-foreground mt-2">
+                                                    {dish.review_count} 則好評
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="text-right flex-shrink-0">
+                                            <p className="text-lg font-bold font-mono text-foreground" aria-label={`價格 ${dish.price} 元`}>
+                                                NT$ {dish.price}
+                                            </p>
+                                            {dish.price_estimated && (
+                                                <p className="text-xs text-muted-foreground">估價</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Card>
+                            </motion.li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Footer Note */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-8 text-center text-sm text-muted-foreground"
+                >
+                    <p>由 Carte AI 智慧推薦 • 祝您用餐愉快 🍽️</p>
+                </motion.div>
+            </div>
+
+            {/* Rating Modal */}
+            <RatingModalDynamic
+                isOpen={showRatingModal}
+                onClose={() => setShowRatingModal(false)}
+                onSubmit={handleRatingSubmit}
+            />
+
+            {/* Share Menu */}
+            {showShareMenu && shareImageUrl && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 print:hidden" onClick={() => setShowShareMenu(false)}>
+                    <Card className="p-6 max-w-md mx-4 w-full" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-xl font-bold mb-4">分享菜單</h3>
+
+                        {/* Preview Image */}
+                        <div className="mb-4 rounded-lg overflow-hidden border border-border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={shareImageUrl} alt="Menu preview" className="w-full" />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="space-y-2">
+                            <Button
+                                onClick={handleDownloadImage}
+                                className="w-full gap-2"
+                                variant="outline"
+                            >
+                                <Download className="w-4 h-4" />
+                                下載圖片
+                            </Button>
+                            <Button
+                                onClick={handleCopyImage}
+                                className="w-full gap-2"
+                                variant="outline"
+                            >
+                                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                {copied ? '已複製！' : '複製圖片'}
+                            </Button>
+                            <Button
+                                onClick={() => setShowShareMenu(false)}
+                                className="w-full"
+                                variant="ghost"
+                            >
+                                關閉
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* Hidden Canvas for generating share image */}
+            <canvas ref={canvasRef} className="hidden" />
+        </div>
+    );
+}
+
+export default function MenuPage() {
+    return (
+        <Suspense fallback={<MenuPageSkeleton />}>
+            <MenuPageContent />
+        </Suspense>
+    );
+}

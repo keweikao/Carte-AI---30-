@@ -1,0 +1,26 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/dining-frontend-prod:$BUILD_ID', './frontend']
+
+  # Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/dining-frontend-prod:$BUILD_ID']
+
+  # Deploy to dining-frontend
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'dining-frontend'
+      - '--image'
+      - 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/dining-frontend-prod:$BUILD_ID'
+      - '--region'
+      - 'asia-east1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+
+images:
+  - 'asia-east1-docker.pkg.dev/$PROJECT_ID/oderwhat-staging-repo/dining-frontend-prod:$BUILD_ID'

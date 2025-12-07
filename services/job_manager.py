@@ -1,0 +1,72 @@
+import uuid
+from datetime import datetime, timezone
+from firebase_admin import firestore
+from enum import Enum
+from typing import Dict, Any, Optional
+
+class JobStatus(Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class JobManager:
+    def __init__(self):
+        self.memory_store = {}
+        try:
+            self.db = firestore.client()
+            self.collection = self.db.collection('recommendation_jobs')
+        except Exception as e:
+            print(f"Warning: JobManager failed to connect to Firestore: {e}")
+            self.db = None
+            self.collection = None
+
+    def create_job(self, user_input: Dict[str, Any]) -> str:
+        job_id = str(uuid.uuid4())
+        job_data = {
+            "job_id": job_id,
+            "status": JobStatus.PENDING.value,
+            "user_input": user_input,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc),
+            "progress": 0,
+            "message": "Job created"
+        }
+        
+        if self.collection:
+            self.collection.document(job_id).set(job_data)
+        else:
+            self.memory_store[job_id] = job_data
+            
+        return job_id
+
+    def update_status(self, job_id: str, status: JobStatus, progress: int = 0, message: str = "", result: Optional[Dict] = None, error: Optional[str] = None):
+        update_data = {
+            "status": status.value,
+            "updated_at": datetime.now(timezone.utc),
+            "progress": progress,
+            "message": message
+        }
+        
+        if result:
+            update_data["result"] = result
+        
+        if error:
+            update_data["error"] = error
+            
+        if self.collection:
+            self.collection.document(job_id).update(update_data)
+        elif job_id in self.memory_store:
+            self.memory_store[job_id].update(update_data)
+
+    def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
+        if self.collection:
+            doc = self.collection.document(job_id).get()
+            if doc.exists:
+                return doc.to_dict()
+            return None
+        else:
+            return self.memory_store.get(job_id)
+
+# Global instance
+job_manager = JobManager()
