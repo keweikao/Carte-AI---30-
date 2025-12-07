@@ -75,8 +75,7 @@ if USE_MOCK_EXTERNAL:
 
 @app.get("/places/autocomplete")
 async def get_place_autocomplete_endpoint(
-    input: str = Query(..., min_length=1),
-    user_info: dict = Depends(get_current_user)
+    input: str = Query(..., min_length=1)
 ):
     """
     Proxies Google Places Autocomplete API to get restaurant suggestions.
