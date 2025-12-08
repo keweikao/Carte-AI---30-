@@ -47,23 +47,49 @@ async def process_recommendation_logic(user_input: UserInputV2) -> Recommendatio
     return recommendations
 
 async def process_recommendation_job(job_id: str, user_input: UserInputV2):
-    """Background task for async recommendation"""
+    """Background task for async recommendation with progress updates"""
     try:
-        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=10, message="Fetching restaurant profile...")
+        # Stage 1: Start (10%)
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=10, message="正在搜尋餐廳資料...")
         
-        recommendations = await process_recommendation_logic(user_input)
+        # Mock handling for tests
+        if user_input.place_id == 'mock-place-id':
+            recommendations = MockService.get_mock_recommendation(user_input.restaurant_name)
+            job_manager.update_status(job_id, JobStatus.COMPLETED, progress=100, message="推薦生成完成", result=recommendations.model_dump(mode='json'))
+            return
         
-        # Override recommendation_id with job_id so we can look it up later for alternatives
+        # Stage 2: Get profile (30%)
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=20, message="正在取得餐廳資料...")
+        profile = await RestaurantService.get_or_create_profile(user_input.restaurant_name, user_input.place_id)
+        
+        if not profile.menu_items:
+            raise ValueError(f"Restaurant '{profile.name}' has no menu items available.")
+        
+        # Stage 3: Analyze menu (50%)
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=50, message="正在分析菜單內容...")
+        
+        # Stage 4: Generate recommendation (75%)
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=65, message="AI 正在計算最佳推薦...")
+        
+        recommendation_service = RecommendationService()
+        recommendations = await recommendation_service.generate_recommendation(
+            user_input=user_input,
+            profile=profile
+        )
+        
+        # Stage 5: Finalize (90%)
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=90, message="正在組合完美菜單...")
+        
+        # Override recommendation_id with job_id
         recommendations.recommendation_id = job_id
-        
-        # Convert Pydantic model to dict for storage
         result_dict = recommendations.model_dump(mode='json')
         
+        # Complete (100%)
         job_manager.update_status(
             job_id, 
             JobStatus.COMPLETED, 
             progress=100, 
-            message="Recommendation generated", 
+            message="推薦生成完成！", 
             result=result_dict
         )
         

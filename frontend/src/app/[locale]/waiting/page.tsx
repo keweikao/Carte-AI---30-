@@ -89,13 +89,26 @@ export default function WaitingPage() {
             const response = await fetch(`/api/v1/recommend/v2/status/${jobId}`);
             const data = await response.json();
 
+            // Update stage based on backend progress
+            if (data.progress !== undefined) {
+                // Map progress to stages: 0-25% -> stage 0, 25-50% -> stage 1, 50-75% -> stage 2, 75-100% -> stage 3
+                const stageFromProgress = Math.min(
+                    Math.floor((data.progress / 100) * processingStages.length),
+                    processingStages.length - 1
+                );
+                setCurrentStage(stageFromProgress);
+            }
+
             if (data.status === "completed") {
-                // 導向推薦頁面
-                router.push(`/recommendation?job_id=${jobId}`);
+                // Set to final stage before redirecting
+                setCurrentStage(processingStages.length - 1);
+                // Small delay to show completion before redirect
+                setTimeout(() => {
+                    router.push(`/recommendation?job_id=${jobId}`);
+                }, 500);
             } else if (data.status === "failed") {
                 setError(data.error || "推薦生成失敗");
             }
-            // 進度由 UI 階段動畫處理
         } catch (err) {
             console.error("Poll error:", err);
         }
@@ -116,33 +129,8 @@ export default function WaitingPage() {
         return () => clearInterval(interval);
     }, [jobId, pollStatus]);
 
-    // 模擬階段進度 (用於 UI 展示)
-    useEffect(() => {
-        const totalDuration = processingStages.reduce((sum, s) => sum + s.duration, 0);
-        let elapsed = 0;
-
-        const timer = setInterval(() => {
-            elapsed += 100;
-
-            // 計算當前階段
-            let accumulated = 0;
-            for (let i = 0; i < processingStages.length; i++) {
-                accumulated += processingStages[i].duration;
-                if (elapsed < accumulated) {
-                    setCurrentStage(i);
-                    break;
-                }
-            }
-
-            // 如果超過總時間但 API 還沒完成，停在最後階段
-            if (elapsed >= totalDuration) {
-                setCurrentStage(processingStages.length - 1);
-                clearInterval(timer);
-            }
-        }, 100);
-
-        return () => clearInterval(timer);
-    }, []);
+    // Stage is now driven by backend progress via pollStatus
+    // Removed fixed-time simulation
 
     const stage = processingStages[currentStage];
     const StageIcon = stage.icon;
