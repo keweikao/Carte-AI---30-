@@ -34,6 +34,7 @@ export function RestaurantSearch({ onSelect, onChange, value, defaultValue, name
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const justSelectedRef = useRef(false);  // Track if user just selected an option
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -48,6 +49,12 @@ export function RestaurantSearch({ onSelect, onChange, value, defaultValue, name
 
   // Debounced search
   useEffect(() => {
+    // Skip search if user just selected an option
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
+
     // Don't search if value hasn't changed significantly or is empty
     if (!displayValue.trim()) {
       setSuggestions([]);
@@ -119,6 +126,7 @@ export function RestaurantSearch({ onSelect, onChange, value, defaultValue, name
   };
 
   const handleSelectSuggestion = (suggestion: Suggestion) => {
+    justSelectedRef.current = true;  // Prevent re-triggering search
     const name = suggestion.main_text;
     if (value === undefined) setInternalValue(name);
     if (onChange) onChange(name);
