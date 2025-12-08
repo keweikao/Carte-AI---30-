@@ -506,11 +506,11 @@ function MenuPageContent() {
                     <p className="text-sm text-muted-foreground">{t('footer_note')}</p>
                     <Button
                         variant="outline"
-                        onClick={() => router.push('/')}
+                        onClick={handleShare}
                         className="gap-2"
                     >
-                        <Search className="w-4 h-4" />
-                        {t('search_new_button')}
+                        <Share2 className="w-4 h-4" />
+                        {t('share_menu_for_diners')}
                     </Button>
                 </motion.div>
             </div>
