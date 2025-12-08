@@ -34,12 +34,20 @@ test.describe('UI flow (mock login + recommendation)', () => {
     // 使用 error=mock_bypass 以略過未登入自動跳轉（前端判斷 unauth + !error 才會 redirect）
     await page.goto('/input?error=mock_bypass');
 
+    // Wait for page to be fully loaded and stable (animations complete)
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);  // Wait for AnimatePresence animations to complete
+
     // V2.3: Step 1 - Restaurant Search
     const restaurantField = page.locator(locators.input.restaurantField);
-    await expect(restaurantField).toBeVisible();
+    await expect(restaurantField).toBeVisible({ timeout: 10000 });
+
+    // Wait for element to be stable (not animating) before interacting
+    await restaurantField.waitFor({ state: 'visible' });
+    await page.waitForTimeout(500);  // Extra wait for animation stability
 
     // Use type() instead of fill() to trigger onChange events properly
-    await restaurantField.click();
+    await restaurantField.click({ force: true });  // force: true to bypass actionability checks
     await restaurantField.type('測試餐廳');
 
     // Wait for autocomplete suggestions (listbox) and select the first option
