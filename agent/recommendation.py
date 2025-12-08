@@ -85,56 +85,56 @@ class RecommendationService:
         filtered = []
 
         for item in menu_items:
-            # Skip if no analysis (cannot filter properly)
-            if not item.analysis:
-                print(f"[HardFilter] Skipping {item.name} - no analysis data")
-                continue
+            # If no analysis data, we cannot apply attribute-based filters
+            # But we should still include the dish (fallback: pass through)
+            has_analysis = item.analysis is not None
 
-            # Check preferences for hard constraints
+            # Check preferences for hard constraints (only if analysis data available)
             skip = False
-            for pref in user_input.preferences:
-                pref_lower = pref.lower()
+            if has_analysis:
+                for pref in user_input.preferences:
+                    pref_lower = pref.lower()
 
-                # No spicy constraint
-                if pref_lower in ['no_spicy', 'not_spicy', '不辣', '微辣']:
-                    if item.analysis.is_spicy:
-                        print(f"[HardFilter] Rejected {item.name} - is spicy")
-                        skip = True
-                        break
+                    # No spicy constraint
+                    if pref_lower in ['no_spicy', 'not_spicy', '不辣', '微辣']:
+                        if item.analysis.is_spicy:
+                            print(f"[HardFilter] Rejected {item.name} - is spicy")
+                            skip = True
+                            break
 
-                # No beef constraint
-                if pref_lower in ['no_beef', '不吃牛', '不要牛肉']:
-                    if item.analysis.contains_beef:
-                        print(f"[HardFilter] Rejected {item.name} - contains beef")
-                        skip = True
-                        break
+                    # No beef constraint
+                    if pref_lower in ['no_beef', '不吃牛', '不要牛肉']:
+                        if item.analysis.contains_beef:
+                            print(f"[HardFilter] Rejected {item.name} - contains beef")
+                            skip = True
+                            break
 
-                # No pork constraint
-                if pref_lower in ['no_pork', '不吃豬', '不要豬肉']:
-                    if item.analysis.contains_pork:
-                        print(f"[HardFilter] Rejected {item.name} - contains pork")
-                        skip = True
-                        break
+                    # No pork constraint
+                    if pref_lower in ['no_pork', '不吃豬', '不要豬肉']:
+                        if item.analysis.contains_pork:
+                            print(f"[HardFilter] Rejected {item.name} - contains pork")
+                            skip = True
+                            break
 
-                # No seafood constraint
-                if pref_lower in ['no_seafood', '不吃海鮮', '不要海鮮']:
-                    if item.analysis.contains_seafood:
-                        print(f"[HardFilter] Rejected {item.name} - contains seafood")
-                        skip = True
-                        break
+                    # No seafood constraint
+                    if pref_lower in ['no_seafood', '不吃海鮮', '不要海鮮']:
+                        if item.analysis.contains_seafood:
+                            print(f"[HardFilter] Rejected {item.name} - contains seafood")
+                            skip = True
+                            break
 
-                # Vegan constraint
-                if pref_lower in ['vegan', '素食', '全素']:
-                    if not item.analysis.is_vegan:
-                        print(f"[HardFilter] Rejected {item.name} - not vegan")
-                        skip = True
-                        break
+                    # Vegan constraint
+                    if pref_lower in ['vegan', '素食', '全素']:
+                        if not item.analysis.is_vegan:
+                            print(f"[HardFilter] Rejected {item.name} - not vegan")
+                            skip = True
+                            break
 
             if skip:
                 continue
 
-            # Check allergens
-            if user_input.preferences:
+            # Check allergens (only if analysis data available)
+            if has_analysis and user_input.preferences:
                 allergen_keywords = ['allergy', 'allergic', '過敏']
                 for pref in user_input.preferences:
                     if any(keyword in pref.lower() for keyword in allergen_keywords):
