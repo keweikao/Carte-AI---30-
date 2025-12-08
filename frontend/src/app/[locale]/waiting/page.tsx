@@ -276,38 +276,40 @@ export default function WaitingPage() {
                 </div>
 
                 {/* 餐廳小知識 Trivia Card */}
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={`${triviaIndex}-${showAnswer}`}
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -20, opacity: 0 }}
-                        transition={{ duration: 0.4 }}
-                        className="bg-white p-5 rounded-xl shadow-card border border-cream-200 w-full relative overflow-hidden"
-                    >
-                        <div className="absolute top-0 left-0 w-1 h-full bg-terracotta" />
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <Lightbulb className="w-4 h-4 text-terracotta" />
-                                <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
-                                    {showAnswer
-                                        ? (lang === 'en' ? "💡 Answer" : "💡 答案揭曉")
-                                        : (lang === 'en' ? "🤔 Did you know?" : "🤔 你知道嗎？")
-                                    }
+                {TRIVIA_QUESTIONS.length > 0 && TRIVIA_QUESTIONS[triviaIndex] && (
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={`${triviaIndex}-${showAnswer}`}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -20, opacity: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="bg-white p-5 rounded-xl shadow-card border border-cream-200 w-full relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-1 h-full bg-terracotta" />
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <Lightbulb className="w-4 h-4 text-terracotta" />
+                                    <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
+                                        {showAnswer
+                                            ? (lang === 'en' ? "💡 Answer" : "💡 答案揭曉")
+                                            : (lang === 'en' ? "🤔 Did you know?" : "🤔 你知道嗎？")
+                                        }
+                                    </span>
+                                </div>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cream-100 text-charcoal-600">
+                                    {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex].category]?.[lang] || "Trivia"}
                                 </span>
                             </div>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cream-100 text-charcoal-600">
-                                {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex]?.category]?.[lang]}
-                            </span>
-                        </div>
-                        <p className="text-charcoal text-sm leading-relaxed pl-1">
-                            {showAnswer
-                                ? TRIVIA_QUESTIONS[triviaIndex]?.answer[lang]
-                                : TRIVIA_QUESTIONS[triviaIndex]?.question[lang]
-                            }
-                        </p>
-                    </motion.div>
-                </AnimatePresence>
+                            <p className="text-charcoal text-sm leading-relaxed pl-1">
+                                {showAnswer
+                                    ? TRIVIA_QUESTIONS[triviaIndex].answer[lang]
+                                    : TRIVIA_QUESTIONS[triviaIndex].question[lang]
+                                }
+                            </p>
+                        </motion.div>
+                    </AnimatePresence>
+                )}
             </div>
         </div>
     );
