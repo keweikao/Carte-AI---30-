@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChefHat, Sparkles, Search, FileText, Brain, Lightbulb } from "lucide-react";
 import { ProgressBar } from "@/components/carte";
-import { TRIVIA_QUESTIONS, TRIVIA_CATEGORIES } from "@/data/trivia";
+import { TRIVIA_QUESTIONS, TRIVIA_CATEGORIES, TriviaCategory } from "@/data/trivia";
 
 // AI 處理階段
 const processingStages = [
@@ -42,12 +42,17 @@ const processingStages = [
 export default function WaitingPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const params = useParams();
 
     const [currentStage, setCurrentStage] = useState(0);
     const [jobId, setJobId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [triviaIndex, setTriviaIndex] = useState(0);
     const [showAnswer, setShowAnswer] = useState(false);
+
+    // 取得語言設定
+    const locale = params.locale as string;
+    const lang: 'zh' | 'en' = locale?.startsWith('en') ? 'en' : 'zh';
 
     // 取得參數
     const restaurantName = searchParams.get("restaurant") || "";
@@ -285,17 +290,20 @@ export default function WaitingPage() {
                             <div className="flex items-center gap-2">
                                 <Lightbulb className="w-4 h-4 text-terracotta" />
                                 <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
-                                    {showAnswer ? "💡 答案揭曉" : "🤔 你知道嗎？"}
+                                    {showAnswer
+                                        ? (lang === 'en' ? "💡 Answer" : "💡 答案揭曉")
+                                        : (lang === 'en' ? "🤔 Did you know?" : "🤔 你知道嗎？")
+                                    }
                                 </span>
                             </div>
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-cream-100 text-charcoal-600">
-                                {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex]?.category]}
+                                {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex]?.category]?.[lang]}
                             </span>
                         </div>
                         <p className="text-charcoal text-sm leading-relaxed pl-1">
                             {showAnswer
-                                ? TRIVIA_QUESTIONS[triviaIndex]?.answer
-                                : TRIVIA_QUESTIONS[triviaIndex]?.question
+                                ? TRIVIA_QUESTIONS[triviaIndex]?.answer[lang]
+                                : TRIVIA_QUESTIONS[triviaIndex]?.question[lang]
                             }
                         </p>
                     </motion.div>
