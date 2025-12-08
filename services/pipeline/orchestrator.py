@@ -5,7 +5,7 @@ Controls flow, handles fallbacks, and assembles final restaurant profile
 
 import asyncio
 from datetime import datetime, timezone
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Callable
 
 from schemas.restaurant_profile import RestaurantProfile, MenuItem
 from schemas.pipeline import ParsedMenuItem, PipelineInput
@@ -26,12 +26,17 @@ class RestaurantPipeline:
         self.insight_engine = InsightEngine()
         self.menu_intelligence = MenuIntelligence()
 
-    async def process(self, input_data: Union[str, PipelineInput]) -> Optional[RestaurantProfile]:
+    async def process(
+        self, 
+        input_data: Union[str, PipelineInput],
+        progress_callback: Optional[Callable[[int, str], None]] = None
+    ) -> Optional[RestaurantProfile]:
         """
         Process a restaurant through the complete pipeline
 
         Args:
             input_data: Name of the restaurant or PipelineInput object
+            progress_callback: Optional callback function(step: int, message: str) for progress updates
 
         Returns:
             RestaurantProfile or None if processing fails
@@ -50,6 +55,8 @@ class RestaurantPipeline:
 
             # STEP 1: Parallel data acquisition
             print("[Pipeline] STEP 1: Fetching data from external sources...")
+            if progress_callback:
+                progress_callback(1, "正在搜尋餐廳菜單...")
 
             map_task = self.map_provider.fetch_map_data(restaurant_name, place_id=place_id)
             web_task = self.web_provider.search_and_fetch(restaurant_name)
@@ -77,9 +84,14 @@ class RestaurantPipeline:
             print(f"[Pipeline] Data acquisition complete:")
             print(f"  - Map data: ✓ ({len(map_data.images)} images, {len(map_data.reviews)} reviews)")
             print(f"  - Web content: {'✓' if web_content else '✗'}")
+            
+            if progress_callback:
+                progress_callback(2, "正在抓取餐廳評論...")
 
             # STEP 2: Menu extraction strategy
             print(f"\n[Pipeline] STEP 2: Extracting menu...")
+            if progress_callback:
+                progress_callback(3, "正在解析菜單內容...")
 
             menu_items: List[ParsedMenuItem] = []
             trust_level = "low"
@@ -128,6 +140,8 @@ class RestaurantPipeline:
 
             # STEP 3: Review fusion
             print(f"\n[Pipeline] STEP 3: Fusing reviews with menu...")
+            if progress_callback:
+                progress_callback(4, "正在融合評論與菜單...")
 
             enhanced_menu, review_summary = await self.insight_engine.fuse_reviews(
                 menu_items=menu_items,

@@ -58,18 +58,24 @@ async def process_recommendation_job(job_id: str, user_input: UserInputV2):
             job_manager.update_status(job_id, JobStatus.COMPLETED, progress=100, message="推薦生成完成", result=recommendations.model_dump(mode='json'))
             return
         
-        # Stage 2: Get profile (30%)
-        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=20, message="正在取得餐廳資料...")
-        profile = await RestaurantService.get_or_create_profile(user_input.restaurant_name, user_input.place_id)
+        # Stage 2: Get profile (20-60% for cold start, or quick jump for warm start)
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=15, message="正在檢查餐廳資料...")
+        
+        # Pass job_id for progress updates during cold start
+        profile = await RestaurantService.get_or_create_profile(
+            user_input.restaurant_name, 
+            user_input.place_id,
+            job_id=job_id  # Pass job_id for progress updates
+        )
         
         if not profile.menu_items:
             raise ValueError(f"Restaurant '{profile.name}' has no menu items available.")
         
-        # Stage 3: Analyze menu (50%)
-        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=50, message="正在分析菜單內容...")
+        # Stage 3: Analyze menu (65%)
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=65, message="正在分析菜單內容...")
         
         # Stage 4: Generate recommendation (75%)
-        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=65, message="AI 正在計算最佳推薦...")
+        job_manager.update_status(job_id, JobStatus.PROCESSING, progress=75, message="AI 正在計算最佳推薦...")
         
         recommendation_service = RecommendationService()
         recommendations = await recommendation_service.generate_recommendation(
@@ -100,6 +106,7 @@ async def process_recommendation_job(job_id: str, user_input: UserInputV2):
             JobStatus.FAILED, 
             error=str(e)
         )
+
 
 @router.post("/recommend/v2", response_model=RecommendationResponseV2)
 async def recommend_dishes_v2(user_input: UserInputV2):
