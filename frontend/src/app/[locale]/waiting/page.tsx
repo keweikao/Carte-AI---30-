@@ -3,8 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChefHat, Sparkles, Search, FileText, Brain } from "lucide-react";
+import { ChefHat, Sparkles, Search, FileText, Brain, Lightbulb } from "lucide-react";
 import { ProgressBar } from "@/components/carte";
+import { TRIVIA_QUESTIONS } from "@/data/trivia";
 
 // AI 處理階段
 const processingStages = [
@@ -45,6 +46,8 @@ export default function WaitingPage() {
     const [currentStage, setCurrentStage] = useState(0);
     const [jobId, setJobId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [triviaIndex, setTriviaIndex] = useState(0);
+    const [showAnswer, setShowAnswer] = useState(false);
 
     // 取得參數
     const restaurantName = searchParams.get("restaurant") || "";
@@ -129,8 +132,35 @@ export default function WaitingPage() {
         return () => clearInterval(interval);
     }, [jobId, pollStatus]);
 
+    // Trivia 輪換邏輯
+    useEffect(() => {
+        // 初始隨機選擇
+        setTriviaIndex(Math.floor(Math.random() * TRIVIA_QUESTIONS.length));
+        setShowAnswer(false);
+
+        const triviaInterval = setInterval(() => {
+            setShowAnswer(prev => {
+                if (!prev) {
+                    // 顯示答案
+                    return true;
+                } else {
+                    // 換下一題
+                    setTriviaIndex(prevIndex => {
+                        let nextIndex;
+                        do {
+                            nextIndex = Math.floor(Math.random() * TRIVIA_QUESTIONS.length);
+                        } while (nextIndex === prevIndex && TRIVIA_QUESTIONS.length > 1);
+                        return nextIndex;
+                    });
+                    return false;
+                }
+            });
+        }, 5000); // 5 秒切換（問題->答案 或 答案->新問題）
+
+        return () => clearInterval(triviaInterval);
+    }, []);
+
     // Stage is now driven by backend progress via pollStatus
-    // Removed fixed-time simulation
 
     const stage = processingStages[currentStage];
     const StageIcon = stage.icon;
@@ -209,7 +239,7 @@ export default function WaitingPage() {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: -20, opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="mb-8"
+                        className="mb-6"
                     >
                         <h2 className="font-serif text-xl font-bold text-charcoal mb-2">
                             {stage.title}
@@ -221,7 +251,7 @@ export default function WaitingPage() {
                 </AnimatePresence>
 
                 {/* 進度條 */}
-                <div className="mb-8">
+                <div className="mb-6">
                     <ProgressBar
                         currentStep={currentStage + 1}
                         totalSteps={processingStages.length}
@@ -230,7 +260,7 @@ export default function WaitingPage() {
                 </div>
 
                 {/* 階段指示器 */}
-                <div className="flex justify-center gap-2">
+                <div className="flex justify-center gap-2 mb-8">
                     {processingStages.map((s, index) => (
                         <div
                             key={s.id}
@@ -239,6 +269,32 @@ export default function WaitingPage() {
                         />
                     ))}
                 </div>
+
+                {/* 餐廳小知識 Trivia Card */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={`${triviaIndex}-${showAnswer}`}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -20, opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="bg-white p-5 rounded-xl shadow-card border border-cream-200 w-full relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-1 h-full bg-terracotta" />
+                        <div className="flex items-center gap-2 mb-3">
+                            <Lightbulb className="w-4 h-4 text-terracotta" />
+                            <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
+                                {showAnswer ? "💡 答案揭曉" : "🤔 你知道嗎？"}
+                            </span>
+                        </div>
+                        <p className="text-charcoal text-sm leading-relaxed pl-1">
+                            {showAnswer
+                                ? TRIVIA_QUESTIONS[triviaIndex]?.answer
+                                : TRIVIA_QUESTIONS[triviaIndex]?.question
+                            }
+                        </p>
+                    </motion.div>
+                </AnimatePresence>
             </div>
         </div>
     );
