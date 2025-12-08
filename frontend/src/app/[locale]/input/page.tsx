@@ -84,9 +84,22 @@ export default function InputPageV3() {
     };
 
 
+    // Handle error display (but allow mock_bypass for E2E testing)
+    if (error && error !== 'mock_bypass') {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-6 bg-[#F9F6F0]">
+                <div className="text-center space-y-4 max-w-md">
+                    <p className="text-lg text-charcoal-700">發生錯誤：{error}</p>
+                    <button onClick={() => router.push('/')} className="text-caramel hover:underline font-bold">
+                        返回首頁
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
-    // Require authentication - show login prompt for guests
-    if (status === 'unauthenticated') {
+    // Require authentication - show login prompt for guests (skip for mock_bypass in E2E tests)
+    if (status === 'unauthenticated' && error !== 'mock_bypass') {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-cream-50">
                 <div className="text-center space-y-6 max-w-md">
@@ -101,19 +114,6 @@ export default function InputPageV3() {
                         className="inline-flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-bold hover:bg-black transition-colors"
                     >
                         使用 Google 登入
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    if (error && error !== 'mock_bypass') {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-6 bg-[#F9F6F0]">
-                <div className="text-center space-y-4 max-w-md">
-                    <p className="text-lg text-charcoal-700">發生錯誤：{error}</p>
-                    <button onClick={() => router.push('/')} className="text-caramel hover:underline font-bold">
-                        返回首頁
                     </button>
                 </div>
             </div>
