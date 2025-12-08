@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, BrainCircuit, Lightbulb, Circle, CheckCircle2 } from "lucide-react";
 
@@ -14,6 +15,10 @@ interface GamifiedLoadingStateProps {
 }
 
 export function GamifiedLoadingState({ reviewCount, restaurantName, analysisSteps, analysisStep }: GamifiedLoadingStateProps) {
+    const params = useParams();
+    const locale = params.locale as string;
+    const lang: 'zh' | 'en' = locale?.startsWith('en') ? 'en' : 'zh';
+
     // Start with a random question
     const [currentTriviaIndex, setCurrentTriviaIndex] = useState(() => Math.floor(Math.random() * TRIVIA_QUESTIONS.length));
     const [showAnswer, setShowAnswer] = useState(false);
@@ -185,7 +190,7 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
                         className="min-h-[100px] flex flex-col justify-center"
                     >
                         <h3 className="text-lg font-bold text-foreground mb-2">
-                            {TRIVIA_QUESTIONS[currentTriviaIndex].question}
+                            {TRIVIA_QUESTIONS[currentTriviaIndex].question[lang]}
                         </h3>
                         {showAnswer && (
                             <motion.p
@@ -193,7 +198,7 @@ export function GamifiedLoadingState({ reviewCount, restaurantName, analysisStep
                                 animate={{ opacity: 1, height: "auto" }}
                                 className="text-muted-foreground text-sm"
                             >
-                                {TRIVIA_QUESTIONS[currentTriviaIndex].answer}
+                                {TRIVIA_QUESTIONS[currentTriviaIndex].answer[lang]}
                             </motion.p>
                         )}
                     </motion.div>
