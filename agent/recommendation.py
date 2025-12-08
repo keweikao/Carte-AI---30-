@@ -341,10 +341,18 @@ class RecommendationService:
                     review_count=menu_item.ai_insight.mention_count if menu_item.ai_insight else 0
                 )
 
+                # Generate alternatives for this slot (same category, different dishes)
+                alternatives = self._generate_alternatives_for_slot(
+                    category=menu_item.category or "其他",
+                    exclude_names=[menu_item.name],  # Exclude current dish
+                    filtered_items=filtered_items,
+                    limit=3  # Up to 3 alternatives per slot
+                )
+
                 dish_slot = DishSlotResponse(
                     category=menu_item.category or "其他",
                     display=menu_item_v2,
-                    alternatives=[] # Alternatives can be populated later if needed
+                    alternatives=alternatives
                 )
 
                 recommendations.append(dish_slot)
@@ -414,6 +422,65 @@ class RecommendationService:
 
         return "\n".join(lines) if lines else "無特別偏好"
 
+    def _generate_alternatives_for_slot(
+        self,
+        category: str,
+        exclude_names: List[str],
+        filtered_items: List[MenuItem],
+        limit: int = 3
+    ) -> List[MenuItemV2]:
+        """
+        Generate alternative dishes for a slot from the same category.
+        
+        Args:
+            category: The category to find alternatives in
+            exclude_names: Dish names to exclude (e.g., the current display dish)
+            filtered_items: Items that passed hard filter (already filtered by user preferences)
+            limit: Maximum number of alternatives to return
+            
+        Returns:
+            List of MenuItemV2 alternatives
+        """
+        # Find candidates from the same category
+        candidates = []
+        for item in filtered_items:
+            if item.category == category and item.name not in exclude_names:
+                candidates.append(item)
+        
+        # Score and sort candidates (higher score = better alternative)
+        def score_item(item: MenuItem) -> float:
+            score = 0.0
+            if item.is_popular:
+                score += 10.0
+            if item.analysis and item.analysis.sentiment_score:
+                score += item.analysis.sentiment_score * 5.0
+            if item.ai_insight:
+                if item.ai_insight.sentiment == "positive":
+                    score += 3.0
+                score += min(item.ai_insight.mention_count, 5) * 0.5
+            if item.is_risky:
+                score -= 10.0
+            return score
+        
+        sorted_candidates = sorted(candidates, key=score_item, reverse=True)
+        
+        # Convert to MenuItemV2
+        alternatives = []
+        for item in sorted_candidates[:limit]:
+            alt = MenuItemV2(
+                dish_id=item.id or "",
+                dish_name=item.name,
+                price=item.price or 0,
+                quantity=1,
+                reason="同類型的替代選擇",
+                category=item.category or "其他",
+                review_count=item.ai_insight.mention_count if item.ai_insight else 0
+            )
+            alternatives.append(alt)
+        
+        return alternatives
+
+
     def _fallback_ranking(self, filtered_items: List[MenuItem], user_input: UserInputV2, profile: RestaurantProfile) -> RecommendationResponseV2:
         """
         Fallback ranking when LLM fails
@@ -478,10 +545,18 @@ class RecommendationService:
                 review_count=item.ai_insight.mention_count if item.ai_insight else 0
             )
             
+            # Generate alternatives for this slot
+            alternatives = self._generate_alternatives_for_slot(
+                category=item.category or "其他",
+                exclude_names=[item.name],
+                filtered_items=sorted_items,  # Use all sorted items as candidates
+                limit=3
+            )
+            
             dish_slot = DishSlotResponse(
                 category=item.category or "其他",
                 display=menu_item_v2,
-                alternatives=[]
+                alternatives=alternatives
             )
             
             recommendations.append(dish_slot)
@@ -490,6 +565,7 @@ class RecommendationService:
             
             cat = item.category or "其他"
             category_summary[cat] = category_summary.get(cat, 0) + 1
+
 
         return RecommendationResponseV2(
             recommendation_id=f"rec_{int(time.time())}",

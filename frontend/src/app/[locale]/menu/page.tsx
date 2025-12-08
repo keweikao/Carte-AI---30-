@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Share2, Printer, Star, Download, Copy, Check, Search, Languages } from "lucide-react";
+import { ArrowLeft, Share2, Star, Download, Copy, Check, Search, Languages } from "lucide-react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { MenuItem } from "@/types";
@@ -47,12 +47,8 @@ function MenuPageSkeleton() {
                     </Button>
                     <div className="flex gap-2">
                         <Button variant="outline" disabled className="gap-2">
-                            <Printer className="w-4 h-4" />
-                            {t('print_button')}
-                        </Button>
-                        <Button variant="outline" disabled className="gap-2">
                             <Share2 className="w-4 h-4" />
-                            {t('share_button')}
+                            {t('share_menu_button')}
                         </Button>
                         <Button disabled className="gap-2 bg-primary">
                             <Star className="w-4 h-4" />
@@ -142,10 +138,6 @@ function MenuPageContent() {
 
     const handleBack = () => {
         router.push('/input');
-    };
-
-    const handlePrint = () => {
-        window.print();
     };
 
     const generateShareImage = async () => {
@@ -400,13 +392,9 @@ function MenuPageContent() {
                             <Search className="w-4 h-4" aria-hidden="true" />
                             {t('search_new_button')}
                         </Button>
-                        <Button variant="outline" onClick={handlePrint} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label={t('print_button')}>
-                            <Printer className="w-4 h-4" aria-hidden="true" />
-                            {t('print_button')}
-                        </Button>
-                        <Button variant="outline" onClick={handleShare} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label={t('share_button')}>
+                        <Button variant="outline" onClick={handleShare} className="gap-1 sm:gap-2 px-2 sm:px-4" aria-label={t('share_menu_button')}>
                             <Share2 className="w-4 h-4" aria-hidden="true" />
-                            {t('share_button')}
+                            {t('share_menu_button')}
                         </Button>
                     </div>
                 </div>
