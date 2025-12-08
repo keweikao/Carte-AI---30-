@@ -381,7 +381,7 @@ function MenuPageContent() {
     return (
         <div className="min-h-screen bg-background pb-20">
             {/* Header - Hidden on print */}
-            <div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur print:hidden" role="banner">
+            <div className="sticky top-16 z-40 w-full border-b bg-background/95 backdrop-blur print:hidden" role="banner">
                 <div className="container flex h-14 items-center justify-between px-2 sm:px-4 gap-2">
                     <Button variant="ghost" onClick={() => router.push('/input')} className="gap-2" aria-label={t('back_button')}>
                         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
