@@ -467,12 +467,29 @@ class RecommendationService:
         # Convert to MenuItemV2
         alternatives = []
         for item in sorted_candidates[:limit]:
+            # Generate a better reason for the alternative
+            # Prioritize AI insight summary (user reviews) over menu description
+            reason = None
+            if item.ai_insight and item.ai_insight.summary:
+                reason = item.ai_insight.summary
+            
+            if not reason:
+                reason = item.description
+            
+            if not reason:
+                if item.is_popular:
+                    reason = f"{item.category or '這'}類別的人氣選擇"
+                elif item.ai_insight and item.ai_insight.mention_count > 0:
+                    reason = f"受到 {item.ai_insight.mention_count} 則評論提到的美味選擇"
+                else:
+                    reason = f"{item.category or '同類型'}的推薦菜色"
+
             alt = MenuItemV2(
                 dish_id=item.id or "",
                 dish_name=item.name,
                 price=item.price or 0,
                 quantity=1,
-                reason="同類型的替代選擇",
+                reason=reason,
                 category=item.category or "其他",
                 review_count=item.ai_insight.mention_count if item.ai_insight else 0
             )
