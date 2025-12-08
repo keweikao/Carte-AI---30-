@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TRIVIA_QUESTIONS } from '../data/trivia';
 
 export function TriviaCard() {
+    const params = useParams();
+    const locale = params.locale as string;
+    const lang: 'zh' | 'en' = locale?.startsWith('en') ? 'en' : 'zh';
+
     const [currentIndex, setCurrentIndex] = useState(() =>
         Math.floor(Math.random() * TRIVIA_QUESTIONS.length)
     );
@@ -36,12 +41,14 @@ export function TriviaCard() {
                 <div className="flex items-start gap-3">
                     <span className="text-2xl flex-shrink-0">💡</span>
                     <div className="flex-1">
-                        <h3 className="font-semibold mb-2 text-foreground">您知道嗎？</h3>
+                        <h3 className="font-semibold mb-2 text-foreground">
+                            {lang === 'en' ? 'Did you know?' : '您知道嗎？'}
+                        </h3>
                         <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                            {currentTrivia.question}
+                            {currentTrivia.question[lang]}
                         </p>
                         <p className="text-sm text-foreground leading-relaxed">
-                            {currentTrivia.answer}
+                            {currentTrivia.answer[lang]}
                         </p>
                     </div>
                 </div>
