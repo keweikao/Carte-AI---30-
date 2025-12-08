@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChefHat, Sparkles, Search, FileText, Brain, Lightbulb } from "lucide-react";
 import { ProgressBar } from "@/components/carte";
-import { TRIVIA_QUESTIONS } from "@/data/trivia";
+import { TRIVIA_QUESTIONS, TRIVIA_CATEGORIES } from "@/data/trivia";
 
 // AI 處理階段
 const processingStages = [
@@ -281,10 +281,15 @@ export default function WaitingPage() {
                         className="bg-white p-5 rounded-xl shadow-card border border-cream-200 w-full relative overflow-hidden"
                     >
                         <div className="absolute top-0 left-0 w-1 h-full bg-terracotta" />
-                        <div className="flex items-center gap-2 mb-3">
-                            <Lightbulb className="w-4 h-4 text-terracotta" />
-                            <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
-                                {showAnswer ? "💡 答案揭曉" : "🤔 你知道嗎？"}
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <Lightbulb className="w-4 h-4 text-terracotta" />
+                                <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
+                                    {showAnswer ? "💡 答案揭曉" : "🤔 你知道嗎？"}
+                                </span>
+                            </div>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cream-100 text-charcoal-600">
+                                {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex]?.category]}
                             </span>
                         </div>
                         <p className="text-charcoal text-sm leading-relaxed pl-1">

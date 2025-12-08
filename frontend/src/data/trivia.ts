@@ -1,195 +1,99 @@
-export const TRIVIA_QUESTIONS = [
-    // 日本料理 (20)
-    { question: "壽司師傅為什麼要捏三次？", answer: "傳統壽司要捏三次：第一次塑形，第二次壓實，第三次調整，讓米飯保持鬆軟又不散開。" },
-    { question: "拉麵的湯頭為什麼要熬 12 小時？", answer: "長時間熬煮可以讓骨髓和膠原蛋白完全釋放，形成濃郁的白湯（豚骨湯）。" },
-    { question: "天婦羅的麵衣為什麼要用冰水？", answer: "冰水可以減緩麵筋形成，讓麵衣更酥脆輕盈。" },
-    { question: "為什麼壽司要用赤醋？", answer: "赤醋（紅醋）由酒粕釀造，味道更溫和，能襯托出魚肉的鮮甜。" },
-    { question: "日本清酒為什麼要冰著喝或溫著喝？", answer: "吟釀酒適合冰飲突顯香氣，純米酒適合溫飲帶出米香，不同溫度展現不同風味。" },
+// Trivia 類別定義
+export const TRIVIA_CATEGORIES = {
+    etiquette: "餐桌禮儀",
+    seasonality: "旬之味",
+    myth: "迷思破解"
+} as const;
 
-    // 義大利料理 (20)
-    { question: "為什麼義大利麵要煮到 Al Dente？", answer: "Al Dente 意思是「有嚼勁」，保留麵芯的硬度可以讓口感更好，也更容易吸附醬汁。" },
-    { question: "卡布奇諾為什麼叫這個名字？", answer: "因為咖啡上的奶泡顏色像方濟會修士（Capuchin）的棕色僧袍。" },
-    { question: "義大利人為什麼不喝卡布奇諾配午餐？", answer: "義大利人認為牛奶會影響消化，所以只在早餐喝含奶咖啡，午餐後只喝濃縮咖啡。" },
-    { question: "瑪格麗特披薩的顏色代表什麼？", answer: "紅（番茄）、白（莫札瑞拉起司）、綠（羅勒）代表義大利國旗的三色。" },
-    { question: "提拉米蘇是什麼意思？", answer: "義大利文 'Tira mi su' 意思是「把我拉起來」，因為吃了會讓人精神振奮！" },
+export type TriviaCategory = keyof typeof TRIVIA_CATEGORIES;
 
-    // 法國料理 (20)
-    { question: "法式長棍麵包為什麼要劃刀？", answer: "劃刀可以控制麵包膨脹方向，形成酥脆的外皮和柔軟的內部。" },
-    { question: "香檳為什麼只能來自香檳區？", answer: "根據法國法律，只有香檳區（Champagne）生產的氣泡酒才能叫香檳，其他地區只能叫氣泡酒。" },
-    { question: "鵝肝醬為什麼這麼貴？", answer: "製作鵝肝需要特殊飼養方式，且一隻鵝只能產出約 500 克肝臟，產量稀少。" },
-    { question: "法式洋蔥湯為什麼要烤起司？", answer: "起司烤至金黃可以增添香氣和口感，也能保溫讓湯更持久地保持熱度。" },
-    { question: "波爾多紅酒為什麼要醒酒？", answer: "年輕的波爾多紅酒單寧較重，醒酒可以讓單寧軟化，釋放果香和複雜風味。" },
+export interface TriviaQuestion {
+    category: TriviaCategory;
+    question: string;
+    answer: string;
+}
 
-    // 中國料理 (20)
-    { question: "北京烤鴨為什麼要掛爐烤？", answer: "掛爐可以讓鴨子受熱均勻，皮脆肉嫩，油脂自然滴落不油膩。" },
-    { question: "小籠包為什麼會有湯汁？", answer: "內餡加入肉凍（豬皮凍），蒸熟後融化成湯汁。" },
-    { question: "麻婆豆腐為什麼要用花椒？", answer: "花椒的麻感可以中和辣椒的辣，形成「麻辣」的獨特風味。" },
-    { question: "宮保雞丁為什麼要加花生？", answer: "花生的香脆口感可以增添層次，也能吸收醬汁的鹹香。" },
-    { question: "東坡肉為什麼要燉這麼久？", answer: "長時間燉煮可以讓五花肉的膠原蛋白完全軟化，入口即化。" },
+export const TRIVIA_QUESTIONS: TriviaQuestion[] = [
+    // ===== 餐桌禮儀與文化 (20題) =====
+    { category: "etiquette", question: "吃握壽司可以把山葵(Wasabi)攪進醬油嗎？", answer: "不建議。高階壽司師傅通常已將適量山葵放在魚料與飯之間。攪拌會破壞醬油風味，也抹殺了師傅的調味平衡。" },
+    { category: "etiquette", question: "喝西式濃湯時，湯匙應該往哪個方向舀？", answer: "由內向外。這源自於宮廷禮儀，目的是避免湯汁濺到自己身上。" },
+    { category: "etiquette", question: "暫時離開座位時，餐巾應該放在哪裡？", answer: "放在椅子上。這暗示服務生你還會回來。若放在桌上，通常代表用餐完畢。" },
+    { category: "etiquette", question: "吃義大利麵可以用湯匙輔助嗎？", answer: "在義大利，成年人通常只用叉子利用盤緣捲麵。用湯匙輔助通常是給小孩或遊客的習慣，但並非絕對禁止。" },
+    { category: "etiquette", question: "吃中式合菜，筷子可以插在碗裡嗎？", answer: "絕對禁止。這像祭拜亡者的腳尾飯。另外也不可用筷子敲碗，那是乞丐乞討的動作。" },
+    { category: "etiquette", question: "在日本吃拉麵發出聲音是禮貌嗎？", answer: "是的。吸麵（Slurping）能讓麵條與空氣一同入口，散發香氣並降溫，是對廚師表示「好吃」的聲音。" },
+    { category: "etiquette", question: "拿紅酒杯應該握哪裡？", answer: "握杯腳（Stem）。握杯肚會透過手溫影響酒的溫度，特別是白酒與香檳。" },
+    { category: "etiquette", question: "吃整條煎魚時，可以翻面嗎？", answer: "中式傳統忌諱翻魚（象徵翻船），建議將魚骨剔除後繼續吃下面。西餐則無此忌諱，但通常會先去骨。" },
+    { category: "etiquette", question: "高級壽司店（Omakase）可以擦香水嗎？", answer: "強烈不建議。香水會干擾精細的魚生氣味，也會影響鄰座客人的體驗，這是嚴重的不禮貌。" },
+    { category: "etiquette", question: "麵包盤上的麵包該怎麼吃？", answer: "撕成一口大小，再塗奶油。不要整顆拿起來啃，也不要一次把整顆切開塗滿奶油。" },
+    { category: "etiquette", question: "別人幫你倒茶時，手指敲桌子是什麼意思？", answer: "這是「扣謝禮」。源自乾隆下江南的故事，用手指模擬下跪磕頭，表示感謝。" },
+    { category: "etiquette", question: "西餐刀叉擺成「八」字型代表什麼？", answer: "代表「暫停用餐」。若刀叉平行斜放（通常是四點鐘方向），則代表「用餐完畢」。" },
+    { category: "etiquette", question: "可以直接用手拿壽司吃嗎？", answer: "可以，甚至有些師傅更推薦用手，因為這能避免筷子夾散空氣感極佳的舍利（醋飯）。" },
+    { category: "etiquette", question: "與人乾杯時，杯緣要比對方低嗎？", answer: "在東亞文化（如日韓台），晚輩或下屬的杯緣應低於長輩或上司，以示尊敬。" },
+    { category: "etiquette", question: "可以用筷子互相傳遞食物嗎？", answer: "在日本絕對禁止。這動作類似火葬後撿骨的儀式（箸渡），極度不吉利。" },
+    { category: "etiquette", question: "法式料理中，鹽罐與胡椒罐可以分開傳遞嗎？", answer: "通常建議一起傳遞。它們被視為「夫妻」，即便對方只要鹽，也要一起遞過去。" },
+    { category: "etiquette", question: "牛排應該一次切完還是邊吃邊切？", answer: "邊吃邊切。一次切完會讓肉汁流失過快，且容易讓肉變涼。" },
+    { category: "etiquette", question: "在韓國喝酒可以自己倒酒嗎？", answer: "通常不建議。韓國文化重視互動，互相倒酒（對酌）是禮貌，獨酌則顯得孤單或無禮。" },
+    { category: "etiquette", question: "可以用自己的筷子夾公用盤的菜嗎？", answer: "若無公筷，在親近親友間尚可，但在正式場合或日本，應使用公筷或將筷子倒過來使用。" },
+    { category: "etiquette", question: "小費（Tipping）是必須的嗎？", answer: "視國家而定。美國必須（約15-20%），日本則不需要（甚至可能被視為無禮），歐洲多數已含服務費，只需留零頭。" },
 
-    // 泰國料理 (15)
-    { question: "泰式酸辣湯為什麼又酸又辣？", answer: "使用檸檬草、南薑、辣椒和檸檬汁，形成酸、辣、鮮的平衡。" },
-    { question: "青木瓜沙拉為什麼要用木瓜？", answer: "青木瓜口感爽脆，可以吸收魚露、辣椒、檸檬汁的味道。" },
-    { question: "泰式奶茶為什麼是橘色的？", answer: "因為加入了泰國特有的紅茶和煉乳，有些還會加入食用色素。" },
-    { question: "打拋豬為什麼要用聖羅勒？", answer: "聖羅勒（打拋葉）有獨特的香氣，是這道菜的靈魂。" },
-    { question: "泰式咖哩為什麼有不同顏色？", answer: "綠咖哩用青辣椒，紅咖哩用紅辣椒，黃咖哩加薑黃，各有不同辣度和風味。" },
+    // ===== 旬之味 (20題) =====
+    { category: "seasonality", question: "為什麼說「R月份」才吃生蠔？", answer: "傳統認為含R的月份（Sep-Apr）適合吃。5-8月是生蠔繁殖期，肉質軟爛且易滋生細菌（但在現代養殖技術下已非絕對）。" },
+    { category: "seasonality", question: "吃螃蟹有「九雌十雄」的說法？", answer: "是的。農曆九月母蟹卵滿（蟹黃），十月公蟹性腺發育成熟（蟹膏/白膠），是風味最佳的時刻。" },
+    { category: "seasonality", question: "白蘆筍為什麼比綠蘆筍貴且產季短？", answer: "白蘆筍需全程避光種植（培土），採收費工。產季通常僅在春末夏初（4-6月），被稱為「盤中的白金」。" },
+    { category: "seasonality", question: "黑松露與白松露的季節一樣嗎？", answer: "不同。白松露產季極短（約10-12月），黑松露則在冬季（12-3月）。白松露通常生食聞香，黑松露可烹調。" },
+    { category: "seasonality", question: "日本「初鰹」為什麼受歡迎？", answer: "春季北上的鰹魚油脂較少，肉質清爽赤紅，被江戶人視為「吉利」的象徵，代表夏天的來臨。" },
+    { category: "seasonality", question: "海膽（Uni）最好吃的季節是？", answer: "通常是夏季（6-8月）。這是海膽產卵前的時期，生殖腺（即我們吃的部分）最為飽滿鮮甜。" },
+    { category: "seasonality", question: "為什麼冬天的蘿蔔比較好吃？", answer: "為了抵抗寒冷不結冰，蘿蔔會將澱粉轉化為糖分，因此冬天的蘿蔔特別甘甜且水分足。" },
+    { category: "seasonality", question: "烏魚子是台灣冬天的特產？", answer: "是的。冬至前後十天是烏魚群洄游至台灣海峽產卵的季節，此時的烏魚子（卵巢）最為肥美。" },
+    { category: "seasonality", question: "法國薄酒萊新酒（Beaujolais Nouveau）何時上市？", answer: "每年11月的第三個星期四。這是當年採收葡萄釀製的第一批酒，象徵慶祝豐收，需趁新鮮飲用。" },
+    { category: "seasonality", question: "秋刀魚為什麼叫秋刀魚？", answer: "因為其身形如刀，且在秋季最為肥美（脂肪含量可達20%），是日本秋之味覺的代表。" },
+    { category: "seasonality", question: "綠竹筍為什麼要在天亮前採收？", answer: "竹筍一見光就會進行光合作用產生「紫杉氰醣苷」，導致變苦（出青）。天亮前採收最鮮甜。" },
+    { category: "seasonality", question: "夏天吃鰻魚是日本傳統？", answer: "是的，源自「土用丑日」吃鰻魚補元氣的習俗。雖然鰻魚其實在秋冬更肥美，但夏天吃是為了對抗酷暑。" },
+    { category: "seasonality", question: "草莓其實是冬天的水果？", answer: "在台灣，草莓季從12月延續到4月。低溫有利於草莓累積糖分與香氣。" },
+    { category: "seasonality", question: "什麼是「春羊」（Spring Lamb）？", answer: "指出生3-5個月尚未斷奶的羔羊，通常在春季上市。肉質呈現粉紅色，羶味極低且口感細嫩。" },
+    { category: "seasonality", question: "屏東黑鮪魚季通常在何時？", answer: "約在4-6月。此時黑鮪魚隨著黑潮北上準備產卵，油脂豐厚，尤其是腹肉（Otoro）部位。" },
+    { category: "seasonality", question: "日本的新茶（Shincha）何時喝？", answer: "「八十八夜」（立春後第88天，約5月初）。此時採摘的一番茶兒茶素較少，氨基酸較多，口感最甘甜。" },
+    { category: "seasonality", question: "栗子是秋天的味道？", answer: "是的。秋季栗子熟成，法式甜點蒙布朗（Mont Blanc）也是以此時的栗子泥製作，象徵秋季到來。" },
+    { category: "seasonality", question: "河豚為什麼要在冬天吃？", answer: "「秋彼岸到春彼岸」是河豚產季。冬季河豚為了禦寒堆積脂肪，且此時毒性相對較弱（仍需專業處理）。" },
+    { category: "seasonality", question: "麻豆文旦是中秋節限定？", answer: "文旦通常在「白露」節氣前後採收，經過「辭水」（消水）後剛好在中秋節享用，果肉會更軟米更甜。" },
+    { category: "seasonality", question: "為什麼冬天適合吃野味（Gibier）？", answer: "歐洲狩獵季通常在秋冬。此時野生動物（如鹿、野豬）為了過冬儲存了豐富脂肪，且食用橡實與野果，肉質風味最佳。" },
 
-    // 印度料理 (15)
-    { question: "印度烤餅為什麼要用坦都爐？", answer: "坦都爐（Tandoor）的高溫可以讓餅快速膨脹，外酥內軟。" },
-    { question: "咖哩為什麼有這麼多香料？", answer: "印度咖哩可能包含 20 種以上香料，每種都有獨特功效和風味。" },
-    { question: "印度奶茶為什麼要加香料？", answer: "加入肉桂、豆蔻、薑等香料可以暖身，也能增添層次。" },
-    { question: "坦都里雞為什麼是紅色的？", answer: "醃料中加入紅椒粉和優格，烤後呈現紅色，風味獨特。" },
-    { question: "印度飛餅為什麼會飛？", answer: "師傅用甩的方式讓麵團變薄，看起來像在空中飛舞。" },
-
-    // 墨西哥料理 (15)
-    { question: "墨西哥捲餅和塔可有什麼不同？", answer: "捲餅（Burrito）是用大麵餅包裹餡料捲起來，塔可（Taco）是用小玉米餅折疊。" },
-    { question: "酪梨醬為什麼要加檸檬汁？", answer: "檸檬汁可以防止酪梨氧化變黑，也能增添清爽風味。" },
-    { question: "墨西哥辣椒為什麼有煙燻味？", answer: "Chipotle 辣椒是煙燻過的墨西哥辣椒，有獨特的煙燻香氣。" },
-    { question: "龍舌蘭酒為什麼要配鹽和檸檬？", answer: "傳統喝法是先舔鹽，喝酒，再咬檸檬，可以中和酒的辛辣。" },
-    { question: "墨西哥粽子（Tamale）為什麼要用玉米葉包？", answer: "玉米葉可以增添香氣，也能在蒸煮時保持濕潤。" },
-
-    // 西班牙料理 (15)
-    { question: "西班牙海鮮飯為什麼不能攪拌？", answer: "為了形成鍋底的焦香米飯層（Socarrat），這是精華所在。" },
-    { question: "西班牙火腿為什麼這麼貴？", answer: "伊比利火腿來自放養的黑豬，吃橡果長大，熟成時間長達 36 個月。" },
-    { question: "Tapas 是什麼意思？", answer: "西班牙文意思是「蓋子」，原本是用來蓋住酒杯防蟲的小菜，演變成下酒菜文化。" },
-    { question: "西班牙油條為什麼要配巧克力？", answer: "Churros 配濃稠的熱巧克力是經典早餐，甜鹹搭配完美。" },
-    { question: "雪莉酒為什麼有不同甜度？", answer: "從極干（Fino）到極甜（Pedro Ximénez），根據釀造方式和加糖量而定。" },
-
-    // 韓國料理 (15)
-    { question: "韓國泡菜為什麼要發酵？", answer: "發酵可以產生益生菌，增添酸味和複雜風味，也能長期保存。" },
-    { question: "韓式烤肉為什麼要用生菜包？", answer: "生菜可以解膩，搭配蒜片、辣椒、醬料一起吃更清爽。" },
-    { question: "石鍋拌飯為什麼要用石鍋？", answer: "石鍋保溫性好，可以讓米飯形成焦香的鍋巴。" },
-    { question: "韓國燒酒為什麼要搖一搖？", answer: "傳統上搖晃可以讓酒更順口，也是一種社交儀式。" },
-    { question: "部隊鍋為什麼叫部隊鍋？", answer: "韓戰後物資缺乏，人們用美軍基地的午餐肉、香腸等食材煮火鍋而得名。" },
-
-    // 越南料理 (10)
-    { question: "越南河粉為什麼要加生菜？", answer: "生菜、豆芽、香菜可以增添清爽口感，平衡湯頭的油膩。" },
-    { question: "越南春捲和中式春捲有什麼不同？", answer: "越南春捲用米紙包裹，通常不油炸，清爽健康。" },
-    { question: "越南咖啡為什麼這麼濃？", answer: "使用滴漏式咖啡壺，萃取時間長，加上煉乳，風味濃郁香甜。" },
-    { question: "越南法國麵包為什麼這麼好吃？", answer: "結合法式麵包的酥脆和越南醃菜、香菜的清爽，東西合璧。" },
-    { question: "魚露為什麼這麼鹹？", answer: "魚露是用魚和鹽發酵製成，是越南料理的靈魂調味料。" },
-
-    // 德國料理 (10)
-    { question: "德國香腸為什麼有這麼多種？", answer: "德國有超過 1500 種香腸，每個地區都有自己的特色配方。" },
-    { question: "德國啤酒為什麼這麼純？", answer: "德國《純淨法》規定啤酒只能用水、麥芽、啤酒花釀造。" },
-    { question: "德國豬腳為什麼要烤這麼久？", answer: "長時間烤可以讓皮脆肉嫩，膠原蛋白完全軟化。" },
-    { question: "德國酸菜為什麼是酸的？", answer: "高麗菜經過乳酸發酵，產生酸味和益生菌。" },
-    { question: "黑森林蛋糕為什麼叫黑森林？", answer: "源自德國黑森林地區，使用當地特產的櫻桃和櫻桃酒。" },
-
-    // 希臘料理 (10)
-    { question: "希臘沙拉為什麼要加菲達起司？", answer: "菲達起司的鹹味可以平衡橄欖油和檸檬汁的酸，是經典搭配。" },
-    { question: "希臘優格為什麼這麼濃稠？", answer: "經過過濾去除乳清，蛋白質含量更高，口感更綿密。" },
-    { question: "茴香酒（Ouzo）為什麼加水會變白？", answer: "茴香油遇水會乳化，形成白色混濁液體。" },
-    { question: "希臘烤肉串為什麼要用檸檬？", answer: "檸檬汁可以去腥提鮮，也能軟化肉質。" },
-    { question: "穆薩卡（Moussaka）是什麼？", answer: "希臘經典千層料理，用茄子、肉醬、白醬層層堆疊烘烤。" },
-
-    // 土耳其料理 (10)
-    { question: "土耳其烤肉為什麼要旋轉烤？", answer: "旋轉可以讓肉均勻受熱，油脂自然滴落，外酥內嫩。" },
-    { question: "土耳其咖啡為什麼有咖啡渣？", answer: "土耳其咖啡不過濾，咖啡粉直接煮，喝完可以用咖啡渣占卜。" },
-    { question: "土耳其軟糖為什麼這麼Q？", answer: "使用澱粉和糖漿製作，口感Q彈，常加入玫瑰水或堅果。" },
-    { question: "土耳其紅茶為什麼用雙層茶壺？", answer: "下層煮水，上層泡茶，可以隨時調整濃度。" },
-    { question: "土耳其冰淇淋為什麼可以拉？", answer: "加入蘭莖粉（Salep），讓冰淇淋有彈性和嚼勁。" },
-
-    // 美國料理 (15)
-    { question: "美式漢堡為什麼要用牛肉？", answer: "美國牛肉產量豐富，絞肉排煎烤後多汁美味，成為漢堡的經典選擇。" },
-    { question: "紐約起司蛋糕為什麼這麼濃郁？", answer: "使用大量奶油起司（Cream Cheese），口感綿密紮實。" },
-    { question: "美式炸雞為什麼要醃奶？", answer: "奶醃可以軟化肉質，讓雞肉更嫩，也能增添風味。" },
-    { question: "波本威士忌為什麼要用新橡木桶？", answer: "美國法律規定波本威士忌必須用全新燒烤橡木桶陳年，賦予獨特風味。" },
-    { question: "熱狗為什麼叫 Hot Dog？", answer: "19 世紀德國移民帶來香腸，形狀像臘腸犬（Dachshund），後來簡化成 Hot Dog。" },
-
-    // 英國料理 (10)
-    { question: "英式下午茶為什麼要三層架？", answer: "下層放三明治，中層放司康，上層放甜點，由鹹到甜依序品嚐。" },
-    { question: "炸魚薯條為什麼要配醋？", answer: "麥芽醋的酸味可以解膩，是英國傳統吃法。" },
-    { question: "英式早餐為什麼這麼豐盛？", answer: "傳統上勞工需要大量熱量，所以早餐包含香腸、培根、蛋、豆子等。" },
-    { question: "司康為什麼要配凝脂奶油？", answer: "Clotted Cream 的濃郁奶香可以平衡司康的乾爽，搭配果醬更完美。" },
-    { question: "威士忌為什麼要加水？", answer: "加一點水可以釋放威士忌的香氣，降低酒精刺激感。" },
-
-    // 巴西料理 (8)
-    { question: "巴西烤肉為什麼要用長劍？", answer: "Churrasco 用長劍串肉旋轉烤，可以均勻受熱，現切現吃。" },
-    { question: "巴西莓果碗為什麼這麼健康？", answer: "巴西莓（Açaí）富含抗氧化物，搭配水果和穀物，營養豐富。" },
-    { question: "卡莎薩酒（Cachaça）是什麼？", answer: "巴西國酒，用甘蔗汁釀造，是調製 Caipirinha 雞尾酒的基酒。" },
-    { question: "巴西起司麵包為什麼這麼Q？", answer: "使用樹薯粉製作，口感Q彈，外酥內軟。" },
-    { question: "巴西黑豆燉肉為什麼要燉這麼久？", answer: "Feijoada 要燉煮數小時，讓豆子和肉類完全入味。" },
-
-    // 阿根廷料理 (8)
-    { question: "阿根廷牛排為什麼這麼好吃？", answer: "阿根廷草飼牛肉質鮮嫩，簡單用鹽調味烤製就很美味。" },
-    { question: "奇米秋里醬（Chimichurri）是什麼？", answer: "阿根廷經典醬料，用香菜、大蒜、醋、橄欖油製成，搭配烤肉。" },
-    { question: "阿根廷餃子（Empanada）為什麼是烤的？", answer: "傳統上用烤箱烤，外皮酥脆，內餡多汁。" },
-    { question: "馬黛茶為什麼要用吸管？", answer: "用金屬吸管（Bombilla）過濾茶葉，直接從葫蘆杯中吸飲。" },
-    { question: "阿根廷為什麼這麼愛烤肉？", answer: "畜牧業發達，烤肉（Asado）是社交文化的核心。" },
-
-    // 摩洛哥料理 (8)
-    { question: "摩洛哥塔吉鍋為什麼是尖的？", answer: "圓錐形設計可以讓水蒸氣循環，保持食材濕潤。" },
-    { question: "摩洛哥薄荷茶為什麼這麼甜？", answer: "傳統上加入大量糖，象徵熱情好客。" },
-    { question: "庫斯庫斯（Couscous）是什麼？", answer: "北非主食，用粗麥粉製成的小顆粒，蒸煮後鬆軟。" },
-    { question: "摩洛哥香料為什麼這麼複雜？", answer: "Ras el Hanout 可能包含 30 種以上香料，每家都有秘方。" },
-    { question: "摩洛哥燉肉為什麼要加水果？", answer: "加入杏桃、葡萄乾可以增添甜味，平衡香料的辛辣。" },
-
-    // 瑞士料理 (8)
-    { question: "瑞士起司火鍋為什麼要加白酒？", answer: "白酒可以幫助起司融化，增添香氣，防止結塊。" },
-    { question: "瑞士巧克力為什麼這麼滑順？", answer: "發明了「精煉」技術，讓巧克力顆粒更細緻。" },
-    { question: "瑞士起司為什麼有洞？", answer: "發酵過程中細菌產生二氧化碳，形成氣泡孔洞。" },
-    { question: "瑞士馬鈴薯餅（Rösti）是什麼？", answer: "刨絲馬鈴薯煎成金黃酥脆的餅，是瑞士國民早餐。" },
-    { question: "瑞士阿爾卑斯奶酪為什麼這麼香？", answer: "高山牧場的牛吃野花野草，牛奶風味獨特。" },
-
-    // 葡萄牙料理 (8)
-    { question: "葡式蛋塔為什麼要烤焦？", answer: "表面焦糖化可以增添苦甜風味，是正宗吃法。" },
-    { question: "葡萄牙鹹鱈魚為什麼這麼多種做法？", answer: "傳說有 365 種做法，每天都能吃不同的鱈魚料理。" },
-    { question: "波特酒為什麼這麼甜？", answer: "發酵過程中加入白蘭地，停止發酵保留糖分。" },
-    { question: "葡萄牙烤沙丁魚為什麼要整條烤？", answer: "保留魚骨可以增添風味，傳統上用手吃。" },
-    { question: "葡萄牙為什麼愛吃鱈魚？", answer: "航海時代用鹽醃鱈魚保存，成為國民美食。" },
-
-    // 瑞典料理 (8)
-    { question: "瑞典肉丸為什麼要配果醬？", answer: "越橘果醬的酸甜可以解膩，是傳統搭配。" },
-    { question: "瑞典鹽醃鯡魚為什麼這麼臭？", answer: "發酵過程產生硫化物，臭味驚人但風味獨特。" },
-    { question: "瑞典脆餅（Knäckebröd）為什麼這麼硬？", answer: "傳統上為了長期保存，烤得很乾脆。" },
-    { question: "瑞典伏特加為什麼這麼純？", answer: "使用優質小麥和純淨水源，多次蒸餾。" },
-    { question: "瑞典為什麼愛吃醃漬食物？", answer: "北歐冬季漫長，醃漬是傳統保存方式。" },
-
-    // 荷蘭料理 (8)
-    { question: "荷蘭起司為什麼是圓的？", answer: "傳統上用圓形模具製作，方便運輸和堆疊。" },
-    { question: "荷蘭煎餅為什麼這麼大？", answer: "Poffertjes 是小的，Pannenkoeken 是大的，各有特色。" },
-    { question: "荷蘭炸肉丸（Bitterballen）為什麼是圓的？", answer: "方便一口吃，搭配啤酒是經典下酒菜。" },
-    { question: "荷蘭琴酒（Genever）和英國琴酒有什麼不同？", answer: "荷蘭琴酒更甜，麥芽味更重，是琴酒的前身。" },
-    { question: "荷蘭為什麼愛吃鯡魚？", answer: "北海盛產鯡魚，傳統上生吃配洋蔥。" },
-
-    // 比利時料理 (8)
-    { question: "比利時鬆餅為什麼有兩種？", answer: "布魯塞爾鬆餅較輕，列日鬆餅較甜，各有擁護者。" },
-    { question: "比利時啤酒為什麼這麼多種？", answer: "有超過 1500 種啤酒，修道院啤酒尤其著名。" },
-    { question: "比利時巧克力為什麼這麼好吃？", answer: "嚴格的品質標準和精湛工藝，可可含量高。" },
-    { question: "比利時淡菜為什麼要配薯條？", answer: "Moules-frites 是國民料理，淡菜鮮美搭配酥脆薯條。" },
-    { question: "比利時為什麼說自己發明了薯條？", answer: "傳說 17 世紀比利時人就開始炸馬鈴薯條了。" },
-
-    // 奧地利料理 (8)
-    { question: "維也納炸豬排為什麼這麼大？", answer: "傳統上要比盤子大，象徵豐盛。" },
-    { question: "薩赫蛋糕為什麼要配鮮奶油？", answer: "濃郁的巧克力蛋糕搭配無糖鮮奶油，平衡甜度。" },
-    { question: "奧地利咖啡館文化是什麼？", answer: "咖啡館是社交場所，可以坐一整天看報紙。" },
-    { question: "蘋果捲（Apfelstrudel）為什麼要拉麵皮？", answer: "麵皮要拉到可以透光，才能做出層次酥脆的口感。" },
-    { question: "奧地利為什麼愛吃甜點？", answer: "哈布斯堡王朝的宮廷文化，甜點是貴族的象徵。" },
-
-    // 波蘭料理 (6)
-    { question: "波蘭餃子（Pierogi）和中式餃子有什麼不同？", answer: "波蘭餃子通常較大，餡料包括馬鈴薯、起司、水果等。" },
-    { question: "波蘭伏特加為什麼這麼烈？", answer: "傳統上用黑麥或馬鈴薯釀造，酒精濃度高。" },
-    { question: "波蘭酸麵湯（Żurek）是什麼？", answer: "用發酵黑麥製成的酸湯，加入香腸和蛋。" },
-    { question: "波蘭為什麼愛吃甜菜湯？", answer: "Barszcz 是傳統湯品，營養豐富，顏色鮮豔。" },
-    { question: "波蘭蜂蜜酒為什麼這麼古老？", answer: "中世紀就開始釀造，是歐洲最古老的酒類之一。" },
-
-    // 俄羅斯料理 (6)
-    { question: "俄羅斯魚子醬為什麼這麼貴？", answer: "來自裡海的鱘魚，產量稀少，採集困難。" },
-    { question: "羅宋湯為什麼是紅色的？", answer: "主要食材是甜菜根，煮出來呈現鮮豔的紅色。" },
-    { question: "俄羅斯伏特加為什麼要冰著喝？", answer: "冰鎮可以減少酒精刺激，更順口。" },
-    { question: "俄羅斯娃娃餅乾為什麼層層疊疊？", answer: "象徵豐收和富足，也代表家庭團圓。" },
-    { question: "俄羅斯為什麼愛喝茶？", answer: "17 世紀從中國傳入，成為國民飲料，常用茶炊煮茶。" },
-
-    // 全球酒類知識 (20)
-    { question: "威士忌和白蘭地有什麼不同？", answer: "威士忌用穀物釀造，白蘭地用葡萄釀造。" },
-    { question: "為什麼紅酒要用橡木桶？", answer: "橡木桶可以賦予酒香草、烤麵包等風味，並透過微量氧化讓酒體更柔順。" },
-    { question: "琴酒為什麼有杜松子味？", answer: "琴酒的主要風味來自杜松子，這是法律規定的必要成分。" },
-    { question: "龍舌蘭酒為什麼要加蟲？", answer: "這是行銷手法，真正的高級龍舌蘭酒不加蟲。" },
-    { question: "清酒為什麼要磨米？", answer: "磨掉米的外層可以減少雜味，磨米率越高酒越純淨。" },
-    { question: "啤酒花的作用是什麼？", answer: "增添苦味和香氣，也有防腐作用。" },
-    { question: "為什麼有些葡萄酒要倒著放？", answer: "讓軟木塞保持濕潤，防止乾裂漏氣。" },
-    { question: "雞尾酒為什麼叫 Cocktail？", answer: "傳說源自用雞尾羽毛攪拌酒，或是混合酒像雞尾巴一樣五顏六色。" },
-    { question: "蘭姆酒為什麼和海盜有關？", answer: "加勒比海盛產甘蔗，海盜常喝蘭姆酒，成為海盜文化象徵。" },
-    { question: "為什麼葡萄酒要搖杯？", answer: "搖杯可以讓酒接觸空氣，釋放香氣。" }
+    // ===== 迷思破解 (20題) =====
+    { category: "myth", question: "大火煎牛排是為了「鎖住肉汁」？", answer: "這是迷思。實驗證明煎過的表皮無法防水。梅納反應是為了產生香氣。肉汁流失主要取決於內部溫度與靜置時間。" },
+    { category: "myth", question: "三分熟牛排流出的紅色液體是血？", answer: "不是。那是肌紅蛋白（Myoglobin）與水的混合物。屠宰放血後，肉中基本已無血液。不需因此害怕點三分熟。" },
+    { category: "myth", question: "味精（MSG）對人體有害？", answer: "科學上無證據。味精只是麩胺酸鈉，天然存在於番茄、起司中。所謂「中國餐館症候群」已被證實是安慰劑效應或對其他成分過敏。" },
+    { category: "myth", question: "用酒精入菜，酒精會完全揮發嗎？", answer: "很難。即便燉煮2.5小時，仍可能殘留5%酒精；短暫燃燒（Flambé）更只能去除約25%酒精。孕婦或駕駛需注意。" },
+    { category: "myth", question: "「辣」是一種味覺嗎？", answer: "不是。辣是一種「痛覺」（熱覺）。辣椒素刺激三叉神經，大腦誤以為被火燒，因此會釋放腦內啡止痛，產生快感。" },
+    { category: "myth", question: "微波爐加熱會破壞食物營養？", answer: "大部分情況下不會。微波加熱時間短、用水少，反而比水煮更能保留水溶性維生素（如維生素C）。" },
+    { category: "myth", question: "木頭砧板比塑膠砧板容易滋生細菌？", answer: "不一定。木頭有天然抗菌特性，且刀痕會癒合。塑膠砧板的刀痕深處反而容易藏污納垢且難以清洗。" },
+    { category: "myth", question: "現宰的牛肉一定比冷藏的好吃？", answer: "未必。死後肌肉會僵直。牛肉通常需要經過「濕式」或「乾式」熟成，讓酵素軟化結締組織並濃縮風味，才最好吃。" },
+    { category: "myth", question: "豬肉一定要煮到全熟？", answer: "現代豬肉（特別是高階豬種）已大幅減少寄生蟲風險。美國農業部建議豬肉中心溫度達63°C（約粉紅色）即可安全食用且口感最佳。" },
+    { category: "myth", question: "喝咖啡會導致脫水？", answer: "對習慣喝咖啡的人來說，利尿效果輕微，其水分補充的效果大於利尿。咖啡仍可計入每日飲水量。" },
+    { category: "myth", question: "吃糖會讓小孩過動（Sugar Rush）？", answer: "這是廣泛的迷思。多項雙盲測試顯示，糖攝取與兒童行為改變無直接關聯。興奮通常來自派對環境本身。" },
+    { category: "myth", question: "喝排毒果汁可以「排毒」？", answer: "不需要。肝臟和腎臟是最高效的排毒器官。果汁只有糖分高與纖維少的缺點，無法強化排毒功能。" },
+    { category: "myth", question: "有機農業完全不使用農藥？", answer: "錯誤。有機農業可以使用「天然來源」的農藥（如除蟲菊精）。天然農藥不代表對環境或人體完全無毒。" },
+    { category: "myth", question: "鑄鐵鍋絕對不能用洗碗精洗？", answer: "現代洗碗精很溫和，不會洗掉聚合的油膜（Seasoning）。只要不長時間浸泡或用強酸，偶爾用洗碗精清潔是可以的。" },
+    { category: "myth", question: "煮義大利麵要在水裡加油防沾黏？", answer: "沒用。油會浮在水面，碰到麵體的機會很少。且油包覆麵體會導致醬汁掛不上去。防沾黏的關鍵是水滾、足量且適時攪拌。" },
+    { category: "myth", question: "醃肉越久越入味？", answer: "大部分醃料（除了鹽）的分子太大，只能滲透表層幾毫米。長時間醃漬反而可能讓酸性物質破壞肉質，使其軟爛。" },
+    { category: "myth", question: "煮水加鹽會讓水更快滾？", answer: "理論上會（沸點升高比熱降低），但以烹飪的鹽量來說，時間差距微乎其微（不到一秒），加鹽主要是為了調味。" },
+    { category: "myth", question: "煮完義大利麵要沖冷水？", answer: "除非做冷麵沙拉，否則不要。沖水會洗掉表面的澱粉，讓醬汁無法吸附在麵條上。" },
+    { category: "myth", question: "牛排全熟比較安全？", answer: "牛肉內層通常是無菌的（細菌在表面）。只要將表面煎熟，內部生食風險極低。絞肉（漢堡排）才需要全熟，因為表面細菌已被絞進內部。" },
+    { category: "myth", question: "吃辣喝牛奶比喝水有效？", answer: "是的。辣椒素是脂溶性的。水無法溶解它，只能暫時冷卻。牛奶中的酪蛋白（Casein）能有效結合併洗去辣椒素。" },
 ];
+
+// 根據類別篩選問題
+export function getQuestionsByCategory(category: TriviaCategory): TriviaQuestion[] {
+    return TRIVIA_QUESTIONS.filter(q => q.category === category);
+}
+
+// 隨機取得一題
+export function getRandomQuestion(): TriviaQuestion {
+    return TRIVIA_QUESTIONS[Math.floor(Math.random() * TRIVIA_QUESTIONS.length)];
+}
+
+// 隨機取得指定類別的一題
+export function getRandomQuestionByCategory(category: TriviaCategory): TriviaQuestion | null {
+    const filtered = getQuestionsByCategory(category);
+    if (filtered.length === 0) return null;
+    return filtered[Math.floor(Math.random() * filtered.length)];
+}
