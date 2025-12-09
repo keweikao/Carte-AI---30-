@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter, ChefHat } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Filter, ChefHat, Lightbulb } from 'lucide-react';
+import { TRIVIA_QUESTIONS, TRIVIA_CATEGORIES } from '../data/trivia';
 
 interface TransparencyStreamProps {
     progress: number;
@@ -20,6 +21,10 @@ export function TransparencyStream({
     // 模擬進度 - 當後端 progress 在 0-10% 時，用前端模擬動畫
     const [simulatedProgress, setSimulatedProgress] = useState(0);
 
+    // Trivia 狀態
+    const [triviaIndex, setTriviaIndex] = useState(() => Math.floor(Math.random() * TRIVIA_QUESTIONS.length));
+    const [showAnswer, setShowAnswer] = useState(false);
+
     // 模擬進度動畫
     useEffect(() => {
         if (progress <= 10) {
@@ -32,6 +37,29 @@ export function TransparencyStream({
             return () => clearInterval(interval);
         }
     }, [progress]);
+
+    // Trivia 輪換邏輯 - 每 5 秒切換問題/答案
+    useEffect(() => {
+        const triviaInterval = setInterval(() => {
+            setShowAnswer(prev => {
+                if (!prev) {
+                    // 顯示答案
+                    return true;
+                } else {
+                    // 換下一題
+                    setTriviaIndex(prevIndex => {
+                        let nextIndex = Math.floor(Math.random() * TRIVIA_QUESTIONS.length);
+                        while (nextIndex === prevIndex && TRIVIA_QUESTIONS.length > 1) {
+                            nextIndex = Math.floor(Math.random() * TRIVIA_QUESTIONS.length);
+                        }
+                        return nextIndex;
+                    });
+                    return false;
+                }
+            });
+        }, 5000);
+        return () => clearInterval(triviaInterval);
+    }, []);
 
     // 使用較高的值
     const displayProgress = Math.max(progress, simulatedProgress);
@@ -148,6 +176,39 @@ export function TransparencyStream({
                     >
                         💡 溫馨提醒：第一次搜尋這家餐廳，AI 需要一點時間細讀評論，請耐心等候...
                     </motion.p>
+                )}
+
+                {/* 餐廳小知識 Trivia Card */}
+                {TRIVIA_QUESTIONS.length > 0 && TRIVIA_QUESTIONS[triviaIndex] && (
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={`${triviaIndex}-${showAnswer}`}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -20, opacity: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="mt-6 bg-cream-50 p-4 rounded-xl border border-cream-200 relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-1 h-full bg-terracotta" />
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Lightbulb className="w-4 h-4 text-terracotta" />
+                                    <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
+                                        {showAnswer ? "💡 答案揭曉" : "🤔 你知道嗎？"}
+                                    </span>
+                                </div>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cream-100 text-charcoal-600">
+                                    {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex].category]?.zh || "小知識"}
+                                </span>
+                            </div>
+                            <p className="text-charcoal text-sm leading-relaxed pl-1">
+                                {showAnswer
+                                    ? TRIVIA_QUESTIONS[triviaIndex].answer.zh
+                                    : TRIVIA_QUESTIONS[triviaIndex].question.zh
+                                }
+                            </p>
+                        </motion.div>
+                    </AnimatePresence>
                 )}
             </div>
         </motion.div>
