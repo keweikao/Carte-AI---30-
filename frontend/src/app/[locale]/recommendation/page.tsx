@@ -595,7 +595,7 @@ function RecommendationPageContent() {
                         aria-label={t('generate_menu_button')}
                     >
                         <Check className="w-5 h-5" aria-hidden="true" />
-                        {t('generate_menu_button')} ({dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected').length} 道)
+                        {t('generate_menu_button')} ({dishSlots.filter(slot => slotStatus.get(slot.display.dish_name) === 'selected').length} {t('dishes')})
                     </Button>
                 </div>
             </div>

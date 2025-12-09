@@ -415,7 +415,7 @@ function MenuPageContent() {
                         {menu.restaurant_name}
                     </h1>
                     <p className="text-muted-foreground mb-4">
-                        {menu.party_size} 人用餐 • {menu.dishes.length} 道菜
+                        {t('party_info', { people: menu.party_size, dishes: menu.dishes.length })}
                     </p>
 
                     <div className="flex justify-center">
@@ -426,7 +426,7 @@ function MenuPageContent() {
                             className="gap-2"
                         >
                             <Languages className="w-4 h-4" />
-                            {showLocalLanguage ? "顯示中文菜名" : "顯示原文菜名"}
+                            {showLocalLanguage ? t('show_translated_name') : t('show_local_name')}
                         </Button>
                     </div>
                 </motion.div>

@@ -59,7 +59,9 @@
         "keep_current": "Keep Current",
         "view_swapped": "View Swapped",
         "confirm": "Confirm",
-        "price_on_site": "Price on Site"
+        "price_on_site": "Price on Site",
+        "recommending_dishes": "Recommending {count} dishes for you",
+        "dishes": "dishes"
     },
     "MenuPage": {
         "title": "Recommended Dishes",
@@ -94,7 +96,10 @@
         "share_text_template": "🍽️ Carte AI Recommended Menu\n\nI found the perfect combo at \"{restaurant}\" with AI Dining Assistant!\n\n💰 Total: {currency} {total_price}\n👥 {people} people · {dishes} dishes\n\n✨ Solved decision fatigue in 30 seconds!\nTry it now → {url}",
         "share_browser_unsupported": "Your browser doesn't support direct sharing. Please download the image and share manually.",
         "share_image_unsupported": "Your browser doesn't support direct image sharing. Download option provided.",
-        "share_failed": "Share failed. Download option provided."
+        "share_failed": "Share failed. Download option provided.",
+        "party_info": "{people} diners · {dishes} dishes",
+        "show_local_name": "Show Original Names",
+        "show_translated_name": "Show Chinese Names"
     },
     "LandingPage": {
         "loading": "Loading",

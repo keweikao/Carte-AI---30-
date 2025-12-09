@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, ChefHat, Lightbulb } from 'lucide-react';
 import { TRIVIA_QUESTIONS, TRIVIA_CATEGORIES } from '../data/trivia';
+import { useLocale } from 'next-intl';
 
 interface TransparencyStreamProps {
     progress: number;
@@ -64,33 +65,43 @@ export function TransparencyStream({
     // 使用較高的值
     const displayProgress = Math.max(progress, simulatedProgress);
 
+    // 獲取當前語言
+    const locale = useLocale();
+    const isEnglish = locale === 'en';
+
     // 根據進度決定階段
     const currentPhase: 'perception' | 'filtering' | 'decision' =
         displayProgress < 30 ? 'perception' :
             displayProgress < 70 ? 'filtering' : 'decision';
 
-    // 階段配置 - 包含固定文字
+    // 階段配置 - 根據語言顯示不同文字
     const phaseConfigs = {
         perception: {
             Icon: Search,
-            label: '探索中',
-            message: `正在掃描 ${restaurantName} 的菜單與評論...`,
+            label: isEnglish ? 'Searching' : '探索中',
+            message: isEnglish
+                ? `Scanning menu and reviews for ${restaurantName}...`
+                : `正在掃描 ${restaurantName} 的菜單與評論...`,
             color: 'from-caramel to-caramel-600',
             bgColor: 'bg-cream-100',
             textColor: 'text-charcoal-800'
         },
         filtering: {
             Icon: Filter,
-            label: '篩選中',
-            message: `發現 ${partySize} 位用餐，正在計算最佳份量組合...`,
+            label: isEnglish ? 'Filtering' : '篩選中',
+            message: isEnglish
+                ? `Found ${partySize} diners, calculating the best portions...`
+                : `發現 ${partySize} 位用餐，正在計算最佳份量組合...`,
             color: 'from-terracotta to-terracotta-600',
             bgColor: 'bg-terracotta-50',
             textColor: 'text-charcoal-800'
         },
         decision: {
             Icon: ChefHat,
-            label: '生成中',
-            message: '正在為您量身打造專屬推薦菜單...',
+            label: isEnglish ? 'Generating' : '生成中',
+            message: isEnglish
+                ? 'Creating your personalized menu recommendations...'
+                : '正在為您量身打造專屬推薦菜單...',
             color: 'from-charcoal to-charcoal-700',
             bgColor: 'bg-charcoal-50',
             textColor: 'text-charcoal-800'
@@ -174,7 +185,9 @@ export function TransparencyStream({
                         transition={{ delay: 2 }}
                         className="text-xs text-muted-foreground mt-6 text-center italic"
                     >
-                        💡 溫馨提醒：第一次搜尋這家餐廳，AI 需要一點時間細讀評論，請耐心等候...
+                        {isEnglish
+                            ? '💡 Tip: First time searching this restaurant, AI needs a moment to read reviews...'
+                            : '💡 溫馨提醒：第一次搜尋這家餐廳，AI 需要一點時間細讀評論，請耐心等候...'}
                     </motion.p>
                 )}
 
@@ -194,17 +207,19 @@ export function TransparencyStream({
                                 <div className="flex items-center gap-2">
                                     <Lightbulb className="w-4 h-4 text-terracotta" />
                                     <span className="text-xs font-bold text-terracotta uppercase tracking-wider">
-                                        {showAnswer ? "💡 答案揭曉" : "🤔 你知道嗎？"}
+                                        {showAnswer
+                                            ? (isEnglish ? "💡 Answer" : "💡 答案揭曉")
+                                            : (isEnglish ? "🤔 Did you know?" : "🤔 你知道嗎？")}
                                     </span>
                                 </div>
                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-cream-100 text-charcoal-600">
-                                    {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex].category]?.zh || "小知識"}
+                                    {TRIVIA_CATEGORIES[TRIVIA_QUESTIONS[triviaIndex].category]?.[isEnglish ? 'en' : 'zh'] || (isEnglish ? "Fun Fact" : "小知識")}
                                 </span>
                             </div>
                             <p className="text-charcoal text-sm leading-relaxed pl-1">
                                 {showAnswer
-                                    ? TRIVIA_QUESTIONS[triviaIndex].answer.zh
-                                    : TRIVIA_QUESTIONS[triviaIndex].question.zh
+                                    ? TRIVIA_QUESTIONS[triviaIndex].answer[isEnglish ? 'en' : 'zh']
+                                    : TRIVIA_QUESTIONS[triviaIndex].question[isEnglish ? 'en' : 'zh']
                                 }
                             </p>
                         </motion.div>

@@ -66,7 +66,9 @@
         "keep_current": "保留當前菜品",
         "view_swapped": "查看之前換掉的菜品",
         "confirm": "確定",
-        "price_on_site": "依現場為主"
+        "price_on_site": "依現場為主",
+        "recommending_dishes": "為您推薦 {count} 道菜",
+        "dishes": "道"
     },
     "MenuPage": {
         "title": "推薦菜色",
@@ -101,7 +103,10 @@
         "share_text_template": "🍽️ Carte AI 智慧推薦菜單\n\n我用 AI 點餐助手在「{restaurant}」找到了完美組合！\n\n💰 總價：{currency} {total_price}\n👥 {people} 人份 · {dishes} 道菜\n\n✨ 30 秒解決選擇困難，每一道都是精選！\n立即體驗 → {url}",
         "share_browser_unsupported": "您的瀏覽器不支援直接分享，請下載圖片後手動分享。",
         "share_image_unsupported": "您的瀏覽器不支援直接分享圖片，將提供下載選項。",
-        "share_failed": "分享失敗，將提供下載選項。"
+        "share_failed": "分享失敗，將提供下載選項。",
+        "party_info": "{people} 人用餐 · {dishes} 道菜",
+        "show_local_name": "顯示原文菜名",
+        "show_translated_name": "顯示中文菜名"
     },
     "LandingPage": {
         "loading": "載入中",
