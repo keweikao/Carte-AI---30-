@@ -54,7 +54,11 @@ class UnifiedMapProvider:
                 "maxReviews": 30,  # Reduced for speed optimization
                 "maxCrawledPlaces": 1,  # Only crawl the target restaurant
                 "language": "zh-TW",
-                "proxyConfiguration": {"useApifyProxy": True},
+                # Use RESIDENTIAL proxy group for better success rate
+                "proxyConfiguration": {
+                    "useApifyProxy": True,
+                    "apifyProxyGroups": ["RESIDENTIAL"]
+                },
             }
 
             if place_id:
