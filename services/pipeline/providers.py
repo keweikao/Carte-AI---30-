@@ -47,35 +47,33 @@ class UnifiedMapProvider:
 
             client = ApifyClientAsync(self.api_token)
 
-            # Prepare run input - optimized for speed
-            # maxImages: 0 is a valid value meaning "no images" (confirmed from Apify docs)
+            # Prepare run input with optimized memory settings
             run_input = {
-                "maxImages": 0,  # Disable image fetching completely
-                "maxReviews": 30,  # Reduced for speed optimization
+                "maxImages": 10,
+                "maxReviews": 50,  # Increased from 30 to support better review extraction
                 "maxCrawledPlaces": 1,  # Only crawl the target restaurant
                 "language": "zh-TW",
-                # Use BUYPROXIES94952 proxy group (has available proxies)
-                "proxyConfiguration": {
-                    "useApifyProxy": True,
-                    "apifyProxyGroups": ["BUYPROXIES94952"]
-                },
+                "proxyConfiguration": {"useApifyProxy": True},
             }
 
             if place_id:
-                # Correct format for Place ID lookup: use searchStringsArray with place_id: prefix
-                # Reference: https://apify.com/compass/crawler-google-places
-                run_input["searchStringsArray"] = [f"place_id:{place_id}"]
-                print(f"[UnifiedMapProvider] Using Place ID lookup: place_id:{place_id}")
+                # Use startUrls with Place ID for precision
+                # Format: https://www.google.com/maps/search/?api=1&query=Google&query_place_id={place_id}
+                # This forces Google Maps to open the specific place
+                run_input["startUrls"] = [
+                    {"url": f"https://www.google.com/maps/search/?api=1&query=Google&query_place_id={place_id}"}
+                ]
+                print(f"[UnifiedMapProvider] Using Place ID lookup: {place_id}")
             else:
                 # Fallback to search string
                 run_input["searchStringsArray"] = [restaurant_name]
                 print(f"[UnifiedMapProvider] Using search string: {restaurant_name}")
 
-            # Call the actor with 1024MB memory (512MB may be too low, 4GB is overkill)
+            # Call the actor with reduced memory allocation (512MB instead of default 4GB)
             print(f"[UnifiedMapProvider] Calling Apify actor with input: {run_input}")
             actor_call = await client.actor("compass/crawler-google-places").call(
                 run_input=run_input,
-                memory_mbytes=1024  # Increased from 512MB to 1024MB
+                memory_mbytes=512  # Reduce memory from 4096MB to 512MB
             )
 
             print(f"[UnifiedMapProvider] Actor call completed. Dataset ID: {actor_call.get('defaultDatasetId', 'N/A')}")
