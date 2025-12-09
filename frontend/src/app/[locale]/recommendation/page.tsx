@@ -388,8 +388,8 @@ function RecommendationPageContent() {
 
     if (initialLoading && jobId) {
         const restaurantName = searchParams.get('restaurant_name') || searchParams.get('restaurant') || '';
-        const partySize = parseInt(searchParams.get('party_size') || '2');
-        const dietary = searchParams.get('dietary_restrictions') || '';
+        const partySize = parseInt(searchParams.get('party_size') || searchParams.get('people') || '2');
+        const dietary = searchParams.get('dietary_restrictions') || searchParams.get('dietary') || '';
 
         return (
             <AgentFocusLoader
