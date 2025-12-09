@@ -26,14 +26,18 @@ class UnifiedMapProvider:
         if not self.api_token:
             raise ValueError("APIFY_API_TOKEN environment variable not set")
 
-    async def fetch_map_data(self, restaurant_name: str, place_id: Optional[str] = None, max_images: int = 0) -> Optional[MapData]:
+    async def fetch_map_data(self, restaurant_name: str, place_id: Optional[str] = None) -> Optional[MapData]:
         """
         Fetch restaurant data from Google Maps via Apify
         
         Args:
             restaurant_name: Name of the restaurant to search
             place_id: Optional Google Place ID for precise lookup
-            max_images: Unused, kept for compatibility. Internally set to 1 to satisfy Actor requirements.
+            
+        Note:
+            - maxImages is set to 0 (no images) for speed optimization
+            - maxReviews is set to 30 for speed optimization
+            - Memory is set to 1024MB (balanced between speed and stability)
 
         Returns:
             MapData object or None if fetch fails
@@ -43,11 +47,11 @@ class UnifiedMapProvider:
 
             client = ApifyClientAsync(self.api_token)
 
-            # Prepare run input with optimized memory settings
-            # Disable image fetching completely by ignoring result, but set maxImages=1 to avoid Actor errors
+            # Prepare run input - optimized for speed
+            # maxImages: 0 is a valid value meaning "no images" (confirmed from Apify docs)
             run_input = {
-                "maxImages": 1,
-                "maxReviews": 30,  # Reduced to 30 for speed optimization
+                "maxImages": 0,  # Disable image fetching completely
+                "maxReviews": 30,  # Reduced for speed optimization
                 "maxCrawledPlaces": 1,  # Only crawl the target restaurant
                 "language": "zh-TW",
                 "proxyConfiguration": {"useApifyProxy": True},
@@ -55,26 +59,31 @@ class UnifiedMapProvider:
 
             if place_id:
                 # Use startUrls with Place ID for precision
-                # Format: https://www.google.com/maps/search/?api=1&query=Google&query_place_id={place_id}
-                # This forces Google Maps to open the specific place
                 run_input["startUrls"] = [
                     {"url": f"https://www.google.com/maps/search/?api=1&query=Google&query_place_id={place_id}"}
                 ]
+                print(f"[UnifiedMapProvider] Using Place ID lookup: {place_id}")
             else:
                 # Fallback to search string
                 run_input["searchStringsArray"] = [restaurant_name]
+                print(f"[UnifiedMapProvider] Using search string: {restaurant_name}")
 
-            # Call the actor with reduced memory allocation (512MB instead of default 4GB)
+            # Call the actor with 1024MB memory (512MB may be too low, 4GB is overkill)
+            print(f"[UnifiedMapProvider] Calling Apify actor with input: {run_input}")
             actor_call = await client.actor("compass/crawler-google-places").call(
                 run_input=run_input,
-                memory_mbytes=512  # Reduce memory from 4096MB to 512MB
+                memory_mbytes=1024  # Increased from 512MB to 1024MB
             )
+
+            print(f"[UnifiedMapProvider] Actor call completed. Dataset ID: {actor_call.get('defaultDatasetId', 'N/A')}")
 
             # Fetch results
             dataset_client = client.dataset(actor_call["defaultDatasetId"])
             items = []
             async for item in dataset_client.iterate_items():
                 items.append(item)
+
+            print(f"[UnifiedMapProvider] Retrieved {len(items)} items from dataset")
 
             if not items:
                 print(f"[UnifiedMapProvider] No data found for {restaurant_name}")
