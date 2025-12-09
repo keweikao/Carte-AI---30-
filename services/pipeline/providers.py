@@ -33,7 +33,7 @@ class UnifiedMapProvider:
         Args:
             restaurant_name: Name of the restaurant to search
             place_id: Optional Google Place ID for precise lookup
-            max_images: Unused, kept for compatibility. Always 0.
+            max_images: Unused, kept for compatibility. Internally set to 1 to satisfy Actor requirements.
 
         Returns:
             MapData object or None if fetch fails
@@ -44,9 +44,9 @@ class UnifiedMapProvider:
             client = ApifyClientAsync(self.api_token)
 
             # Prepare run input with optimized memory settings
-            # Disable image fetching completely
+            # Disable image fetching completely by ignoring result, but set maxImages=1 to avoid Actor errors
             run_input = {
-                "maxImages": 0,
+                "maxImages": 1,
                 "maxReviews": 30,  # Reduced to 30 for speed optimization
                 "maxCrawledPlaces": 1,  # Only crawl the target restaurant
                 "language": "zh-TW",
