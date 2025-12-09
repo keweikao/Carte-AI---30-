@@ -26,14 +26,14 @@ class UnifiedMapProvider:
         if not self.api_token:
             raise ValueError("APIFY_API_TOKEN environment variable not set")
 
-    async def fetch_map_data(self, restaurant_name: str, place_id: Optional[str] = None, max_images: int = 0) -> Optional[MapData]:
+    async def fetch_map_data(self, restaurant_name: str, place_id: Optional[str] = None, max_images: int = 1) -> Optional[MapData]:
         """
         Fetch restaurant data from Google Maps via Apify
 
         Args:
             restaurant_name: Name of the restaurant to search
             place_id: Optional Google Place ID for precise lookup
-            max_images: Maximum number of images to fetch (default: 0 for speed)
+            max_images: Maximum number of images to fetch (default: 1 for minimal fetch)
 
         Returns:
             MapData object or None if fetch fails
