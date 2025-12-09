@@ -58,11 +58,10 @@ class UnifiedMapProvider:
             }
 
             if place_id:
-                # Use startUrls with Place ID for precision
-                run_input["startUrls"] = [
-                    {"url": f"https://www.google.com/maps/search/?api=1&query=Google&query_place_id={place_id}"}
-                ]
-                print(f"[UnifiedMapProvider] Using Place ID lookup: {place_id}")
+                # Correct format for Place ID lookup: use searchStringsArray with place_id: prefix
+                # Reference: https://apify.com/compass/crawler-google-places
+                run_input["searchStringsArray"] = [f"place_id:{place_id}"]
+                print(f"[UnifiedMapProvider] Using Place ID lookup: place_id:{place_id}")
             else:
                 # Fallback to search string
                 run_input["searchStringsArray"] = [restaurant_name]
