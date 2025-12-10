@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RestaurantSearch } from '@/components/restaurant-search';
 import { MapPin, Users, Utensils, ChefHat, ChevronLeft, Check, ArrowRight } from 'lucide-react';
@@ -13,6 +13,8 @@ export default function InputPageV3() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
+    const locale = useLocale();
+    const localePrefix = locale || 'zh-TW';
     const t = useTranslations('InputPage');
     const error = searchParams.get('error');
 
@@ -89,7 +91,7 @@ export default function InputPageV3() {
             occasion: formData.occasion,
         });
         if (formData.place_id) params.set('place_id', formData.place_id);
-        router.push(`/recommendation?${params.toString()}`);
+        router.push(`/${localePrefix}/recommendation?${params.toString()}`);
     };
 
 
@@ -99,7 +101,7 @@ export default function InputPageV3() {
             <div className="min-h-screen flex items-center justify-center p-6 bg-[#F9F6F0]">
                 <div className="text-center space-y-4 max-w-md">
                     <p className="text-lg text-charcoal-700">{t('error_occurred')}{error}</p>
-                    <button onClick={() => router.push('/')} className="text-caramel hover:underline font-bold">
+                    <button onClick={() => router.push(`/${localePrefix}`)} className="text-caramel hover:underline font-bold">
                         {t('back_home')}
                     </button>
                 </div>
@@ -119,7 +121,7 @@ export default function InputPageV3() {
                         {t('login_required_subtitle')}
                     </p>
                     <button
-                        onClick={() => signIn('google', { callbackUrl: '/zh/input' })}
+                        onClick={() => signIn('google', { callbackUrl: `/${localePrefix}/input` })}
                         className="inline-flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-bold hover:bg-black transition-colors"
                     >
                         {t('login_google')}

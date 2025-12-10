@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
     Sparkles,
     Users,
@@ -19,7 +19,9 @@ import { CarteHeader, CarteFooter } from "@/components/carte";
 export default function LandingPage() {
     const { status } = useSession();
     const router = useRouter();
+    const locale = useLocale();
     const t = useTranslations('HomePage');
+    const localePrefix = locale || 'zh-TW';
 
     // Auto redirect if authenticated
     useEffect(() => {
@@ -27,12 +29,12 @@ export default function LandingPage() {
             // Check if onboarded
             const onboarded = localStorage.getItem("carte_onboarded");
             if (onboarded === "true") {
-                router.push("/zh/input");
+                router.push(`/${localePrefix}/input`);
             } else {
-                router.push("/zh/onboarding");
+                router.push(`/${localePrefix}/onboarding`);
             }
         }
-    }, [status, router]);
+    }, [status, router, localePrefix]);
 
     if (status === "loading") {
         return (
@@ -94,7 +96,7 @@ export default function LandingPage() {
                             className="flex flex-col sm:flex-row items-center justify-center gap-4"
                         >
                             <Link
-                                href="/zh/input"
+                                href={`/${localePrefix}/input`}
                                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-caramel to-terracotta rounded-full hover:opacity-90 hover:shadow-prominent transition-all"
                             >
                                 {t('start_button')}
@@ -290,7 +292,7 @@ export default function LandingPage() {
                             {t('cta_title')}
                         </h2>
                         <Link
-                            href="/zh/input"
+                            href={`/${localePrefix}/input`}
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-medium text-charcoal bg-white rounded-full hover:bg-cream transition-all shadow-floating"
                         >
                             <ChefHat className="w-5 h-5" />

@@ -3,7 +3,7 @@
 import { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,8 @@ export function CarteHeader({ className }: HeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
     const t = useTranslations('Header');
+    const locale = useLocale();
+    const localePrefix = locale || 'zh-TW';
 
     // Scroll effect
     useEffect(() => {
@@ -79,7 +81,7 @@ export function CarteHeader({ className }: HeaderProps) {
                     {/* CTA Button */}
                     <div className="hidden md:block">
                         <Link
-                            href="/zh/input"
+                            href={`/${localePrefix}/input`}
                             className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-caramel to-terracotta rounded-full hover:opacity-90 hover:shadow-medium transition-all"
                         >
                             {t('cta_button')}
@@ -115,7 +117,7 @@ export function CarteHeader({ className }: HeaderProps) {
                             </a>
                         ))}
                         <Link
-                            href="/zh/input"
+                            href={`/${localePrefix}/input`}
                             className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-caramel to-terracotta rounded-full hover:opacity-90 transition-all mt-2"
                         >
                             {t('cta_button')}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChefHat, MessageSquare, Sparkles, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocale } from "next-intl";
 
 const onboardingSteps = [
     {
@@ -26,6 +27,8 @@ const onboardingSteps = [
 
 export default function OnboardingPage() {
     const router = useRouter();
+    const locale = useLocale();
+    const localePrefix = locale || 'zh-TW';
     const [currentStep, setCurrentStep] = useState(0);
     const totalSteps = onboardingSteps.length;
 
@@ -35,13 +38,13 @@ export default function OnboardingPage() {
         } else {
             // Complete onboarding
             localStorage.setItem("carte_onboarded", "true");
-            router.push("/zh/input");
+            router.push(`/${localePrefix}/input`);
         }
     };
 
     const handleSkip = () => {
         localStorage.setItem("carte_onboarded", "true");
-        router.push("/zh/input");
+        router.push(`/${localePrefix}/input`);
     };
 
     const step = onboardingSteps[currentStep];
