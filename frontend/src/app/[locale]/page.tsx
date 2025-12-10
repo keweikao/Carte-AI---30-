@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import {
     Sparkles,
     Users,
@@ -18,6 +19,7 @@ import { CarteHeader, CarteFooter } from "@/components/carte";
 export default function LandingPage() {
     const { status } = useSession();
     const router = useRouter();
+    const t = useTranslations('HomePage');
 
     // Auto redirect if authenticated
     useEffect(() => {
@@ -59,7 +61,7 @@ export default function LandingPage() {
                             transition={{ duration: 0.6 }}
                             className="text-caramel font-medium tracking-wider text-sm uppercase mb-6"
                         >
-                            Your Personal Menu Curator
+                            {t('tagline')}
                         </motion.p>
 
                         {/* Headline */}
@@ -69,9 +71,9 @@ export default function LandingPage() {
                             transition={{ duration: 0.6, delay: 0.1 }}
                             className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-charcoal mb-6 leading-tight"
                         >
-                            讓 AI 為你策劃
+                            {t('title')}
                             <br />
-                            完美的用餐體驗
+                            {t('title_line2')}
                         </motion.h1>
 
                         {/* Subheadline */}
@@ -81,7 +83,7 @@ export default function LandingPage() {
                             transition={{ duration: 0.6, delay: 0.2 }}
                             className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto"
                         >
-                            不再為點餐煩惱。告訴我們你的喜好與情境，Carte AI 將從菜單中為你精選最適合的菜色組合。
+                            {t('subtitle')}
                         </motion.p>
 
                         {/* CTAs */}
@@ -95,7 +97,7 @@ export default function LandingPage() {
                                 href="/zh/input"
                                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-caramel to-terracotta rounded-full hover:opacity-90 hover:shadow-prominent transition-all"
                             >
-                                開始探索菜單
+                                {t('start_button')}
                                 <ArrowRight className="w-5 h-5" />
                             </Link>
 
@@ -103,7 +105,7 @@ export default function LandingPage() {
                                 href="#how-it-works"
                                 className="inline-flex items-center gap-2 text-charcoal hover:text-caramel transition-colors font-medium"
                             >
-                                了解運作方式 →
+                                {t('learn_more')} →
                             </a>
                         </motion.div>
                     </div>
@@ -116,7 +118,7 @@ export default function LandingPage() {
                     {/* Section Title */}
                     <div className="text-center mb-16">
                         <h2 className="font-serif text-3xl md:text-4xl font-bold text-charcoal mb-4">
-                            為什麼選擇 Carte AI
+                            {t('features_title')}
                         </h2>
                     </div>
 
@@ -125,18 +127,18 @@ export default function LandingPage() {
                         {[
                             {
                                 icon: Sparkles,
-                                title: "智慧推薦",
-                                description: "AI 分析數千則評論與菜單資訊，找出最適合你的選擇"
+                                title: t('feature1_title'),
+                                description: t('feature1_desc')
                             },
                             {
                                 icon: Users,
-                                title: "情境感知",
-                                description: "約會、商務、家庭聚餐？我們根據不同場合調整推薦策略"
+                                title: t('feature2_title'),
+                                description: t('feature2_desc')
                             },
                             {
                                 icon: Clock,
-                                title: "節省時間",
-                                description: "30 秒完成輸入，獲得專業級的點餐建議"
+                                title: t('feature3_title'),
+                                description: t('feature3_desc')
                             }
                         ].map((feature, index) => (
                             <motion.div
@@ -168,7 +170,7 @@ export default function LandingPage() {
                     {/* Section Title */}
                     <div className="text-center mb-16">
                         <h2 className="font-serif text-3xl md:text-4xl font-bold text-charcoal mb-4">
-                            簡單四步驟
+                            {t('how_it_works_title')}
                         </h2>
                     </div>
 
@@ -177,23 +179,23 @@ export default function LandingPage() {
                         {[
                             {
                                 number: "01",
-                                title: "選擇餐廳",
-                                description: "搜尋或輸入你想去的餐廳名稱"
+                                title: t('step1_title'),
+                                description: t('step1_desc')
                             },
                             {
                                 number: "02",
-                                title: "設定情境",
-                                description: "告訴我們用餐目的與人數"
+                                title: t('step2_title'),
+                                description: t('step2_desc')
                             },
                             {
                                 number: "03",
-                                title: "AI 分析",
-                                description: "我們即時分析菜單與評論"
+                                title: t('step3_title'),
+                                description: t('step3_desc')
                             },
                             {
                                 number: "04",
-                                title: "獲得推薦",
-                                description: "收到個人化的菜色組合建議"
+                                title: t('step4_title'),
+                                description: t('step4_desc')
                             }
                         ].map((step, index) => (
                             <motion.div
@@ -225,7 +227,7 @@ export default function LandingPage() {
                     {/* Section Title */}
                     <div className="text-center mb-16">
                         <h2 className="font-serif text-3xl md:text-4xl font-bold text-charcoal mb-4">
-                            用戶怎麼說
+                            {t('testimonials_title')}
                         </h2>
                     </div>
 
@@ -233,19 +235,19 @@ export default function LandingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                         {[
                             {
-                                quote: "終於不用在餐廳門口研究菜單半小時了！",
-                                author: "Amy L.",
-                                context: "約會常客"
+                                quote: t('testimonial1_quote'),
+                                author: t('testimonial1_author'),
+                                context: t('testimonial1_context')
                             },
                             {
-                                quote: "帶客戶吃飯時超有面子，每道菜都點到他們的心坎裡。",
-                                author: "Kevin C.",
-                                context: "業務經理"
+                                quote: t('testimonial2_quote'),
+                                author: t('testimonial2_author'),
+                                context: t('testimonial2_context')
                             },
                             {
-                                quote: "家族聚餐眾口難調？Carte AI 幫我搞定一切。",
-                                author: "Michelle W.",
-                                context: "家庭主婦"
+                                quote: t('testimonial3_quote'),
+                                author: t('testimonial3_author'),
+                                context: t('testimonial3_context')
                             }
                         ].map((testimonial, index) => (
                             <motion.div
@@ -285,17 +287,17 @@ export default function LandingPage() {
                         className="max-w-3xl mx-auto"
                     >
                         <h2 className="font-serif text-3xl md:text-4xl font-bold text-white mb-6">
-                            準備好探索你的下一餐了嗎？
+                            {t('cta_title')}
                         </h2>
                         <Link
                             href="/zh/input"
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-medium text-charcoal bg-white rounded-full hover:bg-cream transition-all shadow-floating"
                         >
                             <ChefHat className="w-5 h-5" />
-                            免費開始使用
+                            {t('cta_button')}
                         </Link>
                         <p className="mt-4 text-white/80 text-sm">
-                            無需註冊，立即體驗
+                            {t('cta_note')}
                         </p>
                     </motion.div>
                 </div>

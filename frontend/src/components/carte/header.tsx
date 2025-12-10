@@ -3,6 +3,7 @@
 import { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ export function CarteHeader({ className }: HeaderProps) {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
+    const t = useTranslations('Header');
 
     // Scroll effect
     useEffect(() => {
@@ -33,9 +35,9 @@ export function CarteHeader({ className }: HeaderProps) {
     }, [pathname]);
 
     const navLinks = [
-        { href: "#features", label: "功能介紹" },
-        { href: "#how-it-works", label: "使用方式" },
-        { href: "#about", label: "關於我們" },
+        { href: "#features", label: t('nav_features') },
+        { href: "#how-it-works", label: t('nav_how_it_works') },
+        { href: "#about", label: t('nav_about') },
     ];
 
     return (
@@ -80,7 +82,7 @@ export function CarteHeader({ className }: HeaderProps) {
                             href="/zh/input"
                             className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-caramel to-terracotta rounded-full hover:opacity-90 hover:shadow-medium transition-all"
                         >
-                            開始探索
+                            {t('cta_button')}
                         </Link>
                     </div>
 
@@ -116,7 +118,7 @@ export function CarteHeader({ className }: HeaderProps) {
                             href="/zh/input"
                             className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-caramel to-terracotta rounded-full hover:opacity-90 transition-all mt-2"
                         >
-                            開始探索
+                            {t('cta_button')}
                         </Link>
                     </nav>
                 </div>

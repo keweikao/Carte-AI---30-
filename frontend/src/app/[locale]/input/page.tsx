@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RestaurantSearch } from '@/components/restaurant-search';
 import { MapPin, Users, Utensils, ChefHat, ChevronLeft, Check, ArrowRight } from 'lucide-react';
@@ -12,6 +13,7 @@ export default function InputPageV3() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
+    const t = useTranslations('InputPage');
     const error = searchParams.get('error');
 
     // Current step (1-4)
@@ -31,24 +33,31 @@ export default function InputPageV3() {
         setFormData(prev => ({ ...prev, [key]: value }));
     }, []);
 
-    // Mode options
+    // Mode options - use translations
     const modeOptions = [
-        { value: "sharing", label: "大家分食", icon: Users, description: "適合合菜、熱炒，氣氛熱鬧" },
-        { value: "individual", label: "個人套餐", icon: Utensils, description: "拉麵、定食，各自享用" }
+        { value: "sharing", label: t('mode_sharing'), icon: Users, description: t('mode_sharing_desc') },
+        { value: "individual", label: t('mode_individual'), icon: Utensils, description: t('mode_individual_desc') }
     ];
 
-    // Occasion options  
+    // Occasion options - use translations
     const occasionOptions = [
-        { value: "friends", label: "朋友聚餐", icon: "🍻" },
-        { value: "family", label: "家庭聚會", icon: "👨‍👩‍👧‍👦" },
-        { value: "date", label: "浪漫約會", icon: "💑" },
-        { value: "business", label: "商務應酬", icon: "💼" }
+        { value: "friends", label: t('occasion_friends'), icon: "🍻" },
+        { value: "family", label: t('occasion_family'), icon: "👨‍👩‍👧‍👦" },
+        { value: "date", label: t('occasion_date'), icon: "💑" },
+        { value: "business", label: t('occasion_business'), icon: "💼" }
     ];
 
-    // Dietary suggestions
+    // Dietary suggestions - use translations
     const dietarySuggestions = [
-        "不吃牛", "不吃豬", "不吃辣", "全素", "鍋邊素",
-        "少油少鹽", "老人友善", "兒童友善", "海鮮過敏"
+        { key: "dietary_no_beef", label: t('dietary_no_beef') },
+        { key: "dietary_no_pork", label: t('dietary_no_pork') },
+        { key: "dietary_no_spicy", label: t('dietary_no_spicy') },
+        { key: "dietary_vegan", label: t('dietary_vegan') },
+        { key: "dietary_vegetarian", label: t('dietary_vegetarian') },
+        { key: "dietary_low_sodium", label: t('dietary_low_sodium') },
+        { key: "dietary_senior_friendly", label: t('dietary_senior_friendly') },
+        { key: "dietary_kid_friendly", label: t('dietary_kid_friendly') },
+        { key: "dietary_no_seafood", label: t('dietary_no_seafood') },
     ];
 
     // Navigation Logic
@@ -89,9 +98,9 @@ export default function InputPageV3() {
         return (
             <div className="min-h-screen flex items-center justify-center p-6 bg-[#F9F6F0]">
                 <div className="text-center space-y-4 max-w-md">
-                    <p className="text-lg text-charcoal-700">發生錯誤：{error}</p>
+                    <p className="text-lg text-charcoal-700">{t('error_occurred')}{error}</p>
                     <button onClick={() => router.push('/')} className="text-caramel hover:underline font-bold">
-                        返回首頁
+                        {t('back_home')}
                     </button>
                 </div>
             </div>
@@ -104,16 +113,16 @@ export default function InputPageV3() {
             <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-cream-50">
                 <div className="text-center space-y-6 max-w-md">
                     <h1 className="text-2xl font-serif font-bold text-charcoal">
-                        請先登入以使用 Carte AI
+                        {t('login_required_title')}
                     </h1>
                     <p className="text-gray-600">
-                        我們需要您的 Google 帳號來為您提供個人化推薦
+                        {t('login_required_subtitle')}
                     </p>
                     <button
                         onClick={() => signIn('google', { callbackUrl: '/zh/input' })}
                         className="inline-flex items-center gap-2 px-6 py-3 bg-charcoal text-white rounded-full font-bold hover:bg-black transition-colors"
                     >
-                        使用 Google 登入
+                        {t('login_google')}
                     </button>
                 </div>
             </div>
@@ -129,15 +138,15 @@ export default function InputPageV3() {
                     <p className="text-caramel-700 font-bold tracking-[0.2em] text-xs uppercase mb-2">
                         Dining Concierge
                     </p>
-                    <h1 className="text-3xl sm:text-4xl font-serif font-bold text-charcoal leading-tight">
-                        為您規劃<br />完美的用餐體驗
+                    <h1 className="text-3xl sm:text-4xl font-serif font-bold text-charcoal leading-tight whitespace-pre-line">
+                        {t('header_title')}
                     </h1>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="mb-8 px-2">
                     <div className="flex justify-between mb-2">
-                        {["餐廳", "模式", "人數", "偏好"].map((label, idx) => (
+                        {[t('progress_restaurant'), t('progress_mode'), t('progress_people'), t('progress_preferences')].map((label, idx) => (
                             <span key={idx} className={cn(
                                 "text-xs font-bold transition-colors duration-300",
                                 currentStep > idx ? "text-caramel-700" :
@@ -172,9 +181,9 @@ export default function InputPageV3() {
                             >
                                 <div className="mb-6">
                                     <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
-                                        您準備在哪間餐廳用餐？
+                                        {t('step1_title')}
                                     </h2>
-                                    <p className="text-gray-500 text-sm">輸入餐廳名稱，AI 將為您解讀菜單</p>
+                                    <p className="text-gray-500 text-sm">{t('step1_subtitle')}</p>
                                 </div>
 
                                 <div className="relative z-20">
@@ -196,7 +205,7 @@ export default function InputPageV3() {
                                             }
                                         }}
                                         onChange={(value) => updateData("restaurant_name", value)}
-                                        placeholder="例如：鼎泰豐..."
+                                        placeholder={t('restaurant_placeholder')}
                                         className="text-xl font-bold bg-cream border-2 border-charcoal/10 focus:border-caramel rounded-xl px-5 py-6 shadow-inner placeholder:font-normal"
                                     />
                                 </div>
@@ -214,9 +223,9 @@ export default function InputPageV3() {
                             >
                                 <div className="mb-6">
                                     <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
-                                        怎麼吃？
+                                        {t('step2_title')}
                                     </h2>
-                                    <p className="text-gray-500 text-sm">選擇您的用餐形式</p>
+                                    <p className="text-gray-500 text-sm">{t('step2_subtitle')}</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -267,9 +276,9 @@ export default function InputPageV3() {
                             >
                                 <div className="text-center mb-8">
                                     <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
-                                        幾位用餐？
+                                        {t('step3_title')}
                                     </h2>
-                                    <p className="text-gray-500 text-sm">我們會依人數調整份量建議</p>
+                                    <p className="text-gray-500 text-sm">{t('step3_subtitle')}</p>
                                 </div>
 
                                 <div className="bg-cream-50 rounded-full p-2 flex items-center justify-between max-w-xs mx-auto w-full border border-gray-200 shadow-inner">
@@ -285,7 +294,7 @@ export default function InputPageV3() {
                                         <span className="text-4xl font-serif font-bold text-charcoal tabular-nums">
                                             {formData.people}
                                         </span>
-                                        <span className="text-gray-500 ml-2 font-medium">位</span>
+                                        <span className="text-gray-500 ml-2 font-medium">{t('people_unit')}</span>
                                     </div>
 
                                     <button
@@ -309,7 +318,7 @@ export default function InputPageV3() {
                                                     : "bg-white text-gray-500 border-gray-200 hover:border-caramel/50"
                                             )}
                                         >
-                                            {num} 人
+                                            {num} {t('people_unit')}
                                         </button>
                                     ))}
                                 </div>
@@ -327,14 +336,14 @@ export default function InputPageV3() {
                             >
                                 <div className="mb-2">
                                     <h2 className="text-2xl font-serif font-bold text-charcoal mb-2">
-                                        最後確認
+                                        {t('step4_title')}
                                     </h2>
-                                    <p className="text-gray-500 text-sm">讓推薦更精準</p>
+                                    <p className="text-gray-500 text-sm">{t('step4_subtitle')}</p>
                                 </div>
 
                                 {/* Occasion Grid */}
                                 <div className="space-y-3">
-                                    <label className="text-sm font-bold text-charcoal uppercase tracking-wider">用餐目的</label>
+                                    <label className="text-sm font-bold text-charcoal uppercase tracking-wider">{t('occasion_label')}</label>
                                     <div className="grid grid-cols-2 gap-3">
                                         {occasionOptions.map((option) => {
                                             const isSelected = formData.occasion === option.value;
@@ -359,21 +368,21 @@ export default function InputPageV3() {
 
                                 {/* Dietary Pills */}
                                 <div className="space-y-3">
-                                    <label className="text-sm font-bold text-charcoal uppercase tracking-wider">飲食偏好 (多選)</label>
+                                    <label className="text-sm font-bold text-charcoal uppercase tracking-wider">{t('dietary_label')}</label>
                                     <div className="flex flex-wrap gap-2">
-                                        {dietarySuggestions.map((tag) => {
+                                        {dietarySuggestions.map((item) => {
                                             const current = formData.dietary_restrictions;
-                                            const isSelected = current.includes(tag);
+                                            const isSelected = current.includes(item.label);
 
                                             return (
                                                 <button
-                                                    key={tag}
+                                                    key={item.key}
                                                     onClick={() => {
                                                         const tags = current ? current.split('、').filter(Boolean) : [];
                                                         if (isSelected) {
-                                                            updateData("dietary_restrictions", tags.filter(t => t !== tag).join('、'));
+                                                            updateData("dietary_restrictions", tags.filter(t => t !== item.label).join('、'));
                                                         } else {
-                                                            updateData("dietary_restrictions", [...tags, tag].join('、'));
+                                                            updateData("dietary_restrictions", [...tags, item.label].join('、'));
                                                         }
                                                     }}
                                                     className={cn(
@@ -383,7 +392,7 @@ export default function InputPageV3() {
                                                             : "bg-white border-gray-200 text-charcoal hover:border-terracotta/50"
                                                     )}
                                                 >
-                                                    {tag}
+                                                    {item.label}
                                                 </button>
                                             )
                                         })}
@@ -406,7 +415,7 @@ export default function InputPageV3() {
                             )}
                         >
                             <ChevronLeft className="w-4 h-4" />
-                            上一步
+                            {t('prev_button')}
                         </button>
 
                         {currentStep < 4 ? (
@@ -420,7 +429,7 @@ export default function InputPageV3() {
                                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
                                 )}
                             >
-                                下一步
+                                {t('next_button')}
                                 <ArrowRight className="w-4 h-4" />
                             </button>
                         ) : (
@@ -429,7 +438,7 @@ export default function InputPageV3() {
                                 className="flex items-center gap-2 px-8 py-3 rounded-full font-bold bg-gradient-to-r from-caramel to-terracotta text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
                             >
                                 <ChefHat className="w-5 h-5" />
-                                告訴我該點什麼 ✨
+                                {t('submit_button')}
                             </button>
                         )}
                     </div>
