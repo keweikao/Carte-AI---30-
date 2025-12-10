@@ -39,7 +39,10 @@ jobs:
       - name: Run Lint
         run: npm run lint
 
-      # Currently we don't have tests set up to run reliably in CI, 
+      - name: Check i18n Consistency
+        run: npm run i18n:check
+
+      # Currently we don't have tests set up to run reliably in CI,
       # but this placeholder ensures we can add 'npm run test' later easily.
       # - name: Run Tests
       #   run: npm run test
