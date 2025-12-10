@@ -2,7 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 
 export default createMiddleware({
     // A list of all locales that are supported
-    locales: ['en', 'zh-TW', 'zh'],
+    locales: ['en', 'zh-TW'],
 
     // Used when no locale matches
     defaultLocale: 'zh-TW',
@@ -10,7 +10,6 @@ export default createMiddleware({
     // Locale detection and alias mapping
     localePrefix: 'as-needed',
 
-    // Map 'zh' to 'zh-TW' for backwards compatibility
     localeDetection: true,
     alternateLinks: true
 });

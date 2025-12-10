@@ -14,7 +14,11 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "prepare": "husky"
+    "prepare": "husky",
+    "i18n:check": "node scripts/i18n-tools.js check",
+    "i18n:sync": "node scripts/i18n-tools.js sync",
+    "i18n:init": "node scripts/i18n-tools.js init",
+    "i18n:todos": "node scripts/i18n-tools.js todos"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

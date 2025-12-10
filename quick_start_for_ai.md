@@ -2,6 +2,67 @@
 
 > **詳細規範請參閱**：[project_foundation.md](./project_foundation.md)
 
+## 0. 開發環境設定 (Development Setup)
+
+### 🚀 一鍵啟動開發環境
+
+```bash
+./start_dev.sh
+```
+
+這個腳本會自動：
+1. 檢查並建立 Python 虛擬環境 (`venv/`)
+2. 安裝所有必要的依賴套件
+3. 同時啟動前端和後端服務器
+
+### 分別啟動服務
+
+```bash
+# 只啟動後端 (FastAPI)
+./start_dev.sh backend
+
+# 只啟動前端 (Next.js)
+./start_dev.sh frontend
+
+# 同時啟動兩者
+./start_dev.sh both
+```
+
+### 訪問應用
+
+- **前端**: http://localhost:3000
+- **後端 API**: http://localhost:8000
+- **API 文檔**: http://localhost:8000/docs
+
+### 手動啟動（如需要）
+
+**後端**:
+```bash
+source venv/bin/activate
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**前端**:
+```bash
+cd frontend
+npm run dev
+```
+
+### 環境需求
+
+- **Python**: 3.11+
+- **Node.js**: 22.17.0+
+- **環境變數**:
+  - 後端: `.env` (已配置)
+  - 前端: `frontend/.env.local` (已配置)
+
+### 詳細文檔
+
+- 完整設定指南: [DEV_SETUP.md](./DEV_SETUP.md)
+- 快速開始: [QUICK_START.md](./QUICK_START.md)
+
+---
+
 ## 1. 憲法 (Constitution)
 - **語言**：強制使用 **繁體中文 (Traditional Chinese)**。
 - **思維**：你是一位主動的工程師，而非被動的聊天機器人。
